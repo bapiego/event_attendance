@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin - Event Attendance</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #f4f6f9;
+    color: #1a202c;
+    min-height: 100vh;
+  }
+
+  header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  header h1 { font-size: 18px; font-weight: 600; }
+
+  header .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 13px;
+  }
+
+  header a {
+    color: white;
+    text-decoration: none;
+    opacity: 0.85;
+  }
+  header a:hover { opacity: 1; text-decoration: underline; }
+
+  header button#logoutBtn {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  header button#logoutBtn:hover { background: rgba(255,255,255,0.25); }
+
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 24px 20px;
+  }
+
+  .card {
+    background: white;
+    border-radius: 14px;
+    padding: 22px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .card h2 {
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  .card p.sub {
+    font-size: 13px;
+    color: #718096;
+    margin-bottom: 18px;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 5px;
+    margin-top: 14px;
+  }
+
+  input {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 14px;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #2c5282;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+  }
+
+  .form-row > div { flex: 1; }
+
+  button.primary-btn {
+    background: #2c5282;
+    color: white;
+    border: none;
+    padding: 11px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 18px;
+    width: 100%;
+  }
+  button.primary-btn:hover { background: #1e3a5f; }
+  button.primary-btn:disabled { background: #a0aec0; cursor: not-allowed; }
+
+  button.gen-btn {
+    background: #edf2f7;
+    color: #2c5282;
+    border: 1px solid #cbd5e0;
+    padding: 11px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  button.gen-btn:hover { background: #e2e8f0; }
+
+  .user-list {
+    list-style: none;
+  }
+
+  .user-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+    gap: 10px;
+  }
+
+  .user-list li:last-child { border-bottom: none; }
+
+  .user-list .uname { font-weight: 600; }
+  .user-list .uname .admin-tag {
+    font-size: 10px;
+    background: #e6fffa;
+    color: #234e52;
+    padding: 2px 6px;
+    border-radius: 5px;
+    margin-left: 6px;
+    font-weight: 700;
+    vertical-align: middle;
+  }
+  .user-list .udate { font-size: 12px; color: #a0aec0; }
+
+  .user-list .right-side {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .delete-btn {
+    background: #fff5f5;
+    color: #c53030;
+    border: 1px solid #fed7d7;
+    padding: 6px 12px;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .delete-btn:hover { background: #fed7d7; }
+
+  .empty-note {
+    color: #a0aec0;
+    font-size: 13px;
+    padding: 10px 0;
+  }
+
+  .credential-box {
+    background: #f0f7ff;
+    border: 1.5px solid #bee3f8;
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 16px;
+    display: none;
+  }
+
+  .credential-box.active { display: block; }
+
+  .credential-box p {
+    font-size: 13px;
+    color: #2c5282;
+    margin-bottom: 8px;
+  }
+
+  .credential-box .cred-line {
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: 14px;
+    background: white;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    word-break: break-all;
+  }
+
+  .credential-box .warn {
+    font-size: 12px;
+    color: #c05621;
+    margin-top: 8px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a202c;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    z-index: 200;
+    display: none;
+  }
+  .toast.success { background: #2f855a; }
+  .toast.error { background: #c53030; }
+
+  /* Confirm delete modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 300;
+  }
+  .modal-overlay.active { display: flex; }
+
+  .modal-box {
+    background: white;
+    border-radius: 14px;
+    padding: 24px;
+    max-width: 360px;
+    width: 100%;
+  }
+
+  .modal-box h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .modal-box p {
+    font-size: 14px;
+    color: #4a5568;
+    margin-bottom: 20px;
+  }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+  }
+
+  .modal-actions button {
+    flex: 1;
+    padding: 11px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-cancel {
+    background: #f1f5f9;
+    color: #4a5568;
+  }
+  .btn-cancel:hover { background: #e2e8f0; }
+
+  .btn-danger {
+    background: #c53030;
+    color: white;
+  }
+  .btn-danger:hover { background: #9b2c2c; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Admin — User Management</h1>
+  <div class="nav-links">
+    <a href="index.html">← Back to Check-In</a>
+    <button id="logoutBtn">Log Out</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h2>Create New User</h2>
+    <p class="sub">Add a login for anyone helping with check-in (e.g. an usher).</p>
+
+    <label for="newUsername">Username</label>
+    <input type="text" id="newUsername" autocomplete="off">
+
+    <label for="newPassword">Password</label>
+    <div class="form-row">
+      <div>
+        <input type="text" id="newPassword" autocomplete="off">
+      </div>
+      <button class="gen-btn" id="genPasswordBtn">Generate</button>
+    </div>
+
+    <button class="primary-btn" id="createUserBtn">Create User</button>
+
+    <div class="credential-box" id="credentialBox">
+      <p>✅ Account created. Share these credentials with the user — this is the only time the password will be shown:</p>
+      <div class="cred-line" id="credUsernameLine"></div>
+      <div class="cred-line" id="credPasswordLine"></div>
+      <p class="warn">Once you navigate away, this password cannot be retrieved again.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Existing Users</h2>
+    <p class="sub">Everyone who currently has access to the check-in system.</p>
+    <ul class="user-list" id="userList">
+      <li class="empty-note">Loading...</li>
+    </ul>
+  </div>
+
+</div>
+
+<!-- Confirm delete modal -->
+<div class="modal-overlay" id="confirmModal">
+  <div class="modal-box">
+    <h3>Delete this user?</h3>
+    <p id="confirmText">This will permanently remove their login access. This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="cancelDeleteBtn">Cancel</button>
+      <button class="btn-danger" id="confirmDeleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_PLI1DLUB_0DF3R0x3GPWYA_RNj2aScg';
+
+  let currentUserId = null;
+  let pendingDeleteId = null;
+  let pendingDeleteName = null;
+
+  // ---------- Auth check (now also requires is_admin) ----------
+  async function requireLogin() {
+    const token = localStorage.getItem('session_token');
+
+    if (!token) {
+      window.location.href = 'login.html';
+      return;
+    }
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/verify_session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+        body: JSON.stringify({ p_token: token })
+      });
+      const data = await res.json();
+
+      if (!data.valid) {
+        localStorage.removeItem('session_token');
+        localStorage.removeItem('username');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      if (!data.is_admin) {
+        // Not an admin - send them back to the check-in page, they shouldn't be here
+        window.location.href = 'index.html';
+        return;
+      }
+
+      currentUserId = data.user_id;
+      loadUsers();
+    } catch (e) {
+      window.location.href = 'login.html';
+    }
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.removeItem('session_token');
+    localStorage.removeItem('username');
+    window.location.href = 'login.html';
+  });
+
+  // ---------- Toast ----------
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast ${type}`;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 2500);
+  }
+
+  // ---------- Generate password ----------
+  document.getElementById('genPasswordBtn').addEventListener('click', () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    let pass = '';
+    for (let i = 0; i < 12; i++) {
+      pass += chars[Math.floor(Math.random() * chars.length)];
+    }
+    document.getElementById('newPassword').value = pass;
+  });
+
+  // ---------- Create user ----------
+  document.getElementById('createUserBtn').addEventListener('click', async () => {
+    const username = document.getElementById('newUsername').value.trim();
+    const password = document.getElementById('newPassword').value;
+    const btn = document.getElementById('createUserBtn');
+
+    if (!username || !password) {
+      showToast('Username and password are both required', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Creating...';
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/create_user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+        body: JSON.stringify({ p_username: username, p_password: password })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        document.getElementById('credUsernameLine').textContent = `Username: ${username}`;
+        document.getElementById('credPasswordLine').textContent = `Password: ${password}`;
+        document.getElementById('credentialBox').classList.add('active');
+        document.getElementById('newUsername').value = '';
+        document.getElementById('newPassword').value = '';
+        showToast('User created successfully');
+        loadUsers();
+      } else {
+        showToast(data.error || 'Failed to create user', 'error');
+      }
+    } catch (e) {
+      showToast('Connection error', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Create User';
+    }
+  });
+
+  // ---------- Load existing users ----------
+  async function loadUsers() {
+    const list = document.getElementById('userList');
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/list_users`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+        body: JSON.stringify({})
+      });
+      const users = await res.json();
+
+      if (!users || users.length === 0) {
+        list.innerHTML = '<li class="empty-note">No users yet.</li>';
+        return;
+      }
+
+      list.innerHTML = '';
+      users.forEach(u => {
+        const li = document.createElement('li');
+        const dateStr = new Date(u.created_at).toLocaleDateString();
+        const isSelf = u.id === currentUserId;
+
+        li.innerHTML = `
+          <span class="uname">${escapeHtml(u.username)}${u.is_admin ? '<span class="admin-tag">ADMIN</span>' : ''}</span>
+          <span class="right-side">
+            <span class="udate">Added ${dateStr}</span>
+          </span>
+        `;
+
+        // Only show delete button if this isn't the current admin's own row
+        if (!isSelf) {
+          const rightSide = li.querySelector('.right-side');
+          const delBtn = document.createElement('button');
+          delBtn.className = 'delete-btn';
+          delBtn.textContent = 'Delete';
+          delBtn.addEventListener('click', () => openConfirmModal(u.id, u.username));
+          rightSide.appendChild(delBtn);
+        }
+
+        list.appendChild(li);
+      });
+    } catch (e) {
+      list.innerHTML = '<li class="empty-note">Failed to load users.</li>';
+    }
+  }
+
+  // ---------- Delete confirmation modal ----------
+  function openConfirmModal(userId, username) {
+    pendingDeleteId = userId;
+    pendingDeleteName = username;
+    document.getElementById('confirmText').textContent =
+      `This will permanently remove login access for "${username}". This cannot be undone.`;
+    document.getElementById('confirmModal').classList.add('active');
+  }
+
+  function closeConfirmModal() {
+    document.getElementById('confirmModal').classList.remove('active');
+    pendingDeleteId = null;
+    pendingDeleteName = null;
+  }
+
+  document.getElementById('cancelDeleteBtn').addEventListener('click', closeConfirmModal);
+
+  document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+    if (!pendingDeleteId) return;
+
+    const token = localStorage.getItem('session_token');
+    const btn = document.getElementById('confirmDeleteBtn');
+    btn.disabled = true;
+    btn.textContent = 'Deleting...';
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/delete_user`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+        body: JSON.stringify({ p_admin_token: token, p_target_user_id: pendingDeleteId })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        showToast(`${pendingDeleteName} was deleted`);
+        closeConfirmModal();
+        loadUsers();
+      } else {
+        showToast(data.error || 'Failed to delete user', 'error');
+        closeConfirmModal();
+      }
+    } catch (e) {
+      showToast('Connection error', 'error');
+      closeConfirmModal();
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Delete';
+    }
+  });
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ---------- Init ----------
+  requireLogin();
+</script>
+
+</body>
+</html>
