@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usher Check-In Gate</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #2563eb;
+            --success: #10b981;
+            --success-bg: rgba(16, 185, 129, 0.15);
+            --border: #334155;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            margin: 0;
+            padding: 1.5rem;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 650px;
+            width: 100%;
+        }
+        .header-area {
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h1 { font-size: 1.5rem; margin: 0; }
+        .badge {
+            background-color: var(--accent);
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .search-box {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.1rem;
+            border-radius: 8px;
+            border: 2px solid var(--border);
+            background-color: #1e293b;
+            color: white;
+            box-sizing: border-box;
+            margin-bottom: 1.5rem;
+            outline: none;
+        }
+        .search-box:focus { border-color: var(--accent); }
+        .attendee-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+        }
+        .attendee-card.checked-in {
+            border-color: var(--success);
+            background-color: var(--success-bg);
+        }
+        .meta-group div { margin-bottom: 0.25rem; font-size: 0.95rem; }
+        .meta-label { color: var(--text-muted); font-size: 0.85rem; }
+        .checkin-btn {
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+            background-color: #475569;
+            color: white;
+            min-width: 110px;
+        }
+        .attendee-card.checked-in .checkin-btn {
+            background-color: var(--success);
+        }
+        .status-msg {
+            text-align: center;
+            color: var(--text-muted);
+            margin-top: 2rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-area">
+        <div>
+            <h1 id="eventNameHeader">Loading Assigned Gate...</h1>
+            <span style="color: var(--text-muted); font-size: 0.9rem;">Usher Panel</span>
+        </div>
+        <div id="statsBadge" class="badge">0 Checked In</div>
+    </div>
+
+    <input type="text" id="searchInput" class="search-box" placeholder="Type to instantly find names or numbers..." disabled>
+
+    <div id="attendeesFeed">
+        <div class="status-msg">Authenticating device connection...</div>
+    </div>
+</div>
+
+<script>
+    // System operational states
+    let sessionToken = "YOUR_STORED_SESSION_TOKEN_HERE"; 
+    let currentEventId = "AUTO_RESOLVED_ON_LOGIN"; 
+    let schemaBlueprints = []; 
+    let checkinCount = 0;
+
+    let searchTimeout = null;
+
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        // Debounce database network hits to maintain snappy UI input response
+        searchTimeout = setTimeout(() => {
+            executeGateSearch(e.target.value.trim());
+        }, 150);
+    });
+
+    // Initialize application interface constraints
+    async function bootstrapWorkspace() {
+        try {
+            // Step 1: Query what layout fields exist for this event context
+            let fields = await callRPC('get_event_fields', { p_token: sessionToken, p_event_id: currentEventId });
+            schemaBlueprints = fields.sort((a,b) => a.field_order - b.field_order);
+
+            // Set up search bar access once data keys are locked in
+            document.getElementById('eventNameHeader').innerText = "Live Gate Check-In";
+            const input = document.getElementById('searchInput');
+            input.disabled = false;
+            input.focus();
+
+            // Run initial empty search to display initial roster feed slice
+            executeGateSearch("");
+
+        } catch (err) {
+            document.getElementById('attendeesFeed').innerHTML = `<div class="status-msg" style="color:#f87171;">Authorization Failure: Scoped Event Context Unreachable.</div>`;
+        }
+    }
+
+    async function executeGateSearch(term) {
+        try {
+            let records = await callRPC('search_attendees', { p_token: sessionToken, p_search_term: term });
+            renderFeed(records);
+        } catch (err) {
+            console.error("Search transaction halted.");
+        }
+    }
+
+    function renderFeed(records) {
+        const feed = document.getElementById('attendeesFeed');
+        feed.innerHTML = '';
+
+        if (records.length === 0) {
+            feed.innerHTML = '<div class="status-msg">No matching attendees found for this query.</div>';
+            return;
+        }
+
+        records.forEach(person => {
+            const card = document.createElement('div');
+            card.className = `attendee-card ${person.checked_in ? 'checked-in' : ''}`;
+            card.id = `attendee-${person.id}`;
+
+            // Loop through dynamic schema layout blueprints to build customized row attributes
+            let htmlMeta = '';
+            schemaBlueprints.forEach(field => {
+                const value = person.data[field.field_key];
+                if (value) {
+                    if (field.is_name_field) {
+                        htmlMeta += `<div><strong>${value}</strong></div>`;
+                    } else {
+                        htmlMeta += `<div><span class="meta-label">${field.field_label}:</span> ${value}</div>`;
+                    }
+                }
+            });
+
+            card.innerHTML = `
+                <div class="meta-group">${htmlMeta}</div>
+                <button class="checkin-btn" onclick="toggleGateStatus('${person.id}', ${!person.checked_in})">
+                    ${person.checked_in ? '✓ Inside' : 'Check In'}
+                </button>
+            `;
+            feed.appendChild(card);
+        });
+    }
+
+    async function toggleGateStatus(attendeeId, targetState) {
+        const card = document.getElementById(`attendee-${attendeeId}`);
+        const button = card.querySelector('.checkin-btn');
+
+        // Optimistic UI state presentation for high-speed clicking
+        if (targetState) {
+            card.classList.add('checked-in');
+            button.innerText = "✓ Inside";
+        } else {
+            card.classList.remove('checked-in');
+            button.innerText = "Check In";
+        }
+
+        try {
+            let res = await callRPC('toggle_attendee_checkin', {
+                p_token: sessionToken,
+                p_attendee_id: attendeeId,
+                p_checked_in: targetState
+            });
+
+            if (!res.success) {
+                alert(`Gate Rejected: ${res.error}`);
+                // Rollback optimistic layout state change if database explicitly drops transaction
+                executeGateSearch(document.getElementById('searchInput').value);
+            } else {
+                updateMetricsBadge(targetState ? 1 : -1);
+                // Fix inline function trigger binding for next tap action sequence
+                button.setAttribute('onclick', `toggleGateStatus('${attendeeId}', ${!targetState})`);
+            }
+        } catch (err) {
+            alert("Network dropped. Synch failure.");
+        }
+    }
+
+    function updateMetricsBadge(modifier) {
+        checkinCount += modifier;
+        if (checkinCount < 0) checkinCount = 0;
+        document.getElementById('statsBadge').innerText = `${checkinCount} Checked In`;
+    }
+
+    // Mock network abstraction handler interfacing backend endpoints
+    async function callRPC(functionName, payload) {
+        console.log(`Dispatched Workspace API: ${functionName}`, payload);
+        
+        if (functionName === 'get_event_fields') {
+            return [
+                { field_key: 'full_name', field_label: 'Guest Name', field_order: 1, is_name_field: true },
+                { field_key: 'ticket_tier', field_label: 'Access Pass', field_order: 2, is_name_field: false },
+                { field_key: 'table_no', field_label: 'Assigned Seating', field_order: 3, is_name_field: false }
+            ];
+        }
+        if (functionName === 'search_attendees') {
+            return [
+                { id: "person-a", data: { full_name: "Kwame Mensah", ticket_tier: "VIP Executive", table_no: "Table 4" }, checked_in: false },
+                { id: "person-b", data: { full_name: "Abena Osei", ticket_tier: "General Admission", table_no: "Table 12" }, checked_in: true }
+            ];
+        }
+        return { success: true };
+    }
+
+    // Run engine setup on client window ready loop
+    bootstrapWorkspace();
+</script>
+</body>
+</html>
