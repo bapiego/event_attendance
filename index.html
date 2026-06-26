@@ -227,7 +227,26 @@
   }
   .undo-btn:hover { border-color: #cbd5e0; color: #718096; }
 
-  /* Modal for adding a new attendee */
+  .edit-btn {
+    background: none;
+    border: 1px solid #cbd5e0;
+    color: #2c5282;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .edit-btn:hover { background: #f0f7ff; }
+
+  .action-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  /* Modal for adding/editing an attendee */
   .modal-overlay {
     display: none;
     position: fixed;
@@ -367,11 +386,11 @@
   </div>
 </div>
 
-<!-- Add new attendee modal -->
+<!-- Add/Edit attendee modal -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal-box">
-    <h2>Add New Attendee</h2>
-    <p class="sub">No match found — fill in their details to check them in.</p>
+    <h2 id="modalTitle">Add New Attendee</h2>
+    <p class="sub" id="modalSub">No match found — fill in their details to check them in.</p>
 
     <label for="newName">Full Name</label>
     <input type="text" id="newName">
@@ -409,6 +428,7 @@
 
   let debounceTimer = null;
   let currentSearchTerm = '';
+  let editingId = null; // null = "add new" mode, otherwise = "edit" mode for this attendee id
 
   // ---------- Auth check ----------
   async function requireLogin() {
@@ -596,7 +616,6 @@
       const undoBtn = document.createElement('button');
       undoBtn.className = 'undo-btn';
       undoBtn.textContent = 'Undo';
-      undoBtn.style.marginTop = '8px';
       undoBtn.addEventListener('click', () => undoCheckIn(person.id));
       actionRow.appendChild(undoBtn);
     } else {
@@ -606,6 +625,12 @@
       btn.addEventListener('click', () => checkIn(person.id));
       actionRow.appendChild(btn);
     }
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'edit-btn';
+    editBtn.textContent = 'Edit';
+    editBtn.addEventListener('click', () => openEditModal(person));
+    actionRow.appendChild(editBtn);
 
     return card;
   }
@@ -650,10 +675,14 @@
     }
   }
 
-  // ---------- Add new attendee modal ----------
+  // ---------- Add/Edit attendee modal ----------
   const modalOverlay = document.getElementById('modalOverlay');
 
   function openAddModal(prefillName) {
+    editingId = null;
+    document.getElementById('modalTitle').textContent = 'Add New Attendee';
+    document.getElementById('modalSub').textContent = 'No match found — fill in their details to check them in.';
+    document.getElementById('confirmAddBtn').textContent = 'Add & Check In';
     document.getElementById('newName').value = prefillName || '';
     document.getElementById('newPhone').value = '';
     document.getElementById('newCategory').value = 'Associate Pastor';
@@ -663,8 +692,23 @@
     modalOverlay.classList.add('active');
   }
 
+  function openEditModal(person) {
+    editingId = person.id;
+    document.getElementById('modalTitle').textContent = 'Edit Attendee';
+    document.getElementById('modalSub').textContent = 'Update their details below.';
+    document.getElementById('confirmAddBtn').textContent = 'Save Changes';
+    document.getElementById('newName').value = person.full_name || '';
+    document.getElementById('newPhone').value = person.phone || '';
+    document.getElementById('newCategory').value = person.category || 'Associate Pastor';
+    document.getElementById('newRank').value = person.ministerial_rank_position || '';
+    document.getElementById('newChurch').value = person.church || '';
+    document.getElementById('newDistrict').value = person.district || '';
+    modalOverlay.classList.add('active');
+  }
+
   function closeAddModal() {
     modalOverlay.classList.remove('active');
+    editingId = null;
   }
 
   document.getElementById('cancelAddBtn').addEventListener('click', closeAddModal);
@@ -676,33 +720,65 @@
       return;
     }
 
-    const payload = {
-      p_full_name: name,
-      p_phone: document.getElementById('newPhone').value.trim() || null,
-      p_ministerial_rank_position: document.getElementById('newRank').value.trim() || null,
-      p_church: document.getElementById('newChurch').value.trim() || null,
-      p_district: document.getElementById('newDistrict').value.trim() || null,
-      p_category: document.getElementById('newCategory').value
-    };
+    if (editingId) {
+      // Edit mode - update existing attendee
+      const payload = {
+        p_id: editingId,
+        p_full_name: name,
+        p_phone: document.getElementById('newPhone').value.trim() || null,
+        p_ministerial_rank_position: document.getElementById('newRank').value.trim() || null,
+        p_church: document.getElementById('newChurch').value.trim() || null,
+        p_district: document.getElementById('newDistrict').value.trim() || null,
+        p_category: document.getElementById('newCategory').value
+      };
 
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/add_and_check_in_attendee`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
-        body: JSON.stringify(payload)
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast(`${name} added and checked in`);
-        closeAddModal();
-        loadSummary();
-        searchInput.value = name;
-        runSearch(name);
-      } else {
-        showToast(data.error || 'Failed to add attendee', 'error');
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/update_attendee_details`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`${name}'s details updated`);
+          closeAddModal();
+          if (currentSearchTerm) runSearch(currentSearchTerm);
+        } else {
+          showToast(data.error || 'Failed to update attendee', 'error');
+        }
+      } catch (e) {
+        showToast('Connection error', 'error');
       }
-    } catch (e) {
-      showToast('Connection error', 'error');
+    } else {
+      // Add mode - create new attendee and check them in
+      const payload = {
+        p_full_name: name,
+        p_phone: document.getElementById('newPhone').value.trim() || null,
+        p_ministerial_rank_position: document.getElementById('newRank').value.trim() || null,
+        p_church: document.getElementById('newChurch').value.trim() || null,
+        p_district: document.getElementById('newDistrict').value.trim() || null,
+        p_category: document.getElementById('newCategory').value
+      };
+
+      try {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/add_and_check_in_attendee`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(`${name} added and checked in`);
+          closeAddModal();
+          loadSummary();
+          searchInput.value = name;
+          runSearch(name);
+        } else {
+          showToast(data.error || 'Failed to add attendee', 'error');
+        }
+      } catch (e) {
+        showToast('Connection error', 'error');
+      }
     }
   });
 
