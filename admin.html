@@ -86,7 +86,7 @@
     margin-top: 14px;
   }
 
-  input {
+  input, select {
     width: 100%;
     padding: 11px 13px;
     border: 1.5px solid #e2e8f0;
@@ -94,7 +94,7 @@
     font-size: 14px;
   }
 
-  input:focus {
+  input:focus, select:focus {
     outline: none;
     border-color: #2c5282;
   }
@@ -121,6 +121,20 @@
   }
   button.primary-btn:hover { background: #1e3a5f; }
   button.primary-btn:disabled { background: #a0aec0; cursor: not-allowed; }
+
+  button.secondary-btn {
+    background: #edf2f7;
+    color: #2c5282;
+    border: 1px solid #cbd5e0;
+    padding: 11px 18px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 10px;
+    width: 100%;
+  }
+  button.secondary-btn:hover { background: #e2e8f0; }
 
   button.gen-btn {
     background: #edf2f7;
@@ -310,6 +324,20 @@
 <div class="container">
 
   <div class="card">
+    <h2>Export Attendance Data</h2>
+    <p class="sub">Download attendee records as a CSV file, or open a printable summary.</p>
+
+    <label for="exportFilter">Include</label>
+    <select id="exportFilter">
+      <option value="all">All Attendees</option>
+      <option value="checked_in">Checked-In Only</option>
+    </select>
+
+    <button class="primary-btn" id="exportCsvBtn">Download CSV</button>
+    <button class="secondary-btn" id="exportPrintBtn">Open Printable View</button>
+  </div>
+
+  <div class="card">
     <h2>Create New User</h2>
     <p class="sub">Add a login for anyone helping with check-in (e.g. an usher).</p>
 
@@ -417,6 +445,146 @@
     toast.style.display = 'block';
     setTimeout(() => { toast.style.display = 'none'; }, 2500);
   }
+
+  // ---------- Export ----------
+  async function fetchExportData() {
+    const filter = document.getElementById('exportFilter').value;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_attendees_for_export`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ p_filter: filter })
+    });
+    return res.json();
+  }
+
+  function csvEscape(value) {
+    if (value === null || value === undefined) return '';
+    const str = String(value);
+    if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+      return '"' + str.replace(/"/g, '""') + '"';
+    }
+    return str;
+  }
+
+  document.getElementById('exportCsvBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('exportCsvBtn');
+    btn.disabled = true;
+    btn.textContent = 'Preparing...';
+
+    try {
+      const rows = await fetchExportData();
+
+      const headers = ['Full Name', 'Phone', 'Category', 'Ministerial Rank/Position', 'Church', 'District', 'Checked In', 'Checked In At'];
+      const csvLines = [headers.join(',')];
+
+      rows.forEach(r => {
+        csvLines.push([
+          csvEscape(r.full_name),
+          csvEscape(r.phone),
+          csvEscape(r.category),
+          csvEscape(r.ministerial_rank_position),
+          csvEscape(r.church),
+          csvEscape(r.district),
+          r.checked_in ? 'Yes' : 'No',
+          csvEscape(r.checked_in_at ? new Date(r.checked_in_at).toLocaleString() : '')
+        ].join(','));
+      });
+
+      const csvContent = csvLines.join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const filterLabel = document.getElementById('exportFilter').value === 'all' ? 'all' : 'checked-in';
+      const dateStr = new Date().toISOString().split('T')[0];
+      link.href = url;
+      link.download = `attendance-${filterLabel}-${dateStr}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showToast(`Exported ${rows.length} record(s)`);
+    } catch (e) {
+      showToast('Failed to export data', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Download CSV';
+    }
+  });
+
+  document.getElementById('exportPrintBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('exportPrintBtn');
+    btn.disabled = true;
+    btn.textContent = 'Preparing...';
+
+    try {
+      const rows = await fetchExportData();
+      const filterLabel = document.getElementById('exportFilter').value === 'all' ? 'All Attendees' : 'Checked-In Attendees';
+
+      let tableRows = rows.map((r, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${escapeHtml(r.full_name)}</td>
+          <td>${escapeHtml(r.phone || '')}</td>
+          <td>${escapeHtml(r.category)}</td>
+          <td>${escapeHtml(r.ministerial_rank_position || '')}</td>
+          <td>${escapeHtml(r.church || '')}</td>
+          <td>${escapeHtml(r.district || '')}</td>
+          <td>${r.checked_in ? '✓' : ''}</td>
+        </tr>
+      `).join('');
+
+      const printHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${filterLabel} - Associate Pastors Conference</title>
+          <style>
+            body { font-family: -apple-system, Arial, sans-serif; padding: 20px; color: #1a202c; }
+            h1 { font-size: 18px; margin-bottom: 4px; }
+            p.meta { font-size: 12px; color: #718096; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; font-size: 12px; }
+            th, td { border: 1px solid #cbd5e0; padding: 6px 8px; text-align: left; }
+            th { background: #f4f6f9; font-weight: 600; }
+            @media print {
+              body { padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>${filterLabel} — Associate Pastors Conference</h1>
+          <p class="meta">Generated on ${new Date().toLocaleString()} · ${rows.length} record(s)</p>
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Category</th>
+                <th>Rank/Position</th>
+                <th>Church</th>
+                <th>District</th>
+                <th>Checked In</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `;
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(printHtml);
+      printWindow.document.close();
+    } catch (e) {
+      showToast('Failed to prepare printable view', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Open Printable View';
+    }
+  });
 
   // ---------- Generate password ----------
   document.getElementById('genPasswordBtn').addEventListener('click', () => {
