@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendly - Super Admin</title>
+    <style>
+        :root {
+            --bg-main: #020617;
+            --bg-card: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #64748b;
+            --accent: #2c5282;
+            --accent-hover: #1e3a5f;
+            --danger: #e11d48;
+            --border: #1e293b;
+            --success: #38a169;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1100px;
+            width: 100%;
+        }
+        .header-section {
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1.5rem;
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h1 { margin: 0; font-size: 1.8rem; letter-spacing: -0.025em; }
+        p.subtitle { margin: 0.35rem 0 0 0; color: var(--text-muted); font-size: 0.95rem; }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 2rem;
+        }
+        @media(max-width: 900px) {
+            .layout-grid { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.75rem;
+        }
+        .card h2 { font-size: 1.25rem; margin-top: 0; margin-bottom: 1.25rem; font-weight: 600; }
+
+        label { display: block; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; margin-bottom: 0.5rem; margin-top: 1.2rem; }
+
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border);
+            background-color: var(--bg-main); color: white; box-sizing: border-box; outline: none; font-size: 0.95rem;
+        }
+        input:focus { border-color: var(--accent); }
+
+        .input-with-action {
+            padding-right: 4.5rem !important;
+        }
+
+        .inline-action-btn {
+            position: absolute;
+            right: 8px;
+            background: #1e293b;
+            border: 1px solid var(--border);
+            color: #cbd5e1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .inline-action-btn:hover {
+            background: #2d3748;
+            color: white;
+        }
+
+        .btn {
+            background-color: var(--accent); color: white; border: none; padding: 0.8rem 1.5rem;
+            border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            width: 100%; font-size: 0.95rem; margin-top: 1.5rem;
+        }
+        .btn:hover { background-color: var(--accent-hover); }
+        .btn:disabled { background-color: #4a5568 !important; cursor: not-allowed; }
+
+        .btn-prune {
+            background-color: transparent; border: 1px solid var(--danger); color: var(--danger);
+            padding: 0.4rem 0.8rem; border-radius: 4px; font-size: 0.8rem; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .btn-prune:hover { background-color: var(--danger); color: white; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.85rem 0.5rem; border-bottom: 2px solid var(--border); }
+        td { padding: 1rem 0.5rem; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+
+        .badge-status {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .badge-status.active { background: rgba(56, 161, 105, 0.15); color: #48bb78; }
+        .badge-status.none { background: #1e293b; color: var(--text-muted); }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #2d3748;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 200;
+        }
+        .toast.active { transform: translateX(-50%) translateY(0); }
+        .toast.error { background: var(--danger); }
+        .toast.success { background: var(--success); }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(2, 6, 23, 0.85);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 150;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 28px;
+            border-radius: 12px;
+            width: 100%; max-width: 420px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .modal-box h3 { margin-top: 0; margin-bottom: 12px; font-size: 1.2rem; color: #fff; }
+        .modal-box p { font-size: 14px; color: #a0aec0; line-height: 1.5; margin-bottom: 24px; }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+        .modal-actions button {
+            padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; border: none;
+        }
+        .btn-modal-cancel { background: #2d3748; color: #fff; }
+        .btn-modal-cancel:hover { background: #4a5568; }
+        .btn-modal-confirm { background: var(--danger); color: #fff; }
+        .btn-modal-confirm:hover { background: #be123c; }
+
+        .app-footer {
+            text-align: center;
+            margin-top: 2.5rem;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-section">
+        <div>
+            <h1>Attendly</h1>
+            <p class="subtitle">Super Admin — manage event managers</p>
+        </div>
+        <button class="btn-prune" id="logoutBtn" style="width:auto;">Log Out</button>
+    </div>
+
+    <div class="layout-grid">
+        <div class="card">
+            <h2>Create Event Manager</h2>
+            <form id="managerForm">
+                <label for="mgrUsername">Username</label>
+                <input type="text" id="mgrUsername" required autocomplete="off">
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <label for="mgrPassword">Password</label>
+                    <a href="#" id="genPasswordLink" style="font-size: 11px; color: #63b3ed; text-decoration: none; margin-bottom: 0.5rem; font-weight: 600;">⚡ Generate</a>
+                </div>
+                <div class="input-group">
+                    <input type="password" id="mgrPassword" class="input-with-action" required autocomplete="off">
+                    <button type="button" class="inline-action-btn" id="togglePasswordVisibilityBtn">SHOW</button>
+                </div>
+
+                <button type="submit" id="createBtn" class="btn">Create Manager</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Event Managers</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Created</th>
+                        <th>Current Event</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="directoryTableBody">
+                    <tr><td colspan="4" style="color:var(--text-muted); text-align:center;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<p class="app-footer">Powered by Bapiego</p>
+
+<div class="modal-overlay" id="confirmModal">
+    <div class="modal-box">
+        <h3>Delete this event manager?</h3>
+        <p id="confirmModalText">Are you sure you want to remove this account?</p>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" id="cancelDeleteBtn">Cancel</button>
+            <button class="btn-modal-confirm" id="confirmDeleteBtn">Delete</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toastBar"></div>
+
+<script>
+    const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_PLI1DLUB_0DF3R0x3GPWYA_RNj2aScg';
+    const adminToken = localStorage.getItem('session_token');
+
+    let pendingDeleteId = null;
+    let pendingDeleteName = null;
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    });
+
+    // ---------- Password generator (alphanumeric only - easy to read/type/share) ----------
+    document.getElementById('genPasswordLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+        let pass = '';
+        for (let i = 0; i < 12; i++) {
+            pass += chars[Math.floor(Math.random() * chars.length)];
+        }
+
+        const passwordField = document.getElementById('mgrPassword');
+        passwordField.value = pass;
+        passwordField.type = 'text';
+        document.getElementById('togglePasswordVisibilityBtn').textContent = 'HIDE';
+
+        showToast('Password generated', 'success');
+    });
+
+    document.getElementById('togglePasswordVisibilityBtn').addEventListener('click', () => {
+        const passwordField = document.getElementById('mgrPassword');
+        const toggleBtn = document.getElementById('togglePasswordVisibilityBtn');
+
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            toggleBtn.textContent = 'HIDE';
+        } else {
+            passwordField.type = 'password';
+            toggleBtn.textContent = 'SHOW';
+        }
+    });
+
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toastBar');
+        toast.className = `toast active ${type}`;
+        toast.textContent = message;
+        setTimeout(() => {
+            toast.classList.remove('active');
+        }, 3500);
+    }
+
+    async function loadManagers() {
+        const tbody = document.getElementById('directoryTableBody');
+        try {
+            const records = await callRPC('list_event_managers', { p_super_admin_token: adminToken });
+            tbody.innerHTML = '';
+
+            if (!records || records.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="color:var(--text-muted); text-align:center;">No event managers yet.</td></tr>';
+                return;
+            }
+
+            records.forEach(mgr => {
+                const row = document.createElement('tr');
+                const createdDate = new Date(mgr.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+
+                const eventStatusHtml = mgr.active_event_name
+                    ? `<span><strong>${escapeHtml(mgr.active_event_name)}</strong></span> <span class="badge-status active">${escapeHtml(mgr.active_event_status)}</span>`
+                    : `<span class="badge-status none">No active event</span>`;
+
+                row.innerHTML = `
+                    <td><strong>${escapeHtml(mgr.username)}</strong></td>
+                    <td>${createdDate}</td>
+                    <td>${eventStatusHtml}</td>
+                    <td style="text-align: right;">
+                        <button class="btn-prune" data-id="${mgr.id}" data-username="${escapeHtml(mgr.username)}">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            tbody.querySelectorAll('.btn-prune').forEach(btn => {
+                btn.addEventListener('click', () => promptDelete(btn.dataset.id, btn.dataset.username));
+            });
+        } catch (err) {
+            tbody.innerHTML = '<tr><td colspan="4" style="color:var(--danger); text-align:center;">Failed to load event managers.</td></tr>';
+        }
+    }
+
+    document.getElementById('managerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const usernameInput = document.getElementById('mgrUsername');
+        const passwordInput = document.getElementById('mgrPassword');
+        const createBtn = document.getElementById('createBtn');
+
+        createBtn.disabled = true;
+        createBtn.textContent = 'Creating...';
+
+        const res = await callRPC('create_event_manager', {
+            p_super_admin_token: adminToken,
+            p_username: usernameInput.value.trim(),
+            p_password: passwordInput.value
+        });
+
+        createBtn.disabled = false;
+        createBtn.textContent = 'Create Manager';
+
+        if (res.success) {
+            showToast(`Manager "${usernameInput.value.trim()}" created`, 'success');
+            usernameInput.value = '';
+            passwordInput.value = '';
+            passwordInput.type = 'password';
+            document.getElementById('togglePasswordVisibilityBtn').textContent = 'SHOW';
+            loadManagers();
+        } else {
+            showToast(res.error || 'Failed to create account', 'error');
+        }
+    });
+
+    function promptDelete(targetId, username) {
+        pendingDeleteId = targetId;
+        pendingDeleteName = username;
+        document.getElementById('confirmModalText').innerHTML =
+            `Are you sure you want to permanently delete <strong>${escapeHtml(username)}</strong>?<br><br>Any events they created will remain, just no longer linked to this account.`;
+        document.getElementById('confirmModal').classList.add('active');
+    }
+
+    function closeConfirmModal() {
+        document.getElementById('confirmModal').classList.remove('active');
+        pendingDeleteId = null;
+        pendingDeleteName = null;
+    }
+
+    document.getElementById('cancelDeleteBtn').addEventListener('click', closeConfirmModal);
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+        if (!pendingDeleteId) return;
+
+        const confirmBtn = document.getElementById('confirmDeleteBtn');
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Deleting...';
+
+        const res = await callRPC('delete_event_manager', {
+            p_super_admin_token: adminToken,
+            p_target_user_id: pendingDeleteId
+        });
+
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = 'Delete';
+        closeConfirmModal();
+
+        if (res.success) {
+            showToast('Manager account deleted', 'success');
+            loadManagers();
+        } else {
+            showToast(res.error || 'Failed to delete account', 'error');
+        }
+    });
+
+    async function callRPC(functionName, payload) {
+        try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${functionName}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+                body: JSON.stringify(payload)
+            });
+            return await res.json();
+        } catch (err) {
+            return { success: false, error: 'Connection failure' };
+        }
+    }
+
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    // ---------- Init ----------
+    if (!adminToken) {
+        window.location.href = 'login.html';
+    } else if (localStorage.getItem('user_role') !== 'super_admin') {
+        window.location.href = 'login.html';
+    } else {
+        loadManagers();
+    }
+</script>
+</body>
+</html>
