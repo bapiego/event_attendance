@@ -3,143 +3,309 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Event Engine</title>
+    <title>Deploy Event Blueprint - Attendly</title>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
-        :root {
-            --bg-main: #0f172a;
-            --bg-card: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --danger: #ef4444;
-            --success: #10b981;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            margin: 0;
-            padding: 2rem;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f4f6f9;
+            color: #1a202c;
+            min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
         }
-        .container {
-            max-width: 800px;
+
+        /* --- Brand Cohesion: Shared Header Layer --- */
+        header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        header .brand-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+        }
+
+        header h1 span {
+            font-weight: 400;
+            opacity: 0.85;
+            font-size: 15px;
+            margin-left: 6px;
+            border-left: 1px solid rgba(255, 255, 255, 0.3);
+            padding-left: 8px;
+        }
+
+        header .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 13px;
+        }
+
+        header a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        header a:hover { opacity: 1; text-decoration: underline; }
+
+        .main-container {
+            max-width: 900px;
+            margin: 32px auto;
+            padding: 0 20px;
+            flex: 1;
             width: 100%;
         }
-        h1, h2 { margin-bottom: 0.5rem; }
-        p { color: var(--text-muted); margin-top: 0; margin-bottom: 1.5rem; }
+
         .card {
-            background-color: var(--bg-card);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 28px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            margin-bottom: 24px;
         }
-        label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+
+        .card h2 {
+            font-size: 18px;
+            color: #1e3a5f;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .card p {
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        /* --- Shared Form Components --- */
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 6px;
+        }
+
         input[type="text"], select {
             width: 100%;
-            padding: 0.75rem;
-            border-radius: 6px;
-            border: 1px solid #475569;
-            background-color: #0f172a;
-            color: white;
-            box-sizing: border-box;
-            margin-bottom: 1rem;
+            padding: 10px 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 18px;
+            outline: none;
+            transition: border-color 0.2s;
+            color: #1a202c;
+            background: #ffffff;
         }
+        input:focus, select:focus { border-color: #2c5282; }
         input[type="file"] { display: none; }
+
+        /* --- Upload Dropzone Framing --- */
         .upload-dropzone {
-            border: 2px dashed #475569;
-            padding: 2rem;
+            border: 2px dashed #cbd5e1;
+            padding: 40px 20px;
             text-align: center;
             border-radius: 8px;
             cursor: pointer;
-            transition: border-color 0.2s;
+            background: #f8fafc;
+            transition: all 0.2s;
+            color: #4a5568;
+            font-size: 14px;
+            font-weight: 500;
         }
-        .upload-dropzone:hover { border-color: var(--accent); }
+        .upload-dropzone:hover { 
+            border-color: #2c5282; 
+            background: #f0f4f8;
+            color: #1e3a5f;
+        }
+
+        /* --- Cohesive UI Buttons --- */
         .btn {
-            background-color: var(--accent);
+            padding: 10px 18px;
+            background: #2c5282;
             color: white;
             border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
+            border-radius: 8px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: background 0.2s;
         }
-        .btn:hover { background-color: var(--accent-hover); }
-        .btn-danger { background-color: var(--danger); }
-        .btn-danger:hover { background-color: #dc2626; }
-        .error-banner {
-            background-color: rgba(239, 68, 68, 0.1);
-            border: 1px solid var(--danger);
-            color: #fca5a5;
-            padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1.5rem;
-            display: none;
+        .btn:hover { background: #1e3a5f; }
+        .btn:disabled { background: #a0aec0 !important; cursor: not-allowed; }
+
+        .btn-danger { background: #e11d48; }
+        .btn-danger:hover { background: #be123c; }
+
+        /* --- Toast Status Notification Bars --- */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #2d3748;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 200;
         }
+        .toast.active { transform: translateX(-50%) translateY(0); }
+        .toast.error { background: #e11d48; }
+        .toast.success { background: #38a169; }
+
+        /* --- Matrix Schema Mapper Layout Rows --- */
+        .table-header-grid {
+            display: grid; 
+            grid-template-columns: 2.2fr 2.2fr 1fr 1fr 1fr auto; 
+            gap: 12px; 
+            font-weight: 700; 
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #718096;
+            padding: 10px 6px; 
+            border-bottom: 2px solid #e2e8f0;
+        }
+
         .field-row {
             display: grid;
-            grid-template-columns: 2fr 2fr 1fr 1fr 1fr auto;
-            gap: 1rem;
+            grid-template-columns: 2.2fr 2.2fr 1fr 1fr 1fr auto;
+            gap: 12px;
             align-items: center;
-            background: #111827;
-            padding: 0.75rem;
-            border-radius: 6px;
-            margin-bottom: 0.5rem;
+            background: #f8fafc;
+            padding: 10px 6px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #e2e8f0;
         }
-        .field-row input, .field-row select { margin-bottom: 0; }
-        .radio-container { text-align: center; }
+        .field-row input[type="text"] { margin-bottom: 0; padding: 8px 12px; font-size: 13px; }
+        .field-row input[disabled] { background: #edf2f7; color: #718096; }
+        .radio-container { text-align: center; display: flex; justify-content: center; align-items: center; }
+        .radio-container input[type="checkbox"], .radio-container input[type="radio"] {
+            width: 16px; height: 16px; accent-color: #2c5282; cursor: pointer;
+        }
+        
         .hidden { display: none; }
+
+        /* --- Core Footer Branding Block --- */
+        footer {
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 13px;
+            color: #718096;
+            font-weight: 500;
+            margin-top: auto;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Launch a New Event</h1>
-    <p>Upload a spreadsheet to bootstrap your schema and ingest your attendee roster instantly.</p>
+<!-- CORE ATTENDLY SYSTEM GLOBAL HEADER BAR -->
+<header>
+    <div class="brand-wrapper">
+        <h1>Attendly<span>Event Manager</span></h1>
+    </div>
+    <div class="nav-links">
+        <a href="manager-dashboard.html">Dashboard Workspace</a>
+        <a href="#" onclick="handleLogout(event)">Logout</a>
+    </div>
+</header>
 
-    <div id="errorBanner" class="error-banner"></div>
+<div class="main-container">
 
+    <!-- BLOCK WORKSPACE STAGE 1: INGEST PROFILE UPLOAD FRAME -->
     <div id="stepUpload" class="card">
-        <label for="eventName">Event Name</label>
-        <input type="text" id="eventName" placeholder="e.g., Annual Pastors Conference 2026">
+        <h2>Launch a New Event</h2>
+        <p>Start by naming your event, then upload your roster template so the system can set things up for you.</p>
         
-        <label>Attendee Roster File (.csv, .xlsx)</label>
+        <div style="margin-bottom: 6px;">
+            <label for="eventName">Event Name</label>
+            <input type="text" id="eventName" placeholder="e.g., Annual Summit Pastors Conference 2026" autocomplete="off">
+        </div>
+        
+        <label>Attendee Database Roster Sheet (.csv, .xlsx)</label>
         <div class="upload-dropzone" onclick="document.getElementById('fileInput').click()">
-            <span id="uploadPrompt">Drag & drop your file here or click to browse</span>
+            <span id="uploadPrompt">Drag and drop your roster database file here, or click to browse files</span>
             <input type="file" id="fileInput" accept=".csv, .xlsx">
         </div>
     </div>
 
+    <!-- BLOCK WORKSPACE STAGE 2: SCHEMATIC ROW COHESION MAPPER FRAME -->
     <div id="stepSchema" class="card hidden">
-        <h2>Map Field Layout</h2>
-        <p>We've guessed your schema structure. Customize label names or adjust configuration before launching.</p>
+        <h2>Map Field Layout Structure</h2>
+        <p>Attendly has analyzed your file columns and mapped key patterns. Adjust the data type matches to ensure accurate setup.</p>
         
-        <div style="display: grid; grid-template-columns: 2fr 2fr 1fr 1fr 1fr auto; gap: 1rem; font-weight:600; padding: 0.5rem; border-bottom: 1px solid #475569;">
+        <div class="table-header-grid">
             <div>Column Key</div>
             <div>Display Label</div>
-            <div style="text-align:center;">Core?</div>
-            <div style="text-align:center;">Name (Search)</div>
-            <div style="text-align:center;">Phone</div>
+            <div style="text-align:center;">Core View?</div>
+            <div style="text-align:center;">Search Name</div>
+            <div style="text-align:center;">Phone Match</div>
             <div></div>
         </div>
-        <div id="fieldsContainer" style="margin-top: 0.5rem; margin-bottom: 1.5rem;"></div>
+        <div id="fieldsContainer" style="margin-top: 12px; margin-bottom: 24px;"></div>
 
-        <div style="display: flex; justify-content: space-between;">
-            <button class="btn btn-danger" onclick="resetForm()">Restart</button>
-            <button class="btn" onclick="submitEventEngine()">Confirm & Ingest Roster</button>
+        <div style="display: flex; justify-content: space-between; gap: 12px;">
+            <button class="btn btn-danger" onclick="resetForm()">Restart Configuration</button>
+            <button class="btn" id="submitEngineBtn" onclick="submitEventEngine()">Confirm & Ingest Roster</button>
         </div>
     </div>
 </div>
 
+<!-- Floating System Toast Status Bars Component Wrapper -->
+<div class="toast" id="toastBar"></div>
+
+<!-- STICKY CORPORATE BRAND FOOTER -->
+<footer>
+    Powered by Bapiego
+</footer>
+
 <script>
-    let sessionToken = "YOUR_STORED_SESSION_TOKEN_HERE"; // Populate dynamically from your auth handling
+    const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co'; 
+    const SUPABASE_KEY = 'sb_publishable_PLI1DLUB_0DF3R0x3GPWYA_RNj2aScg'; 
+
+    let sessionToken = localStorage.getItem('session_token') || "YOUR_STORED_SESSION_TOKEN_HERE";
     let rawHeaders = [];
     let parsedRoster = [];
+
+    // Global session routing sentry guard
+    if (!localStorage.getItem('session_token')) {
+        window.location.href = 'login.html';
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toastBar');
+        toast.className = `toast active ${type}`;
+        toast.textContent = message;
+        setTimeout(() => { toast.classList.remove('active'); }, 4000);
+    }
 
     document.getElementById('fileInput').addEventListener('change', handleFileSelection);
 
@@ -147,7 +313,7 @@
         const file = e.target.files[0];
         if (!file) return;
 
-        document.getElementById('uploadPrompt').innerText = `Selected: ${file.name}`;
+        document.getElementById('uploadPrompt').innerText = `Target Selected: ${file.name}`;
         
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -156,22 +322,20 @@
             const firstSheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[firstSheetName];
             
-            // Extract raw rows
             const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
             if (jsonRows.length === 0) {
-                showError("The uploaded spreadsheet appears to be empty.");
+                showToast("The uploaded spreadsheet contains no recognizable configuration values.", "error");
                 return;
             }
 
             rawHeaders = jsonRows[0].map(h => String(h).trim());
             
-            // Build key-value objects for rows
             parsedRoster = [];
             for (let i = 1; i < jsonRows.length; i++) {
-                if (jsonRows[i].length === 0) continue;
+                if (jsonRows[i].length === 0 || !jsonRows[i].some(cell => cell !== "")) continue;
                 let rowData = {};
                 rawHeaders.forEach((header, index) => {
-                    rowData[normalizeKey(header)] = jsonRows[i][index] || "";
+                    rowData[normalizeKey(header)] = jsonRows[i][index] !== undefined ? String(jsonRows[i][index]).trim() : "";
                 });
                 parsedRoster.push(rowData);
             }
@@ -188,15 +352,14 @@
     function generateSchemaInterface(headers) {
         const container = document.getElementById('fieldsContainer');
         container.innerHTML = '';
-        hideError();
 
         headers.forEach((header, index) => {
             const normalized = normalizeKey(header);
+            if(!normalized) return;
             
-            // Pure Client Heuristic Mapping Logic
-            let isName = /name|guest|pastor|attendee/i.test(header);
-            let isPhone = /phone|tel|mobile|contact/i.test(header) && !isName;
-            let isCore = isName || isPhone;
+            let isName = /name|guest|pastor|attendee|delegate/i.test(header);
+            let isPhone = /phone|tel|mobile|contact|whatsapp/i.test(header) && !isName;
+            let isCore = isName || isPhone || index < 4; // structural heuristics baseline
 
             const row = document.createElement('div');
             row.className = 'field-row';
@@ -207,7 +370,7 @@
                 <div class="radio-container"><input type="checkbox" class="field-core" ${isCore ? 'checked' : ''}></div>
                 <div class="radio-container"><input type="radio" name="nameFieldSelector" class="field-name-flag" ${isName ? 'checked' : ''}></div>
                 <div class="radio-container"><input type="radio" name="phoneFieldSelector" class="field-phone-flag" ${isPhone ? 'checked' : ''}></div>
-                <button class="btn btn-danger" style="padding:0.4rem 0.8rem;" onclick="this.parentElement.remove()">X</button>
+                <button class="btn btn-danger" style="padding: 4px 10px; font-size: 11px;" onclick="this.parentElement.remove()">Remove</button>
             `;
             container.appendChild(row);
         });
@@ -217,9 +380,8 @@
     }
 
     async function submitEventEngine() {
-        hideError();
         const eventName = document.getElementById('eventName').value.trim();
-        if (!eventName) return showError("Please supply a valid name for this event.");
+        if (!eventName) return showToast("Provide a valid event name to initialize this session.", "error");
 
         const fieldRows = document.querySelectorAll('#fieldsContainer .field-row');
         let mappedFields = [];
@@ -239,38 +401,87 @@
             });
         });
 
-        // Client-Side Structural Integrity Enforcement
         if (!hasNameSelection) {
-            return showError("You must designate exactly one field to act as the Name lookup column for search functionality.");
+            return showToast("Structural requirement missing: Designate exactly one row column to act as the query tracking Name string.", "error");
         }
 
+        const submitBtn = document.getElementById('submitEngineBtn');
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Provisioning Architecture Cluster...";
+
         try {
-            // Stage 1: Commit Event Context & Dynamic Configuration
+            // Stage 1: Commit System Registry Entry Context Setup via RPC
             let createRes = await callRPC('create_event', {
                 p_manager_token: sessionToken,
                 p_event_name: eventName,
                 p_fields: mappedFields
             });
 
-            if (!createRes.success) return showError(createRes.error);
+            if (!createRes || !createRes.success) {
+                showToast(createRes?.error || "Failed to initialize runtime relational structures.", "error");
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Confirm & Ingest Roster";
+                return;
+            }
 
             const createdEventId = createRes.event_id;
 
-            // Stage 2: Ingest Parsed Roster Objects
+            // Stage 2: Synchronous Database Bulk Batch File Data Ingestion Engine
             let ingestRes = await callRPC('bulk_insert_attendees', {
                 p_manager_token: sessionToken,
                 p_event_id: createdEventId,
                 p_attendees: parsedRoster
             });
 
-            if (!ingestRes.success) return showError(ingestRes.error);
+            if (!ingestRes || !ingestRes.success) {
+                showToast(ingestRes?.error || "Bulk ingestion pipeline verification phase structural crash.", "error");
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Confirm & Ingest Roster";
+                return;
+            }
 
-            alert(`Success! Event provisioned and ${ingestRes.inserted_records} attendees cataloged.`);
-            resetForm();
+            showToast(`Success! Event setup structured completely. Loaded ${ingestRes.inserted_records} attendee profiles.`, "success");
+            
+            setTimeout(() => {
+                window.location.href = 'manager-dashboard.html';
+            }, 1800);
 
         } catch (err) {
-            showError("Network transaction malfunctioned. Check endpoint structure.");
+            showToast("Server schema cluster pipeline network timeout interface failure.", "error");
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Confirm & Ingest Roster";
         }
     }
 
-    // Mock network abstraction interfacing
+    function resetForm() {
+        document.getElementById('eventName').value = '';
+        document.getElementById('fileInput').value = '';
+        document.getElementById('uploadPrompt').innerText = "Drag and drop your roster database file here, or click to browse files";
+        document.getElementById('stepSchema').classList.add('hidden');
+        document.getElementById('stepUpload').classList.remove('hidden');
+        rawHeaders = [];
+        parsedRoster = [];
+    }
+
+    function handleLogout(e) {
+        if(e) e.preventDefault();
+        localStorage.clear();
+        window.location.href = 'login.html';
+    }
+
+    async function callRPC(functionName, payload) {
+        try {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${functionName}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+                body: JSON.stringify(payload)
+            });
+            return await response.json();
+        } catch (err) {
+            console.error(`Network Bridge Error inside RPC Node: ${functionName}`, err);
+            throw err;
+        }
+    }
+</script>
+</body>
+</html>
