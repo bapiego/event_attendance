@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Event Engine</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --danger: #ef4444;
+            --success: #10b981;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 800px;
+            width: 100%;
+        }
+        h1, h2 { margin-bottom: 0.5rem; }
+        p { color: var(--text-muted); margin-top: 0; margin-bottom: 1.5rem; }
+        .card {
+            background-color: var(--bg-card);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        label { display: block; font-weight: 600; margin-bottom: 0.5rem; }
+        input[type="text"], select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #475569;
+            background-color: #0f172a;
+            color: white;
+            box-sizing: border-box;
+            margin-bottom: 1rem;
+        }
+        input[type="file"] { display: none; }
+        .upload-dropzone {
+            border: 2px dashed #475569;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .upload-dropzone:hover { border-color: var(--accent); }
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn:hover { background-color: var(--accent-hover); }
+        .btn-danger { background-color: var(--danger); }
+        .btn-danger:hover { background-color: #dc2626; }
+        .error-banner {
+            background-color: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: #fca5a5;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+        .field-row {
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr 1fr 1fr auto;
+            gap: 1rem;
+            align-items: center;
+            background: #111827;
+            padding: 0.75rem;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+        }
+        .field-row input, .field-row select { margin-bottom: 0; }
+        .radio-container { text-align: center; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Launch a New Event</h1>
+    <p>Upload a spreadsheet to bootstrap your schema and ingest your attendee roster instantly.</p>
+
+    <div id="errorBanner" class="error-banner"></div>
+
+    <div id="stepUpload" class="card">
+        <label for="eventName">Event Name</label>
+        <input type="text" id="eventName" placeholder="e.g., Annual Pastors Conference 2026">
+        
+        <label>Attendee Roster File (.csv, .xlsx)</label>
+        <div class="upload-dropzone" onclick="document.getElementById('fileInput').click()">
+            <span id="uploadPrompt">Drag & drop your file here or click to browse</span>
+            <input type="file" id="fileInput" accept=".csv, .xlsx">
+        </div>
+    </div>
+
+    <div id="stepSchema" class="card hidden">
+        <h2>Map Field Layout</h2>
+        <p>We've guessed your schema structure. Customize label names or adjust configuration before launching.</p>
+        
+        <div style="display: grid; grid-template-columns: 2fr 2fr 1fr 1fr 1fr auto; gap: 1rem; font-weight:600; padding: 0.5rem; border-bottom: 1px solid #475569;">
+            <div>Column Key</div>
+            <div>Display Label</div>
+            <div style="text-align:center;">Core?</div>
+            <div style="text-align:center;">Name (Search)</div>
+            <div style="text-align:center;">Phone</div>
+            <div></div>
+        </div>
+        <div id="fieldsContainer" style="margin-top: 0.5rem; margin-bottom: 1.5rem;"></div>
+
+        <div style="display: flex; justify-content: space-between;">
+            <button class="btn btn-danger" onclick="resetForm()">Restart</button>
+            <button class="btn" onclick="submitEventEngine()">Confirm & Ingest Roster</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let sessionToken = "YOUR_STORED_SESSION_TOKEN_HERE"; // Populate dynamically from your auth handling
+    let rawHeaders = [];
+    let parsedRoster = [];
+
+    document.getElementById('fileInput').addEventListener('change', handleFileSelection);
+
+    function handleFileSelection(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        document.getElementById('uploadPrompt').innerText = `Selected: ${file.name}`;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[firstSheetName];
+            
+            // Extract raw rows
+            const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            if (jsonRows.length === 0) {
+                showError("The uploaded spreadsheet appears to be empty.");
+                return;
+            }
+
+            rawHeaders = jsonRows[0].map(h => String(h).trim());
+            
+            // Build key-value objects for rows
+            parsedRoster = [];
+            for (let i = 1; i < jsonRows.length; i++) {
+                if (jsonRows[i].length === 0) continue;
+                let rowData = {};
+                rawHeaders.forEach((header, index) => {
+                    rowData[normalizeKey(header)] = jsonRows[i][index] || "";
+                });
+                parsedRoster.push(rowData);
+            }
+
+            generateSchemaInterface(rawHeaders);
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function normalizeKey(str) {
+        return str.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/__+/g, '_').replace(/^_+|_+$/g, '');
+    }
+
+    function generateSchemaInterface(headers) {
+        const container = document.getElementById('fieldsContainer');
+        container.innerHTML = '';
+        hideError();
+
+        headers.forEach((header, index) => {
+            const normalized = normalizeKey(header);
+            
+            // Pure Client Heuristic Mapping Logic
+            let isName = /name|guest|pastor|attendee/i.test(header);
+            let isPhone = /phone|tel|mobile|contact/i.test(header) && !isName;
+            let isCore = isName || isPhone;
+
+            const row = document.createElement('div');
+            row.className = 'field-row';
+            row.dataset.index = index;
+            row.innerHTML = `
+                <input type="text" class="field-key" value="${normalized}" disabled>
+                <input type="text" class="field-label" value="${header}">
+                <div class="radio-container"><input type="checkbox" class="field-core" ${isCore ? 'checked' : ''}></div>
+                <div class="radio-container"><input type="radio" name="nameFieldSelector" class="field-name-flag" ${isName ? 'checked' : ''}></div>
+                <div class="radio-container"><input type="radio" name="phoneFieldSelector" class="field-phone-flag" ${isPhone ? 'checked' : ''}></div>
+                <button class="btn btn-danger" style="padding:0.4rem 0.8rem;" onclick="this.parentElement.remove()">X</button>
+            `;
+            container.appendChild(row);
+        });
+
+        document.getElementById('stepUpload').classList.add('hidden');
+        document.getElementById('stepSchema').classList.remove('hidden');
+    }
+
+    async function submitEventEngine() {
+        hideError();
+        const eventName = document.getElementById('eventName').value.trim();
+        if (!eventName) return showError("Please supply a valid name for this event.");
+
+        const fieldRows = document.querySelectorAll('#fieldsContainer .field-row');
+        let mappedFields = [];
+        let hasNameSelection = false;
+
+        fieldRows.forEach((row, i) => {
+            const isNameField = row.querySelector('.field-name-flag').checked;
+            if (isNameField) hasNameSelection = true;
+
+            mappedFields.push({
+                field_key: row.querySelector('.field-key').value,
+                field_label: row.querySelector('.field-label').value.trim(),
+                field_order: i,
+                is_core: row.querySelector('.field-core').checked,
+                is_name_field: isNameField,
+                is_phone_field: row.querySelector('.field-phone-flag').checked
+            });
+        });
+
+        // Client-Side Structural Integrity Enforcement
+        if (!hasNameSelection) {
+            return showError("You must designate exactly one field to act as the Name lookup column for search functionality.");
+        }
+
+        try {
+            // Stage 1: Commit Event Context & Dynamic Configuration
+            let createRes = await callRPC('create_event', {
+                p_manager_token: sessionToken,
+                p_event_name: eventName,
+                p_fields: mappedFields
+            });
+
+            if (!createRes.success) return showError(createRes.error);
+
+            const createdEventId = createRes.event_id;
+
+            // Stage 2: Ingest Parsed Roster Objects
+            let ingestRes = await callRPC('bulk_insert_attendees', {
+                p_manager_token: sessionToken,
+                p_event_id: createdEventId,
+                p_attendees: parsedRoster
+            });
+
+            if (!ingestRes.success) return showError(ingestRes.error);
+
+            alert(`Success! Event provisioned and ${ingestRes.inserted_records} attendees cataloged.`);
+            resetForm();
+
+        } catch (err) {
+            showError("Network transaction malfunctioned. Check endpoint structure.");
+        }
+    }
+
+    // Mock network abstraction interfacing
