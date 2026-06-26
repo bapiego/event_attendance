@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Login - Event Attendance</title>
+<title>Login - Event Attendance System</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -100,8 +100,8 @@
 <body>
 
 <div class="login-card">
-  <h1>Event Attendance</h1>
-  <p class="subtitle">Associate Pastors Conference</p>
+  <h1>Event Portal Access</h1>
+  <p class="subtitle">Ecosystem Entrance Console</p>
 
   <div class="error-msg" id="errorMsg"></div>
 
@@ -115,18 +115,30 @@
     <button type="submit" id="submitBtn">Log In</button>
   </form>
 
-  <p class="footer-note">Assemblies of God, Ghana — Greater Accra East</p>
+  <p class="footer-note">Assemblies of God, Ghana — Greater Accra East Region</p>
 </div>
 
 <script>
-  const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_PLI1DLUB_0DF3R0x3GPWYA_RNj2aScg';
+  // Shared connection criteria mapped directly to your live architecture cluster
+  const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co'; // Extracted from index.html
+  const SUPABASE_KEY = 'sb_publishable_PLI1DLUB_0DF3R0x3GPWYA_RNj2aScg'; // Extracted from index.html
 
   const form = document.getElementById('loginForm');
   const errorMsg = document.getElementById('errorMsg');
   const submitBtn = document.getElementById('submitBtn');
 
-  // If already logged in with a valid session, skip straight to the check-in page
+  // Dynamic system-wide router helper matrix
+  function routeUserByRole(role) {
+    if (role === 'super_admin') {
+      window.location.href = 'super-admin.html';
+    } else if (role === 'event_manager') {
+      window.location.href = 'manager-dashboard.html';
+    } else {
+      window.location.href = 'index.html'; // Fallback layout routing location for ushers
+    }
+  }
+
+  // Session validation verification routine loop upon layout arrival
   (async function checkExistingSession() {
     const token = localStorage.getItem('session_token');
     if (!token) return;
@@ -134,18 +146,16 @@
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/verify_session`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY
-        },
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
         body: JSON.stringify({ p_token: token })
       });
       const data = await res.json();
-      if (data.valid) {
-        window.location.href = 'index.html';
+      
+      if (data.valid && data.role) {
+        routeUserByRole(data.role);
       }
     } catch (e) {
-      // Silent fail - just stay on login page
+      // Clean target variables if session checks throw bad network states
     }
   })();
 
@@ -162,19 +172,20 @@
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/login_user`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY
-        },
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
         body: JSON.stringify({ p_username: username, p_password: password })
       });
 
       const data = await res.json();
 
       if (data.success) {
+        // Hydrate local layout store contexts with exact payload parameters returning from STEP 2a
         localStorage.setItem('session_token', data.token);
         localStorage.setItem('username', data.username);
-        window.location.href = 'index.html';
+        localStorage.setItem('user_role', data.role);
+        
+        // Execute dynamic interface handover
+        routeUserByRole(data.role);
       } else {
         errorMsg.textContent = data.error || 'Login failed. Please try again.';
         errorMsg.style.display = 'block';
