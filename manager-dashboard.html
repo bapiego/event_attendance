@@ -1,569 +1,534 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Manager Dashboard - Attendly</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendly - Event Manager</title>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --success: #10b981;
+            --border: #334155;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+        }
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+        }
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1.5rem;
+        }
+        h1 { margin: 0; font-size: 1.75rem; }
+        p.subtitle { margin: 0.25rem 0 0 0; color: var(--text-muted); }
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background: #f4f6f9;
-    color: #1a202c;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
+        .btn-logout {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .btn-logout:hover { color: white; border-color: var(--text-muted); }
 
-  /* --- Brand Cohesion: Shared Header Layer --- */
-  header {
-    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
-    color: white;
-    padding: 16px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .metric-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+            position: relative;
+        }
+        .metric-card .label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+        .metric-card .value { font-size: 2rem; font-weight: 700; margin-top: 0.5rem; }
 
-  header .brand-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
+        .progress-container {
+            background-color: var(--bg-main);
+            border-radius: 9999px;
+            height: 10px;
+            width: 100%;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+        .progress-bar {
+            background-color: var(--success);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease-out;
+        }
 
-  header h1 {
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-  }
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+        @media(max-width: 768px) {
+            .panel-grid { grid-template-columns: 1fr; }
+        }
+        .panel-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+        .panel-card h2 { font-size: 1.2rem; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
 
-  header h1 span {
-    font-weight: 400;
-    opacity: 0.85;
-    font-size: 15px;
-    margin-left: 6px;
-    border-left: 1px solid rgba(255, 255, 255, 0.3);
-    padding-left: 8px;
-  }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; margin-top: 1rem; }
+        input[type="text"], input[type="password"] {
+            width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border);
+            background-color: var(--bg-main); color: white; box-sizing: border-box; outline: none;
+        }
+        input:focus { border-color: var(--accent); }
 
-  header .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    font-size: 13px;
-  }
+        .btn {
+            background-color: var(--accent); color: white; border: none; padding: 0.75rem 1.5rem;
+            border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s;
+            display: inline-block; text-align: center; text-decoration: none;
+        }
+        .btn:hover { background-color: var(--accent-hover); }
+        .btn:disabled { background-color: #4a5568 !important; cursor: not-allowed; }
+        .btn-danger { background-color: var(--danger); }
+        .btn-danger:hover { background-color: var(--danger-hover); }
+        .btn-small-danger {
+            background: none; border: 1px solid var(--danger); color: var(--danger);
+            padding: 0.3rem 0.7rem; border-radius: 5px; font-size: 0.8rem; cursor: pointer;
+        }
+        .btn-small-danger:hover { background: var(--danger); color: white; }
 
-  header a {
-    color: white;
-    text-decoration: none;
-    opacity: 0.9;
-    font-weight: 500;
-  }
-  header a:hover { opacity: 1; text-decoration: underline; }
+        table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+        th { text-align: left; color: var(--text-muted); font-size: 0.85rem; padding: 0.75rem 0.5rem; border-bottom: 1px solid var(--border); }
+        td { padding: 0.75rem 0.5rem; border-bottom: 1px solid #334155; font-size: 0.95rem; }
 
-  .active-pill {
-    background: rgba(56, 161, 105, 0.2);
-    color: #2f855a;
-    padding: 4px 10px;
-    border-radius: 9999px;
-    font-size: 11px;
-    font-weight: 700;
-    border: 1px solid rgba(56, 161, 105, 0.3);
-  }
+        .empty-state {
+            text-align: center; padding: 4rem 2rem; background-color: var(--bg-card);
+            border: 2px dashed var(--border); border-radius: 12px; margin-top: 2rem;
+        }
+        .empty-state h2 { margin-bottom: 0.5rem; }
+        .empty-state p { color: var(--text-muted); margin-bottom: 1.5rem; margin-top: 0; }
 
-  .main-container {
-    max-width: 1100px;
-    margin: 32px auto;
-    padding: 0 20px;
-    flex: 1;
-    width: 100%;
-  }
+        .hidden { display: none !important; }
+        .status-msg { text-align: center; color: var(--text-muted); padding: 5rem 0; }
 
-  /* --- Panel System Layouts --- */
-  .view-panel { display: none; }
-  .view-panel.active { display: block; }
+        .credential-box {
+            background: #1e3a8a;
+            border: 1px solid #2563eb;
+            border-radius: 8px;
+            padding: 14px;
+            margin-top: 16px;
+            font-size: 13px;
+            display: none;
+        }
+        .credential-box.active { display: block; }
+        .credential-box .cred-line {
+            font-family: 'SF Mono', Consolas, monospace;
+            background: rgba(0,0,0,0.25);
+            border-radius: 6px;
+            padding: 6px 10px;
+            margin: 6px 0;
+            word-break: break-all;
+        }
+        .credential-box .warn { color: #93c5fd; font-size: 12px; margin-top: 8px; }
 
-  /* --- Rebranded Visual Metric Counter Cards --- */
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
-    margin-bottom: 32px;
-  }
-  .metric-card {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 24px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-  }
-  .metric-label {
-    font-size: 11px;
-    font-weight: 700;
-    color: #718096;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .metric-value {
-    font-size: 32px;
-    font-weight: 700;
-    color: #1e3a5f;
-    margin-top: 6px;
-  }
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #2d3748;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 200;
+        }
+        .toast.active { transform: translateX(-50%) translateY(0); }
+        .toast.error { background: var(--danger); }
+        .toast.success { background: var(--success); }
 
-  .dashboard-layout {
-    display: grid;
-    grid-template-columns: 1.3fr 1fr;
-    gap: 24px;
-    margin-bottom: 32px;
-  }
-  @media (max-width: 768px) {
-    .dashboard-layout { grid-template-columns: 1fr; }
-  }
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(2, 6, 23, 0.85);
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 150;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .modal-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 28px;
+            border-radius: 12px;
+            width: 100%; max-width: 420px;
+        }
+        .modal-box h3 { margin-top: 0; margin-bottom: 12px; }
+        .modal-box p { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 24px; }
+        .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
+        .modal-actions button {
+            padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; border: none;
+        }
+        .btn-modal-cancel { background: #334155; color: #fff; }
+        .btn-modal-cancel:hover { background: #475569; }
+        .btn-modal-confirm { background: var(--danger); color: #fff; }
+        .btn-modal-confirm:hover { background: var(--danger-hover); }
 
-  .card {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 28px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-  }
-  .card h2 {
-    font-size: 16px;
-    color: #1e3a5f;
-    margin-bottom: 20px;
-    font-weight: 600;
-  }
-
-  /* --- Shared Form & Input Components --- */
-  label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: #4a5568;
-    margin-bottom: 6px;
-  }
-  input[type="text"], input[type="password"] {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 14px;
-    margin-bottom: 18px;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  input:focus { border-color: #2c5282; }
-
-  .btn {
-    padding: 10px 18px;
-    background: #2c5282;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .btn:hover { background: #1e3a5f; }
-  .btn:disabled { background: #a0aec0 !important; cursor: not-allowed; }
-
-  .btn-danger { background: #e11d48; }
-  .btn-danger:hover { background: #be123c; }
-
-  /* --- Structured Registry Table Tables --- */
-  table { width: 100%; border-collapse: collapse; }
-  th {
-    text-align: left;
-    color: #718096;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 10px 6px;
-    border-bottom: 2px solid #e2e8f0;
-  }
-  td { padding: 12px 6px; border-bottom: 1px solid #edf2f7; font-size: 14px; color: #2d3748; }
-  tr:last-child td { border-bottom: none; }
-
-  /* --- Rebranded Clear Empty States --- */
-  .empty-state-card {
-    text-align: center;
-    padding: 60px 40px;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    border-radius: 16px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.03);
-    max-width: 500px;
-    margin: 40px auto;
-  }
-  .empty-state-card h2 { font-size: 20px; color: #1e3a5f; margin-bottom: 8px; }
-  .empty-state-card p { color: #718096; margin-bottom: 24px; font-size: 14px; line-height: 1.5; }
-
-  /* --- Core Footer Branding Block --- */
-  footer {
-    background: #ffffff;
-    border-top: 1px solid #e2e8f0;
-    padding: 16px 20px;
-    text-align: center;
-    font-size: 13px;
-    color: #718096;
-    font-weight: 500;
-    margin-top: auto;
-  }
-
-  /* --- Brand Utility Extras: Toast Popups & Confirmation Modals --- */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: #2d3748;
-    color: #fff;
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    z-index: 200;
-  }
-  .toast.active { transform: translateX(-50%) translateY(0); }
-  .toast.error { background: #e11d48; }
-  .toast.success { background: #38a169; }
-
-  .modal-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(26, 32, 44, 0.6);
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.2s ease;
-    z-index: 150;
-  }
-  .modal-overlay.active { opacity: 1; pointer-events: auto; }
-  .modal-box {
-    background: #ffffff;
-    padding: 28px;
-    border-radius: 12px;
-    width: 100%; max-width: 440px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-  }
-  .modal-box h3 { margin-top: 0; margin-bottom: 12px; font-size: 18px; color: #1e3a5f; }
-  .modal-box p { font-size: 14px; color: #4a5568; line-height: 1.5; margin-bottom: 24px; }
-  .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
-  .modal-actions button {
-    padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; border: none;
-  }
-  .btn-modal-cancel { background: #edf2f7; color: #4a5568; }
-  .btn-modal-cancel:hover { background: #e2e8f0; }
-  .btn-modal-confirm { background: #e11d48; color: #fff; }
-  .btn-modal-confirm:hover { background: #be123c; }
-</style>
+        .app-footer {
+            text-align: center;
+            margin-top: 2.5rem;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
 </head>
 <body>
 
-<!-- CORE ATTENDLY SYSTEM GLOBAL HEADER BAR -->
-<header>
-  <div class="brand-wrapper">
-    <h1>Attendly<span id="activeEventTitleHeader">Event Manager</span></h1>
-    <div id="activeEventIndicatorBadge" style="display: none;" class="active-pill">Live Operations</div>
-  </div>
-  <div class="nav-links">
-    <span id="displayUsername" style="opacity: 0.85; font-weight: 600;">Manager Profile</span>
-    <a href="#" onclick="handleLogout(event)">Logout</a>
-  </div>
-</header>
+<div class="container">
 
-<div class="main-container">
+    <div id="loadingWorkspace" class="status-msg">Loading your dashboard...</div>
 
-  <!-- PANEL VISIBILITY FRAME A: CLEAN REDIRECTION FOR UNASSIGNED ACCOUNTS -->
-  <div id="panelEmptyState" class="view-panel">
-    <div class="empty-state-card">
-      <h2>No Active Event</h2>
-      <p>Your management segment doesn't have an open active event registration window running at this time.</p>
-      <button class="btn" onclick="window.location.href='create-event.html'">Deploy New Event Blueprint</button>
-    </div>
-  </div>
-
-  <!-- PANEL VISIBILITY FRAME B: THE REBRANDED CONTROL DASHBOARD OPERATIONS CONSOLE -->
-  <div id="panelDashboardContent" class="view-panel">
-      
-    <!-- Live Cohesive Macro Attendance Statistics Display Blocks -->
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <div class="metric-label">Total Roster Registry</div>
-        <div class="metric-value" id="telemetryRegistered">0</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Processed Check-Ins</div>
-        <div class="metric-value" id="telemetryCheckedIn">0</div>
-      </div>
-      <div class="metric-card">
-        <div class="metric-label">Penetration Ratio</div>
-        <div class="metric-value" id="telemetryPercentage">0%</div>
-      </div>
+    <div id="emptyStateContainer" class="empty-state hidden">
+        <h2>No Active Event</h2>
+        <p>Create an event and upload your attendee list to start checking people in.</p>
+        <a href="create-event.html" class="btn">Create New Event</a>
     </div>
 
-    <div class="dashboard-layout">
-      <!-- Left Column Grid Frame: Usher Staff Directory Table Logs -->
-      <div class="card">
-        <h2>Active Entry Gate Ushers</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Usher Device Identifiers</th>
-            </tr>
-          </thead>
-          <tbody id="usherRosterTableBody">
-            <tr><td style="color: #718096;">Querying gate system records...</td></tr>
-          </tbody>
-        </table>
-      </div>
+    <div id="dashboardActiveWorkspace" class="hidden">
 
-      <!-- Right Column Grid Frame: Form Engine to Authorize New Gate Sub-accounts -->
-      <div class="card" style="align-self: start;">
-        <h2>Provision Gate Team Usher</h2>
-        <form id="provisionUsherAccountForm" onsubmit="handleUsherProvisioning(event)">
-          <label for="usherUsername">Gate Device Username</label>
-          <input type="text" id="usherUsername" placeholder="e.g., gate_alpha_device" required autocomplete="off">
+        <div class="header-section">
+            <div>
+                <h1 id="activeEventNameLabel">Event</h1>
+                <p class="subtitle">Attendly — Event Manager Dashboard</p>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="btn btn-danger" id="closeEventBtn">Close Event</button>
+                <button class="btn-logout" id="logoutBtn">Log Out</button>
+            </div>
+        </div>
 
-          <label for="usherPassword">Gate Access Password</label>
-          <input type="password" id="usherPassword" placeholder="••••••••" required>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="label">Total Attendees</div>
+                <div class="value" id="metricTotal">0</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Checked In</div>
+                <div class="value" id="metricCheckedIn" style="color: var(--success);">0</div>
+            </div>
+            <div class="metric-card">
+                <div class="label">Progress</div>
+                <div class="value" id="metricPercentage">0%</div>
+                <div class="progress-container">
+                    <div id="progressBarFill" class="progress-bar"></div>
+                </div>
+            </div>
+        </div>
 
-          <button type="submit" id="provisionUsherBtn" class="btn" style="width: 100%;">Authorize Usher Device</button>
-        </form>
-      </div>
+        <div class="panel-grid">
+
+            <div class="panel-card">
+                <h2>Ushers</h2>
+                <p class="subtitle" style="margin-bottom: 1rem; font-size:0.9rem;">Accounts that can check people in for this event only.</p>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Added</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="usherTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="panel-card">
+                <h2>Add Usher</h2>
+                <p class="subtitle" style="font-size:0.9rem;">Create a login for someone helping with check-in.</p>
+
+                <form id="provisionUsherForm">
+                    <label for="usherUsername">Username</label>
+                    <input type="text" id="usherUsername" placeholder="e.g. door_east" required autocomplete="off">
+
+                    <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                        <label for="usherPassword" style="margin-bottom:0;">Password</label>
+                        <a href="#" id="genUsherPasswordLink" style="font-size: 11px; color: #63b3ed; text-decoration: none; font-weight: 600;">⚡ Generate</a>
+                    </div>
+                    <input type="text" id="usherPassword" required autocomplete="off">
+
+                    <button type="submit" class="btn" style="width: 100%; margin-top: 1.5rem;">Create Usher</button>
+                </form>
+
+                <div class="credential-box" id="usherCredentialBox">
+                    <p>✅ Usher created. Share these credentials — the password won't be shown again:</p>
+                    <div class="cred-line" id="usherCredUsername"></div>
+                    <div class="cred-line" id="usherCredPassword"></div>
+                </div>
+            </div>
+        </div>
     </div>
-
-    <!-- Danger Zone Lifecycle End Frame Node Component -->
-    <div class="card" style="border: 1px solid #fed7d7; background: #fffaf0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
-      <div>
-        <h3 style="margin: 0; color: #9b2c2c; font-size: 15px; font-weight: 600;">Terminate Event Run Sequence</h3>
-        <p style="margin-top: 4px; color: #718096; font-size: 13px; max-width: 600px;">Closes public check-in operations completely, compiles the session logs, and revokes active terminal permissions for connected devices.</p>
-      </div>
-      <button onclick="promptEventTermination()" id="terminateEventBtn" class="btn btn-danger">Close Active Event</button>
-    </div>
-
-  </div>
 </div>
 
-<!-- STYLIZED REBRANDED POPUP OVERLAY CONFIRMATION MODAL -->
-<div class="modal-overlay" id="terminationModal">
-  <div class="modal-box">
-    <h3>Archive Live Operations?</h3>
-    <p>Are you absolutely certain you want to terminate this operational framework run cycle? This will instantly disconnect all sub-gate tablets and halt check-in validation tracking loops.</p>
-    <div class="modal-actions">
-      <button class="btn-modal-cancel" onclick="closeTerminationModal()">Cancel</button>
-      <button class="btn-modal-confirm" id="confirmTerminateBtn">Terminate Event</button>
+<p class="app-footer">Powered by Bapiego</p>
+
+<div class="modal-overlay" id="closeEventModal">
+    <div class="modal-box">
+        <h3>Close this event?</h3>
+        <p>This will lock the event. You won't be able to check in more attendees, and you'll be able to create a new event afterward. Attendee data is kept and can still be exported. This cannot be undone.</p>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" id="cancelCloseBtn">Cancel</button>
+            <button class="btn-modal-confirm" id="confirmCloseBtn">Close Event</button>
+        </div>
     </div>
-  </div>
 </div>
 
-<!-- Floating System Toast Status Bars Component Wrapper -->
+<div class="modal-overlay" id="deleteUsherModal">
+    <div class="modal-box">
+        <h3>Remove this usher?</h3>
+        <p id="deleteUsherText">This will revoke their login access immediately.</p>
+        <div class="modal-actions">
+            <button class="btn-modal-cancel" id="cancelDeleteUsherBtn">Cancel</button>
+            <button class="btn-modal-confirm" id="confirmDeleteUsherBtn">Remove</button>
+        </div>
+    </div>
+</div>
+
 <div class="toast" id="toastBar"></div>
 
-<!-- STICKY CORPORATE BRAND FOOTER -->
-<footer>
-  Powered by Bapiego
-</footer>
-
 <script>
-  const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co'; 
-  const SUPABASE_KEY = 'sb_publishable_PLI1DLUB_0DF3R0x3GPWYA_RNj2aScg'; 
-  
-  const managerToken = localStorage.getItem('session_token');
-  const cacheUsername = localStorage.getItem('username');
-  let activeEventId = null;
+    const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_PLI1DLUB_0DF3R0x3GPWYA_RNj2aScg';
+    const sessionToken = localStorage.getItem('session_token');
 
-  function showToast(message, type = 'success') {
-    const toast = document.getElementById('toastBar');
-    toast.className = `toast active ${type}`;
-    toast.textContent = message;
-    setTimeout(() => { toast.classList.remove('active'); }, 3500);
-  }
+    let activeEventId = null;
+    let pendingDeleteUsherId = null;
 
-  async function loadControlRoomState() {
-    if (!managerToken) {
-      window.location.href = 'login.html';
-      return;
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    });
+
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById('toastBar');
+        toast.className = `toast active ${type}`;
+        toast.textContent = message;
+        setTimeout(() => { toast.classList.remove('active'); }, 3500);
     }
 
-    if (cacheUsername) {
-      document.getElementById('displayUsername').textContent = cacheUsername;
+    function escapeHtml(str) {
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
 
-    try {
-      const eventRes = await callRPC('get_my_active_event', { p_token: managerToken });
-      
-      if (!eventRes || !eventRes.has_active || !eventRes.event) {
-        document.getElementById('panelEmptyState').classList.add('active');
-        document.getElementById('panelDashboardContent').classList.remove('active');
-        document.getElementById('activeEventIndicatorBadge').style.display = 'none';
-        return;
-      }
-
-      activeEventId = eventRes.event.id;
-      document.getElementById('activeEventTitleHeader').textContent = eventRes.event.name;
-      
-      document.getElementById('panelEmptyState').classList.remove('active');
-      document.getElementById('panelDashboardContent').classList.add('active');
-      document.getElementById('activeEventIndicatorBadge').style.display = 'inline-block';
-
-      await Promise.all([
-        refreshTelemetryCounters(),
-        refreshUsherDeviceDirectoryList()
-      ]);
-
-    } catch (err) {
-      showToast("Failed to communicate with master catalog routers.", "error");
+    async function callRPC(functionName, payload) {
+        try {
+            const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${functionName}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+                body: JSON.stringify(payload)
+            });
+            return await res.json();
+        } catch (err) {
+            return { success: false, error: 'Connection failure' };
+        }
     }
-  }
 
-  async function refreshTelemetryCounters() {
-    try {
-      const metrics = await callRPC('get_event_attendance_metrics', { 
-        p_token: managerToken, 
-        p_event_id: activeEventId 
-      });
+    // ---------- Load dashboard state ----------
+    async function loadDashboard() {
+        const res = await callRPC('get_my_active_event', { p_token: sessionToken });
+        document.getElementById('loadingWorkspace').classList.add('hidden');
 
-      const total = metrics.total_registered || 0;
-      const inside = metrics.total_checked_in || 0;
-      const ratio = total > 0 ? Math.round((inside / total) * 100) : 0;
+        if (!res.success) {
+            document.getElementById('loadingWorkspace').classList.remove('hidden');
+            document.getElementById('loadingWorkspace').textContent = res.error || 'Failed to load dashboard';
+            return;
+        }
 
-      document.getElementById('telemetryRegistered').textContent = total.toLocaleString();
-      document.getElementById('telemetryCheckedIn').textContent = inside.toLocaleString();
-      document.getElementById('telemetryPercentage').textContent = `${ratio}%`;
-    } catch (err) {
-      console.error("Telemetry loading collapsed", err);
+        if (!res.has_active_event) {
+            document.getElementById('emptyStateContainer').classList.remove('hidden');
+            return;
+        }
+
+        activeEventId = res.event_id;
+        document.getElementById('activeEventNameLabel').textContent = res.event_name;
+        document.getElementById('dashboardActiveWorkspace').classList.remove('hidden');
+
+        refreshMetricsAndUshers();
     }
-  }
 
-  async function refreshUsherDeviceDirectoryList() {
-    try {
-      const ushers = await callRPC('get_event_ushers', { 
-        p_token: managerToken, 
-        p_event_id: activeEventId 
-      });
+    async function refreshMetricsAndUshers() {
+        if (!activeEventId) return;
 
-      const tbody = document.getElementById('usherRosterTableBody');
-      tbody.innerHTML = '';
+        const metrics = await callRPC('get_event_attendance_metrics', { p_token: sessionToken, p_event_id: activeEventId });
+        if (metrics.success) {
+            const total = metrics.total_registered;
+            const checkedIn = metrics.total_checked_in;
+            const pct = total > 0 ? Math.round((checkedIn / total) * 100) : 0;
 
-      if (!ushers || ushers.length === 0) {
-        tbody.innerHTML = '<tr><td style="color: #718096; text-align: center; padding: 20px 0;">No gate operator tablets provisioned yet.</td></tr>';
-        return;
-      }
+            document.getElementById('metricTotal').textContent = total;
+            document.getElementById('metricCheckedIn').textContent = checkedIn;
+            document.getElementById('metricPercentage').textContent = `${pct}%`;
+            document.getElementById('progressBarFill').style.width = `${pct}%`;
+        }
 
-      ushers.forEach(ush => {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td><strong style="color:#2c5282;">${escapeHtml(ush.username)}</strong></td>`;
-        tbody.appendChild(row);
-      });
-    } catch (err) {
-      console.error("Usher mapping failure", err);
+        const ushers = await callRPC('get_event_ushers', { p_token: sessionToken, p_event_id: activeEventId });
+        const tbody = document.getElementById('usherTableBody');
+        tbody.innerHTML = '';
+
+        if (!Array.isArray(ushers) || ushers.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" style="color:var(--text-muted); text-align:center;">No ushers added yet.</td></tr>';
+            return;
+        }
+
+        ushers.forEach(usher => {
+            const row = document.createElement('tr');
+            const dateStr = new Date(usher.created_at).toLocaleDateString();
+            row.innerHTML = `
+                <td><strong>${escapeHtml(usher.username)}</strong></td>
+                <td>${dateStr}</td>
+                <td style="text-align:right;">
+                    <button class="btn-small-danger" data-id="${usher.id}" data-username="${escapeHtml(usher.username)}">Remove</button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+
+        tbody.querySelectorAll('.btn-small-danger').forEach(btn => {
+            btn.addEventListener('click', () => promptDeleteUsher(btn.dataset.id, btn.dataset.username));
+        });
     }
-  }
 
-  async function handleUsherProvisioning(e) {
-    e.preventDefault();
-    const userInput = document.getElementById('usherUsername');
-    const passInput = document.getElementById('usherPassword');
-    const submitBtn = document.getElementById('provisionUsherBtn');
+    // ---------- Add usher ----------
+    document.getElementById('genUsherPasswordLink').addEventListener('click', (e) => {
+        e.preventDefault();
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+        let pass = '';
+        for (let i = 0; i < 12; i++) {
+            pass += chars[Math.floor(Math.random() * chars.length)];
+        }
+        document.getElementById('usherPassword').value = pass;
+    });
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Authorizing Terminals...";
+    document.getElementById('provisionUsherForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const usernameInput = document.getElementById('usherUsername');
+        const passwordInput = document.getElementById('usherPassword');
 
-    try {
-      const res = await callRPC('create_usher', {
-        p_manager_token: managerToken,
-        p_event_id: activeEventId,
-        p_username: userInput.value.trim(),
-        p_password: passInput.value
-      });
+        const res = await callRPC('create_event_usher', {
+            p_manager_token: sessionToken,
+            p_username: usernameInput.value.trim(),
+            p_password: passwordInput.value
+        });
 
-      if (res.success) {
-        showToast(`Usher device "${userInput.value.trim()}" successfully deployed.`, 'success');
-        userInput.value = '';
-        passInput.value = '';
-        await refreshUsherDeviceDirectoryList();
-      } else {
-        showToast(res.error || 'Failed to authorize terminal handle.', 'error');
-      }
-    } catch (err) {
-      showToast("Network request tracking failed.", "error");
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = "Authorize Usher Device";
+        if (!res.success) {
+            showToast(res.error || 'Failed to create usher', 'error');
+            return;
+        }
+
+        document.getElementById('usherCredUsername').textContent = `Username: ${usernameInput.value.trim()}`;
+        document.getElementById('usherCredPassword').textContent = `Password: ${passwordInput.value}`;
+        document.getElementById('usherCredentialBox').classList.add('active');
+
+        showToast('Usher created', 'success');
+        usernameInput.value = '';
+        passwordInput.value = '';
+        refreshMetricsAndUshers();
+    });
+
+    // ---------- Delete usher ----------
+    function promptDeleteUsher(id, username) {
+        pendingDeleteUsherId = id;
+        document.getElementById('deleteUsherText').innerHTML =
+            `This will revoke login access for <strong>${escapeHtml(username)}</strong> immediately.`;
+        document.getElementById('deleteUsherModal').classList.add('active');
     }
-  }
 
-  function promptEventTermination() {
-    document.getElementById('terminationModal').classList.add('active');
-  }
+    document.getElementById('cancelDeleteUsherBtn').addEventListener('click', () => {
+        document.getElementById('deleteUsherModal').classList.remove('active');
+        pendingDeleteUsherId = null;
+    });
 
-  function closeTerminationModal() {
-    document.getElementById('terminationModal').classList.remove('active');
-  }
+    document.getElementById('confirmDeleteUsherBtn').addEventListener('click', async () => {
+        if (!pendingDeleteUsherId) return;
 
-  document.getElementById('confirmTerminateBtn').addEventListener('click', async () => {
-    const confirmBtn = document.getElementById('confirmTerminateBtn');
-    confirmBtn.disabled = true;
-    confirmBtn.textContent = "Closing...";
+        const res = await callRPC('delete_event_usher', {
+            p_manager_token: sessionToken,
+            p_usher_id: pendingDeleteUsherId
+        });
 
-    try {
-      const res = await callRPC('close_event', {
-        p_manager_token: managerToken,
-        p_event_id: activeEventId
-      });
+        document.getElementById('deleteUsherModal').classList.remove('active');
+        pendingDeleteUsherId = null;
 
-      if (res.success) {
-        closeTerminationModal();
-        showToast("Operational status window archived securely.", "success");
-        setTimeout(() => { location.reload(); }, 1500);
-      } else {
-        showToast(res.error || 'Failed to change life cycle status.', 'error');
-        confirmBtn.disabled = false;
-        confirmBtn.textContent = "Terminate Event";
-      }
-    } catch (err) {
-      showToast("Network pipeline transmission failure.", "error");
-      confirmBtn.disabled = false;
-      confirmBtn.textContent = "Terminate Event";
+        if (res.success) {
+            showToast('Usher removed', 'success');
+            refreshMetricsAndUshers();
+        } else {
+            showToast(res.error || 'Failed to remove usher', 'error');
+        }
+    });
+
+    // ---------- Close event ----------
+    document.getElementById('closeEventBtn').addEventListener('click', () => {
+        document.getElementById('closeEventModal').classList.add('active');
+    });
+
+    document.getElementById('cancelCloseBtn').addEventListener('click', () => {
+        document.getElementById('closeEventModal').classList.remove('active');
+    });
+
+    document.getElementById('confirmCloseBtn').addEventListener('click', async () => {
+        const res = await callRPC('close_current_event', { p_manager_token: sessionToken });
+        document.getElementById('closeEventModal').classList.remove('active');
+
+        if (res.success) {
+            showToast('Event closed', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast(res.error || 'Failed to close event', 'error');
+        }
+    });
+
+    // ---------- Init ----------
+    if (!sessionToken) {
+        window.location.href = 'login.html';
+    } else if (localStorage.getItem('user_role') !== 'event_manager') {
+        window.location.href = 'login.html';
+    } else {
+        loadDashboard();
     }
-  });
-
-  function handleLogout(e) {
-    if(e) e.preventDefault();
-    localStorage.clear();
-    window.location.href = 'login.html';
-  }
-
-  function escapeHtml(str) {
-    if (!str) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-  }
-
-  async function callRPC(functionName, payload) {
-    try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${functionName}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
-        body: JSON.stringify(payload)
-      });
-      return await response.json();
-    } catch (err) {
-      console.error(`RPC Link Collapsed: ${functionName}`, err);
-      throw err;
-    }
-  }
-
-  loadControlRoomState();
 </script>
 </body>
 </html>
