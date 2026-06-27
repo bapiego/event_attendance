@@ -482,11 +482,27 @@
     });
 
     // ---------- Init ----------
-    if (!sessionToken) {
-        window.location.href = 'login.html';
-    } else if (localStorage.getItem('user_role') !== 'event_manager') {
-        window.location.href = 'login.html';
+    async function init() {
+        if (!sessionToken) {
+            window.location.href = 'login.html';
+            return;
+        }
+        if (localStorage.getItem('user_role') !== 'event_manager') {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // Check up front whether an active event already exists, before
+        // letting the manager spend time uploading and mapping a spreadsheet
+        // they won't be able to submit anyway.
+        const res = await callRPC('get_my_active_event', { p_token: sessionToken });
+        if (res.success && res.has_active_event) {
+            showToast('You already have an active event - redirecting to your dashboard...', 'error');
+            setTimeout(() => { window.location.href = 'manager-dashboard.html'; }, 1800);
+        }
     }
+
+    init();
 </script>
 </body>
 </html>
