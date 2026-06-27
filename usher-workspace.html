@@ -1,555 +1,510 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Usher Check-In Gate</title>
-    <style>
-        :root {
-            --bg-main: #0f172a;
-            --bg-card: #1e293b;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #2563eb;
-            --accent-hover: #1d4ed8;
-            --success: #10b981;
-            --success-bg: rgba(16, 185, 129, 0.15);
-            --border: #334155;
-            --danger: #ef4444;
-        }
-        body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background-color: var(--bg-main);
-            color: var(--text-main);
-            margin: 0;
-            padding: 1.5rem;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
-        .container {
-            max-width: 650px;
-            width: 100%;
-            position: relative;
-        }
-        .header-area {
-            margin-bottom: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        h1 { font-size: 1.5rem; margin: 0; }
-        .badge {
-            background-color: var(--accent);
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-        .search-wrap {
-            position: relative;
-            margin-bottom: 1.5rem;
-        }
-        .search-box {
-            width: 100%;
-            padding: 1rem;
-            font-size: 1.1rem;
-            border-radius: 8px;
-            border: 2px solid var(--border);
-            background-color: #1e293b;
-            color: white;
-            box-sizing: border-box;
-            outline: none;
-        }
-        .search-box:focus { border-color: var(--accent); }
-        
-        /* Suggestions Popover box styling from index.html */
-        .suggestions {
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0;
-            right: 0;
-            background: #1e293b;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-            max-height: 360px;
-            overflow-y: auto;
-            z-index: 50;
-            display: none;
-        }
-        .suggestion-item {
-            padding: 12px 16px;
-            cursor: pointer;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .suggestion-item:last-child { border-bottom: none; }
-        .suggestion-item:hover { background: #334155; }
-        .suggestion-item .name { font-weight: 600; font-size: 14px; }
-        .suggestion-item .meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-        
-        .add-new-item {
-            padding: 14px 16px;
-            cursor: pointer;
-            background: #1e3a8a;
-            color: #93c5fd;
-            font-weight: 600;
-            font-size: 14px;
-            border-top: 1px solid var(--border);
-        }
-        .add-new-item:hover { background: #172554; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendly - Check-In</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* Main Feed Result Cards */
-        .attendee-card {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1.2rem;
-            margin-bottom: 0.75rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .attendee-card.checked-in {
-            border-color: var(--success);
-            background-color: var(--success-bg);
-        }
-        .meta-group div { margin-bottom: 0.35rem; font-size: 0.95rem; }
-        .meta-label { color: var(--text-muted); font-size: 0.85rem; margin-right: 4px; }
-        
-        .action-row {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            min-width: 110px;
-        }
-        .checkin-btn {
-            border: none;
-            padding: 0.6rem 1.2rem;
-            border-radius: 6px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.2s;
-            background-color: #475569;
-            color: white;
-        }
-        .attendee-card.checked-in .checkin-btn {
-            background-color: var(--success);
-        }
-        .edit-btn {
-            background: none;
-            border: 1px solid var(--border);
-            color: #60a5fa;
-            padding: 4px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .edit-btn:hover { background: rgba(59, 130, 246, 0.1); }
-        .status-msg { text-align: center; color: var(--text-muted); margin-top: 2rem; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #f4f6f9;
+    color: #1a202c;
+    min-height: 100vh;
+  }
 
-        /* Overhauled Dynamic Input Modal Overlay */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.7);
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            z-index: 100;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal-box {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            width: 100%;
-            max-width: 440px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-        .modal-box h2 { font-size: 1.3rem; margin: 0 0 4px 0; }
-        .modal-box p.sub { font-size: 13px; color: var(--text-muted); margin: 0 0 16px 0; }
-        .modal-box label { display: block; font-size: 12px; font-weight: 600; color: var(--text-main); margin-bottom: 6px; margin-top: 14px; }
-        .modal-box input { width: 100%; padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 6px; background-color: var(--bg-main); color: white; font-size: 14px; box-sizing: border-box; }
-        .modal-box input:focus { outline: none; border-color: var(--accent); }
-        .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
-        .modal-actions button { flex: 1; padding: 12px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
-        .btn-cancel { background: #475569; color: white; }
-        .btn-cancel:hover { background: #334155; }
-        .btn-confirm { background: var(--accent); color: white; }
-        .btn-confirm:hover { background: var(--accent-hover); }
-    </style>
+  header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    color: white;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  header h1 { font-size: 18px; font-weight: 600; }
+  header .event-name { font-size: 13px; opacity: 0.85; }
+
+  header .user-info {
+    font-size: 13px;
+    opacity: 0.85;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  header button#logoutBtn {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+  header button#logoutBtn:hover { background: rgba(255,255,255,0.25); }
+
+  .summary-bar {
+    background: white;
+    padding: 16px 20px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .summary-stat { text-align: left; }
+  .summary-stat .num { font-size: 24px; font-weight: 700; color: #2c5282; }
+  .summary-stat .label { font-size: 12px; color: #718096; }
+
+  .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+
+  .search-wrap { position: relative; margin-bottom: 8px; }
+
+  #searchInput {
+    width: 100%; padding: 14px 16px; font-size: 16px;
+    border: 2px solid #e2e8f0; border-radius: 12px; background: white;
+  }
+  #searchInput:focus { outline: none; border-color: #2c5282; }
+
+  .empty-state { text-align: center; color: #a0aec0; padding: 60px 20px; font-size: 14px; }
+
+  .result-card {
+    background: white; border-radius: 14px; padding: 18px;
+    margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .result-card.checked-in { border-left: 4px solid #38a169; }
+
+  .result-card .name { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+
+  .result-card .details { font-size: 13px; color: #4a5568; line-height: 1.7; }
+  .result-card .details .field-row { display: block; }
+  .result-card .details .field-label { color: #a0aec0; font-weight: 600; margin-right: 4px; }
+
+  .check-in-btn {
+    background: #2c5282; color: white; border: none; padding: 10px 20px;
+    border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+  .check-in-btn:hover { background: #1e3a5f; }
+
+  .checked-status { display: flex; align-items: center; gap: 8px; }
+  .checked-status .check-icon { color: #38a169; font-size: 14px; font-weight: 700; }
+
+  .undo-btn, .edit-btn {
+    background: none; border: 1px solid #e2e8f0; color: #a0aec0;
+    padding: 6px 12px; border-radius: 8px; font-size: 12px; cursor: pointer;
+  }
+  .undo-btn:hover { border-color: #cbd5e0; color: #718096; }
+  .edit-btn { color: #2c5282; border-color: #cbd5e0; font-weight: 600; }
+  .edit-btn:hover { background: #f0f7ff; }
+
+  .action-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+  .add-new-btn {
+    background: #f0f7ff; color: #2c5282; border: 1.5px dashed #bee3f8;
+    border-radius: 10px; padding: 14px; font-size: 14px; font-weight: 600;
+    cursor: pointer; width: 100%; margin-top: 8px;
+  }
+  .add-new-btn:hover { background: #e0eeff; }
+
+  .modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); align-items: center; justify-content: center;
+    padding: 20px; z-index: 100;
+  }
+  .modal-overlay.active { display: flex; }
+
+  .modal-box {
+    background: white; border-radius: 16px; padding: 28px;
+    width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto;
+  }
+  .modal-box h2 { font-size: 18px; margin-bottom: 4px; }
+  .modal-box p.sub { font-size: 13px; color: #718096; margin-bottom: 20px; }
+
+  .modal-box label {
+    display: block; font-size: 12px; font-weight: 600; color: #4a5568;
+    margin-bottom: 5px; margin-top: 14px;
+  }
+  .modal-box input {
+    width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0;
+    border-radius: 8px; font-size: 14px;
+  }
+  .modal-box input:focus { outline: none; border-color: #2c5282; }
+
+  .modal-actions { display: flex; gap: 10px; margin-top: 24px; }
+  .modal-actions button {
+    flex: 1; padding: 12px; border-radius: 8px; font-size: 14px;
+    font-weight: 600; cursor: pointer; border: none;
+  }
+  .btn-cancel { background: #f1f5f9; color: #4a5568; }
+  .btn-cancel:hover { background: #e2e8f0; }
+  .btn-confirm { background: #2c5282; color: white; }
+  .btn-confirm:hover { background: #1e3a5f; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #1a202c; color: white; padding: 12px 24px; border-radius: 10px;
+    font-size: 14px; z-index: 200; display: none;
+  }
+  .toast.success { background: #2f855a; }
+  .toast.error { background: #c53030; }
+
+  .app-footer { text-align: center; padding: 16px; font-size: 12px; color: #a0aec0; }
+</style>
 </head>
 <body>
 
+<header>
+  <div>
+    <h1>Attendly Check-In</h1>
+    <div class="event-name" id="eventNameLabel"></div>
+  </div>
+  <div class="user-info">
+    <span id="loggedInAs"></span>
+    <button id="logoutBtn">Log Out</button>
+  </div>
+</header>
+
+<div class="summary-bar" id="summaryBar">
+  <div class="summary-stat">
+    <div class="num" id="totalCheckedIn">–</div>
+    <div class="label">Checked In</div>
+  </div>
+</div>
+
 <div class="container">
-    <div class="header-area">
-        <div>
-            <h1 id="eventNameHeader">Loading Assigned Gate...</h1>
-            <span style="color: var(--text-muted); font-size: 0.9rem;">Usher Access Panel</span>
-        </div>
-        <div id="statsBadge" class="badge">0 Inside</div>
-    </div>
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="Search attendees..." autocomplete="off">
+  </div>
 
-    <div class="search-wrap">
-        <input type="text" id="searchInput" class="search-box" placeholder="Search by name or mapped fields..." autocomplete="off" disabled>
-        <div class="suggestions" id="suggestions"></div>
-    </div>
-
-    <div id="resultsArea">
-        <div class="status-msg">Authenticating device connection...</div>
-    </div>
+  <div id="resultsArea">
+    <div class="empty-state">Start typing a name or other detail to find an attendee.</div>
+  </div>
 </div>
 
+<!-- Add/Edit attendee modal -->
 <div class="modal-overlay" id="modalOverlay">
-    <div class="modal-box">
-        <h2 id="modalTitle">Add New Attendee</h2>
-        <p class="sub" id="modalSub">Complete missing parameters to register entry.</p>
+  <div class="modal-box">
+    <h2 id="modalTitle">Add New Attendee</h2>
+    <p class="sub" id="modalSub">No match found — fill in their details to check them in.</p>
 
-        <div id="dynamicFieldsContainer"></div>
+    <div id="modalFieldsContainer"></div>
 
-        <div class="modal-actions">
-            <button class="btn-cancel" onclick="closeFormModal()">Cancel</button>
-            <button class="btn-confirm" id="confirmModalBtn">Add & Check In</button>
-        </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="cancelModalBtn">Cancel</button>
+      <button class="btn-confirm" id="confirmModalBtn">Add & Check In</button>
     </div>
+  </div>
 </div>
+
+<div class="toast" id="toast"></div>
+
+<p class="app-footer">Powered by Bapiego</p>
 
 <script>
-    let sessionToken = "YOUR_STORED_SESSION_TOKEN_HERE"; 
-    let currentEventId = "AUTO_RESOLVED_ON_LOGIN"; 
-    let schemaBlueprints = []; 
-    let checkinCount = 0;
-    let searchTimeout = null;
-    let loadedRecords = []; // Holds current filtered records in memory
-    let editingAttendeeId = null; // Track if modal is doing an Edit vs an Add
+  const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_PLI1DLUB_0DF3R0x3GPWYA_RNj2aScg';
 
-    const searchInput = document.getElementById('searchInput');
-    const suggestionsBox = document.getElementById('suggestions');
-    const resultsArea = document.getElementById('resultsArea');
+  const sessionToken = localStorage.getItem('session_token');
+  const eventId = localStorage.getItem('event_id');
 
-    searchInput.addEventListener('input', (e) => {
-        const query = e.target.value.trim();
-        clearTimeout(searchTimeout);
+  let eventFields = [];
+  let debounceTimer = null;
+  let currentSearchTerm = '';
+  let editingAttendeeId = null;
 
-        if (query.length === 0) {
-            suggestionsBox.style.display = 'none';
-            resultsArea.innerHTML = '<div class="status-msg">Start typing a name or phone number to find an attendee.</div>';
-            return;
-        }
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    window.location.href = 'login.html';
+  });
 
-        searchTimeout = setTimeout(() => {
-            executeGateSearch(query);
-        }, 200);
+  function showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast ${type}`;
+    toast.style.display = 'block';
+    setTimeout(() => { toast.style.display = 'none'; }, 2500);
+  }
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  async function callRPC(functionName, payload) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${functionName}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+        body: JSON.stringify(payload)
+      });
+      return await res.json();
+    } catch (err) {
+      return { success: false, error: 'Connection failure' };
+    }
+  }
+
+  // ---------- Load event field definitions ----------
+  async function loadEventFields() {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_event_fields`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ p_event_id: eventId })
+    });
+    eventFields = await res.json();
+  }
+
+  function getNameField() {
+    return eventFields.find(f => f.is_name_field);
+  }
+
+  // ---------- Summary ----------
+  async function loadSummary() {
+    const res = await callRPC('get_event_attendance_metrics', { p_token: sessionToken, p_event_id: eventId });
+    if (res.success) {
+      document.getElementById('totalCheckedIn').textContent = `${res.total_checked_in} / ${res.total_registered}`;
+    }
+  }
+
+  // ---------- Search ----------
+  const searchInput = document.getElementById('searchInput');
+  const resultsArea = document.getElementById('resultsArea');
+
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.trim();
+    currentSearchTerm = query;
+    clearTimeout(debounceTimer);
+
+    if (query.length === 0) {
+      resultsArea.innerHTML = '<div class="empty-state">Start typing a name or other detail to find an attendee.</div>';
+      return;
+    }
+    debounceTimer = setTimeout(() => runSearch(query), 250);
+  });
+
+  async function runSearch(query) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/search_attendees`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({ p_token: sessionToken, p_event_id: eventId, p_search_term: query })
     });
 
-    // Close suggestions dropdown when clicking outside the input wrapper context
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.search-wrap')) {
-            suggestionsBox.style.display = 'none';
-        }
+    if (!res.ok) {
+      resultsArea.innerHTML = '<div class="empty-state">Search failed. Please try again.</div>';
+      return;
+    }
+
+    const results = await res.json();
+    renderResults(Array.isArray(results) ? results : [], query);
+  }
+
+  function renderResults(results, query) {
+    if (results.length === 0) {
+      resultsArea.innerHTML = `
+        <div class="empty-state">
+          No attendee found matching "${escapeHtml(query)}".
+        </div>
+        <button class="add-new-btn" id="addNewFromEmptyBtn">+ Add "${escapeHtml(query)}" as a new attendee</button>
+      `;
+      document.getElementById('addNewFromEmptyBtn').addEventListener('click', () => openAddModal(query));
+      return;
+    }
+
+    resultsArea.innerHTML = '';
+    results.forEach(person => resultsArea.appendChild(buildResultCard(person)));
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-new-btn';
+    addBtn.textContent = `+ Add "${query}" as a new attendee instead`;
+    addBtn.addEventListener('click', () => openAddModal(query));
+    resultsArea.appendChild(addBtn);
+  }
+
+  function buildResultCard(person) {
+    const card = document.createElement('div');
+    card.className = `result-card ${person.checked_in ? 'checked-in' : ''}`;
+
+    const nameField = getNameField();
+    const displayName = nameField ? (person.data[nameField.field_key] || '(no name)') : '(no name)';
+
+    let detailsHtml = '';
+    eventFields.forEach(f => {
+      if (f.is_name_field) return;
+      const value = person.data[f.field_key];
+      if (value) {
+        detailsHtml += `<div class="field-row"><span class="field-label">${escapeHtml(f.field_label)}:</span>${escapeHtml(value)}</div>`;
+      }
     });
 
-    async function bootstrapWorkspace() {
-        try {
-            // Read event parameters dynamically from active configuration blueprint records
-            let fields = await callRPC('get_event_fields', { p_token: sessionToken, p_event_id: currentEventId });
-            schemaBlueprints = fields.sort((a,b) => a.field_order - b.field_order);
+    card.innerHTML = `
+      <div class="name">${escapeHtml(displayName)}</div>
+      <div class="details">${detailsHtml}</div>
+      <div class="action-row"></div>
+    `;
 
-            document.getElementById('eventNameHeader').innerText = "Live Gate Check-In";
-            searchInput.disabled = false;
-            searchInput.focus();
+    const actionRow = card.querySelector('.action-row');
 
-            resultsArea.innerHTML = '<div class="status-msg">Ready for lookups. Enter characters into search point above.</div>';
-        } catch (err) {
-            resultsArea.innerHTML = `<div class="status-msg" style="color:var(--danger);">Authorization Failure: Scoped Event Context Unreachable.</div>`;
-        }
+    if (person.checked_in) {
+      const checkedAt = person.checked_in_at ? new Date(person.checked_in_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+      const statusDiv = document.createElement('div');
+      statusDiv.className = 'checked-status';
+      statusDiv.innerHTML = `<span class="check-icon">✓ Checked in${checkedAt ? ' at ' + checkedAt : ''}</span>`;
+      actionRow.appendChild(statusDiv);
+
+      const undoBtn = document.createElement('button');
+      undoBtn.className = 'undo-btn';
+      undoBtn.textContent = 'Undo';
+      undoBtn.addEventListener('click', () => toggleCheckIn(person.id, false));
+      actionRow.appendChild(undoBtn);
+    } else {
+      const btn = document.createElement('button');
+      btn.className = 'check-in-btn';
+      btn.textContent = 'Check In';
+      btn.addEventListener('click', () => toggleCheckIn(person.id, true));
+      actionRow.appendChild(btn);
     }
 
-    async function executeGateSearch(term) {
-        try {
-            let records = await callRPC('search_attendees', { p_token: sessionToken, p_search_term: term });
-            loadedRecords = records;
-            renderSuggestionsPopover(records, term);
-            renderMainFeedCards(records, term);
-        } catch (err) {
-            console.error("Search transaction dropped.");
-        }
+    const editBtn = document.createElement('button');
+    editBtn.className = 'edit-btn';
+    editBtn.textContent = 'Edit';
+    editBtn.addEventListener('click', () => openEditModal(person));
+    actionRow.appendChild(editBtn);
+
+    return card;
+  }
+
+  async function toggleCheckIn(attendeeId, checkedIn) {
+    const res = await callRPC('toggle_attendee_checkin', {
+      p_token: sessionToken,
+      p_attendee_id: attendeeId,
+      p_checked_in: checkedIn
+    });
+
+    if (res.success) {
+      showToast(checkedIn ? 'Checked in' : 'Check-in undone');
+      loadSummary();
+      if (currentSearchTerm) runSearch(currentSearchTerm);
+    } else {
+      showToast(res.error || 'Action failed', 'error');
+    }
+  }
+
+  // ---------- Add/Edit modal ----------
+  const modalOverlay = document.getElementById('modalOverlay');
+
+  function renderModalFields(prefillData) {
+    const container = document.getElementById('modalFieldsContainer');
+    container.innerHTML = '';
+
+    eventFields.forEach(f => {
+      const label = document.createElement('label');
+      label.textContent = f.field_label + (f.is_name_field ? ' (required)' : '');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.id = `modal_field_${f.field_key}`;
+      input.value = (prefillData && prefillData[f.field_key]) || '';
+      container.appendChild(label);
+      container.appendChild(input);
+    });
+  }
+
+  function openAddModal(prefillName) {
+    editingAttendeeId = null;
+    document.getElementById('modalTitle').textContent = 'Add New Attendee';
+    document.getElementById('modalSub').textContent = 'No match found — fill in their details to check them in.';
+    document.getElementById('confirmModalBtn').textContent = 'Add & Check In';
+
+    const nameField = getNameField();
+    const prefill = {};
+    if (nameField) prefill[nameField.field_key] = prefillName || '';
+    renderModalFields(prefill);
+
+    modalOverlay.classList.add('active');
+  }
+
+  function openEditModal(person) {
+    editingAttendeeId = person.id;
+    document.getElementById('modalTitle').textContent = 'Edit Attendee';
+    document.getElementById('modalSub').textContent = 'Update their details below.';
+    document.getElementById('confirmModalBtn').textContent = 'Save Changes';
+    renderModalFields(person.data);
+    modalOverlay.classList.add('active');
+  }
+
+  function closeModal() {
+    modalOverlay.classList.remove('active');
+    editingAttendeeId = null;
+  }
+
+  document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
+
+  document.getElementById('confirmModalBtn').addEventListener('click', async () => {
+    const nameField = getNameField();
+    const data = {};
+    eventFields.forEach(f => {
+      data[f.field_key] = document.getElementById(`modal_field_${f.field_key}`).value.trim();
+    });
+
+    if (nameField && !data[nameField.field_key]) {
+      showToast('Name is required', 'error');
+      return;
     }
 
-    // 1. Two-tier search interface: Suggestions Popover handler (from index.html)
-    function renderSuggestionsPopover(records, query) {
-        suggestionsBox.innerHTML = '';
-        const nameField = schemaBlueprints.find(f => f.is_name_field) || schemaBlueprints[0];
-        const secondaryField = schemaBlueprints.find(f => !f.is_name_field);
+    if (editingAttendeeId) {
+      const res = await callRPC('update_attendee_record', {
+        p_token: sessionToken,
+        p_attendee_id: editingAttendeeId,
+        p_updated_data: data
+      });
+      if (res.success) {
+        showToast('Details updated');
+        closeModal();
+        if (currentSearchTerm) runSearch(currentSearchTerm);
+      } else {
+        showToast(res.error || 'Failed to update', 'error');
+      }
+    } else {
+      const res = await callRPC('add_unlisted_attendee', {
+        p_token: sessionToken,
+        p_attendee_data: data
+      });
+      if (res.success) {
+        showToast('Attendee added and checked in');
+        closeModal();
+        loadSummary();
+        const nameVal = nameField ? data[nameField.field_key] : '';
+        searchInput.value = nameVal;
+        runSearch(nameVal);
+      } else {
+        showToast(res.error || 'Failed to add attendee', 'error');
+      }
+    }
+  });
 
-        records.slice(0, 6).forEach(person => {
-            const item = document.createElement('div');
-            item.className = 'suggestion-item';
-            
-            const nameVal = person.data[nameField.field_key] || 'Unlabeled';
-            const secVal = secondaryField ? person.data[secondaryField.field_key] : '';
+  // ---------- Init ----------
+  async function init() {
+    if (!sessionToken) { window.location.href = 'login.html'; return; }
 
-            item.innerHTML = `
-                <div>
-                    <div class="name">${escapeHtml(nameVal)}</div>
-                    <div class="meta">${escapeHtml(secVal)}</div>
-                </div>
-                <span class="badge" style="background-color: ${person.checked_in ? 'var(--success)' : '#475569'}">
-                    ${person.checked_in ? '✓ In' : 'Gate'}
-                </span>
-            `;
-            item.addEventListener('click', () => {
-                searchInput.value = nameVal;
-                suggestionsBox.style.display = 'none';
-                renderMainFeedCards([person], nameVal);
-            });
-            suggestionsBox.appendChild(item);
-        });
-
-        // "Add as new" entrypoint option at bottom of suggestion dropdown context
-        const addNewItem = document.createElement('div');
-        addNewItem.className = 'add-new-item';
-        addNewItem.textContent = `+ Add "${query}" as an unlisted attendee`;
-        addNewItem.addEventListener('click', () => {
-            suggestionsBox.style.display = 'none';
-            openAddModal(query);
-        });
-        suggestionsBox.appendChild(addNewItem);
-        suggestionsBox.style.display = 'block';
+    const role = localStorage.getItem('user_role');
+    if (role !== 'usher' && role !== 'event_manager') { window.location.href = 'login.html'; return; }
+    if (!eventId) {
+      resultsArea.innerHTML = '<div class="empty-state">No event assigned to this account.</div>';
+      return;
     }
 
-    // 2. Two-tier search interface: Detailed Card Stack Feed (from index.html)
-    function renderMainFeedCards(records, query) {
-        if (records.length === 0) {
-            resultsArea.innerHTML = `
-                <div class="status-msg">
-                    No attendee found matching "${escapeHtml(query)}".<br><br>
-                    <button class="checkin-btn" style="background-color:var(--accent)" onclick="openAddModal('${escapeHtml(query).replace(/'/g, "\\'")}')">+ Add as New Attendee</button>
-                </div>
-            `;
-            return;
-        }
+    document.getElementById('loggedInAs').textContent = `Logged in as ${localStorage.getItem('username') || ''}`;
 
-        resultsArea.innerHTML = '';
-        records.forEach(person => {
-            const card = document.createElement('div');
-            card.className = `attendee-card ${person.checked_in ? 'checked-in' : ''}`;
-            card.id = `attendee-${person.id}`;
+    await loadEventFields();
+    loadSummary();
+  }
 
-            let htmlMeta = '';
-            schemaBlueprints.forEach(field => {
-                const value = person.data[field.field_key];
-                if (value) {
-                    if (field.is_name_field) {
-                        htmlMeta += `<div><strong>${escapeHtml(value)}</strong></div>`;
-                    } else {
-                        htmlMeta += `<div><span class="meta-label">${escapeHtml(field.field_label)}:</span> ${escapeHtml(value)}</div>`;
-                    }
-                }
-            });
-
-            card.innerHTML = `
-                <div class="meta-group">${htmlMeta}</div>
-                <div class="action-row">
-                    <button class="checkin-btn" onclick="toggleGateStatus('${person.id}', ${!person.checked_in})">
-                        ${person.checked_in ? '✓ Inside' : 'Check In'}
-                    </button>
-                    <button class="edit-btn" onclick="openEditModal('${person.id}')">Edit</button>
-                </div>
-            `;
-            resultsArea.appendChild(card);
-        });
-    }
-
-    async function toggleGateStatus(attendeeId, targetState) {
-        const card = document.getElementById(`attendee-${attendeeId}`);
-        const button = card.querySelector('.checkin-btn');
-
-        if (targetState) {
-            card.classList.add('checked-in');
-            button.innerText = "✓ Inside";
-        } else {
-            card.classList.remove('checked-in');
-            button.innerText = "Check In";
-        }
-
-        try {
-            let res = await callRPC('toggle_attendee_checkin', {
-                p_token: sessionToken,
-                p_attendee_id: attendeeId,
-                p_checked_in: targetState
-            });
-
-            if (!res.success) {
-                alert(`Gate Rejected: ${res.error}`);
-                executeGateSearch(searchInput.value.trim());
-            } else {
-                updateMetricsBadge(targetState ? 1 : -1);
-                button.setAttribute('onclick', `toggleGateStatus('${attendeeId}', ${!targetState})`);
-            }
-        } catch (err) {
-            alert("Network dropped. Transaction failure.");
-        }
-    }
-
-    // 3. Completely Dynamic Form Building Engine
-    function buildDynamicFormInputs(prefillValues = {}) {
-        const targetContainer = document.getElementById('dynamicFieldsContainer');
-        targetContainer.innerHTML = '';
-
-        schemaBlueprints.forEach(field => {
-            label = document.createElement('label');
-            label.innerText = field.field_label;
-            
-            input = document.createElement('input');
-            input.type = 'text';
-            input.className = 'dynamic-form-input';
-            input.dataset.key = field.field_key;
-            input.value = prefillValues[field.field_key] || '';
-
-            targetContainer.appendChild(label);
-            targetContainer.appendChild(input);
-        });
-    }
-
-    function openAddModal(prefillName) {
-        editingAttendeeId = null;
-        document.getElementById('modalTitle').innerText = 'Add New Attendee';
-        document.getElementById('modalSub').innerText = 'This unlisted entry will be dynamically injected into the roster storage.';
-        document.getElementById('confirmModalBtn').innerText = 'Add & Check In';
-
-        const nameField = schemaBlueprints.find(f => f.is_name_field);
-        let prefillPayload = {};
-        if (nameField && prefillName) {
-            prefillPayload[nameField.field_key] = prefillName;
-        }
-
-        buildDynamicFormInputs(prefillPayload);
-        document.getElementById('modalOverlay').classList.add('active');
-    }
-
-    function openEditModal(attendeeId) {
-        editingAttendeeId = attendeeId;
-        document.getElementById('modalTitle').innerText = 'Edit Attendee Record';
-        document.getElementById('modalSub').innerText = 'Modify current dynamic values associated with this record.';
-        document.getElementById('confirmModalBtn').innerText = 'Save Overwrites';
-
-        const record = loadedRecords.find(r => r.id === attendeeId);
-        if (!record) return;
-
-        buildDynamicFormInputs(record.data);
-        document.getElementById('modalOverlay').classList.add('active');
-        
-        // Target execution branch modifier trigger click
-        document.getElementById('confirmModalBtn').onclick = commitFormModalTransaction;
-    }
-
-    function closeFormModal() {
-        document.getElementById('modalOverlay').classList.remove('active');
-        editingAttendeeId = null;
-    }
-
-    async function commitFormModalTransaction() {
-        const inputs = document.querySelectorAll('.dynamic-form-input');
-        let constructedDataPayload = {};
-        let primaryNameMissing = false;
-
-        inputs.forEach(input => {
-            const val = input.value.trim();
-            const fieldKey = input.dataset.key;
-            constructedDataPayload[fieldKey] = val;
-
-            const definition = schemaBlueprints.find(f => f.field_key === fieldKey);
-            if (definition && definition.is_name_field && !val) {
-                primaryNameMissing = true;
-            }
-        });
-
-        if (primaryNameMissing) {
-            alert("Validation Error: The designated primary identity Name column cannot be left blank.");
-            return;
-        }
-
-        try {
-            if (editingAttendeeId) {
-                // Edit branch invocation: update_attendee_record RPC route
-                let res = await callRPC('update_attendee_record', {
-                    p_token: sessionToken,
-                    p_attendee_id: editingAttendeeId,
-                    p_updated_data: constructedDataPayload
-                });
-                if (!res.success) return alert(res.error);
-                alert("Changes successfully committed to registry.");
-            } else {
-                // Add branch invocation: add_unlisted_attendee RPC route
-                let res = await callRPC('add_unlisted_attendee', {
-                    p_token: sessionToken,
-                    p_attendee_data: constructedDataPayload
-                });
-                if (!res.success) return alert(res.error);
-                updateMetricsBadge(1);
-                alert("Attendee registered and marked inside.");
-            }
-
-            closeFormModal();
-            executeGateSearch(searchInput.value.trim());
-
-        } catch (err) {
-            alert("Network mutation fault encountered.");
-        }
-    }
-
-    // Connect confirm btn globally back to single entrypoint
-    document.getElementById('confirmModalBtn').onclick = commitFormModalTransaction;
-
-    function updateMetricsBadge(modifier) {
-        checkinCount += modifier;
-        if (checkinCount < 0) checkinCount = 0;
-        document.getElementById('statsBadge').innerText = `${checkinCount} Inside`;
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
-    }
-
-    // Network RPC Layer
-    async function callRPC(functionName, payload) {
-        console.log(`Dispatched Workspace API Request: ${functionName}`, payload);
-        
-        // This coordinates directly with your runtime database engine. 
-        // Returning clean testing schemas that replicate spreadsheet-driven structures:
-        if (functionName === 'get_event_fields') {
-            return [
-                { field_key: 'full_name', field_label: 'Guest Name', field_order: 1, is_name_field: true },
-                { field_key: 'ticket_tier', field_label: 'Access Pass', field_order: 2, is_name_field: false },
-                { field_key: 'table_no', field_label: 'Seating Assignment', field_order: 3, is_name_field: false }
-            ];
-        }
-        if (functionName === 'search_attendees') {
-            return [
-                { id: "uuid-test-1", data: { full_name: "Kwame Mensah", ticket_tier: "VIP Lounge", table_no: "Table 4" }, checked_in: false },
-                { id: "uuid-test-2", data: { full_name: "Abena Osei", ticket_tier: "General Admission", table_no: "Table 12" }, checked_in: true }
-            ];
-        }
-        return { success: true };
-    }
-
-    bootstrapWorkspace();
+  init();
 </script>
+
 </body>
 </html>
