@@ -102,6 +102,7 @@
         }
         .role-btn.name-active { background: rgba(16,185,129,0.15); border-color: var(--success); color: #6ee7b7; }
         .role-btn.phone-active { background: rgba(37,99,235,0.15); border-color: var(--accent); color: #93c5fd; }
+        .role-btn.required-active { background: rgba(217,119,6,0.15); border-color: #d97706; color: #fbbf24; }
 
         .remove-field-btn {
             background: none; border: 1px solid var(--danger); color: var(--danger);
@@ -127,6 +128,11 @@
         .error-banner {
             background: rgba(239,68,68,0.1); border: 1px solid var(--danger); color: #fca5a5;
             padding: 0.85rem 1rem; border-radius: 6px; margin-top: 1rem; display: none; font-size: 0.85rem;
+        }
+
+        .warning-banner {
+            background: rgba(217,119,6,0.1); border: 1px solid #d97706; color: #fbbf24;
+            padding: 0.85rem 1rem; border-radius: 6px; margin-top: 1rem; font-size: 0.85rem; line-height: 1.6;
         }
 
         .actions-row { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem; }
@@ -301,6 +307,7 @@
                 source_header: header,
                 is_name_field: isName,
                 is_phone_field: isPhone,
+                is_required: isName,
                 is_custom: false
             });
         });
@@ -325,6 +332,7 @@
                 <div class="role-toggle">
                     <button type="button" class="role-btn name-btn ${field.is_name_field ? 'name-active' : ''}" data-index="${index}">Name</button>
                     <button type="button" class="role-btn phone-btn ${field.is_phone_field ? 'phone-active' : ''}" data-index="${index}">Phone</button>
+                    <button type="button" class="role-btn required-btn ${field.is_required ? 'required-active' : ''}" data-index="${index}">Required</button>
                 </div>
                 <div></div>
                 <button type="button" class="remove-field-btn" data-index="${index}" ${field.is_name_field ? 'disabled' : ''}>Remove</button>
@@ -342,7 +350,10 @@
         container.querySelectorAll('.name-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const idx = parseInt(e.target.dataset.index);
-                fields.forEach((f, i) => { f.is_name_field = (i === idx); if (i === idx) f.is_phone_field = false; });
+                fields.forEach((f, i) => {
+                    f.is_name_field = (i === idx);
+                    if (i === idx) { f.is_phone_field = false; f.is_required = true; }
+                });
                 renderFieldRows();
             });
         });
@@ -356,6 +367,15 @@
                     fields[idx].is_phone_field = true;
                     fields[idx].is_name_field = false;
                 }
+                renderFieldRows();
+            });
+        });
+
+        container.querySelectorAll('.required-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(e.target.dataset.index);
+                if (fields[idx].is_name_field) return; // Name is always required, can't toggle off
+                fields[idx].is_required = !fields[idx].is_required;
                 renderFieldRows();
             });
         });
@@ -378,6 +398,7 @@
             source_header: null,
             is_name_field: false,
             is_phone_field: false,
+            is_required: false,
             is_custom: true
         });
         renderFieldRows();
@@ -439,7 +460,8 @@
             field_order: i,
             is_name_field: f.is_name_field,
             is_phone_field: f.is_phone_field,
-            is_core: f.is_name_field
+            is_core: f.is_name_field,
+            is_required: f.is_required
         }));
 
         const createRes = await callRPC('create_event', {
@@ -474,6 +496,27 @@
             showToast('Event created, but attendees failed to import: ' + (insertRes.error || 'unknown error'), 'error');
             btn.disabled = false;
             btn.textContent = 'Create Event';
+            return;
+        }
+
+        // Check for blanks in fields marked as required, and warn (but don't block) if found
+        const blankCheck = await callRPC('get_required_field_blank_counts', {
+            p_token: sessionToken,
+            p_event_id: eventId
+        });
+
+        if (Array.isArray(blankCheck) && blankCheck.length > 0) {
+            const lines = blankCheck.map(b => `• ${b.field_label}: ${b.blank_count} attendee(s) missing this`);
+            const warningBox = document.createElement('div');
+            warningBox.className = 'warning-banner';
+            warningBox.innerHTML = `<strong>Heads up:</strong> some imported attendees are missing values for fields you marked as required:<br>${lines.join('<br>')}<br><br>These attendees will need that field filled in before they can be edited or re-saved. The import itself was not blocked.`;
+            document.getElementById('fieldMappingCard').appendChild(warningBox);
+
+            showToast(`Event created with ${insertRes.inserted} attendees - see warning below`, 'error');
+            btn.disabled = false;
+            btn.textContent = 'Create Event';
+            btn.style.display = 'none';
+            document.getElementById('cancelBtn').textContent = 'Go to Dashboard';
             return;
         }
 
