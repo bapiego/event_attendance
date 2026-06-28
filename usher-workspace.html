@@ -128,6 +128,8 @@
     display: block; font-size: 12px; font-weight: 600; color: #4a5568;
     margin-bottom: 5px; margin-top: 14px;
   }
+  .modal-box label .required-mark { color: #c53030; margin-left: 2px; }
+  .modal-box input.field-invalid { border-color: #c53030; background: #fff5f5; }
   .modal-box input {
     width: 100%; padding: 10px 12px; border: 1.5px solid #e2e8f0;
     border-radius: 8px; font-size: 14px;
@@ -403,10 +405,12 @@
 
     eventFields.forEach(f => {
       const label = document.createElement('label');
-      label.textContent = f.field_label + (f.is_name_field ? ' (required)' : '');
+      label.innerHTML = escapeHtml(f.field_label) + (f.is_required ? ' <span class="required-mark">*</span>' : '');
       const input = document.createElement('input');
       input.type = 'text';
       input.id = `modal_field_${f.field_key}`;
+      input.dataset.required = f.is_required ? 'true' : 'false';
+      input.dataset.label = f.field_label;
       input.value = (prefillData && prefillData[f.field_key]) || '';
       container.appendChild(label);
       container.appendChild(input);
@@ -444,14 +448,24 @@
   document.getElementById('cancelModalBtn').addEventListener('click', closeModal);
 
   document.getElementById('confirmModalBtn').addEventListener('click', async () => {
-    const nameField = getNameField();
     const data = {};
+    let firstInvalidInput = null;
+
     eventFields.forEach(f => {
-      data[f.field_key] = document.getElementById(`modal_field_${f.field_key}`).value.trim();
+      const input = document.getElementById(`modal_field_${f.field_key}`);
+      const value = input.value.trim();
+      data[f.field_key] = value;
+
+      const isBlank = value === '';
+      input.classList.toggle('field-invalid', f.is_required && isBlank);
+      if (f.is_required && isBlank && !firstInvalidInput) {
+        firstInvalidInput = input;
+      }
     });
 
-    if (nameField && !data[nameField.field_key]) {
-      showToast('Name is required', 'error');
+    if (firstInvalidInput) {
+      showToast(`"${firstInvalidInput.dataset.label}" is required`, 'error');
+      firstInvalidInput.focus();
       return;
     }
 
@@ -477,7 +491,8 @@
         showToast('Attendee added and checked in');
         closeModal();
         loadSummary();
-        const nameVal = nameField ? data[nameField.field_key] : '';
+        const nf = getNameField();
+        const nameVal = nf ? data[nf.field_key] : '';
         searchInput.value = nameVal;
         runSearch(nameVal);
       } else {
