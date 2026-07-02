@@ -790,8 +790,8 @@
         <td style="font-size:11px; color:var(--text-muted);">${new Date(reg.submitted_at).toLocaleDateString()}</td>
         <td><button class="btn secondary" style="padding:4px 10px; font-size:12px;" data-id="${reg.id}">Edit</button></td>
       `;
-      tbody.querySelector('[data-id]').addEventListener('click', () => openEditRegModal(reg));
       tbody.appendChild(tr);
+      tr.querySelector('[data-id]').addEventListener('click', () => openEditRegModal(reg));
     });
   }
 
