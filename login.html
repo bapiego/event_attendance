@@ -133,6 +133,8 @@
       window.location.href = 'super-admin.html';
     } else if (role === 'event_manager') {
       window.location.href = 'manager-dashboard.html';
+    } else if (role === 'accounts_officer') {
+      window.location.href = 'verify-payments.html';
     } else {
       window.location.href = 'usher-workspace.html';
     }
@@ -186,6 +188,11 @@
           localStorage.setItem('event_id', data.event_id);
         } else {
           localStorage.removeItem('event_id');
+        }
+        if (data.accommodation_event_id) {
+          localStorage.setItem('accommodation_event_id', data.accommodation_event_id);
+        } else {
+          localStorage.removeItem('accommodation_event_id');
         }
 
         routeUserByRole(data.role);
