@@ -28,7 +28,10 @@
             align-items: center;
             min-height: 100vh;
         }
-        .container { max-width: 1000px; width: 100%; }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+        }
         .header-section {
             display: flex;
             justify-content: space-between;
@@ -39,11 +42,18 @@
         }
         h1 { margin: 0; font-size: 1.75rem; }
         p.subtitle { margin: 0.25rem 0 0 0; color: var(--text-muted); }
+
         .btn-logout {
-            background: none; border: 1px solid var(--border); color: var(--text-muted);
-            padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.85rem; cursor: pointer;
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            cursor: pointer;
         }
         .btn-logout:hover { color: white; border-color: var(--text-muted); }
+
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -55,24 +65,49 @@
             border: 1px solid var(--border);
             border-radius: 10px;
             padding: 1.5rem;
+            position: relative;
         }
         .metric-card .label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
         .metric-card .value { font-size: 2rem; font-weight: 700; margin-top: 0.5rem; }
+
         .progress-container {
-            background-color: var(--bg-main); border-radius: 9999px;
-            height: 10px; width: 100%; margin-top: 1rem; overflow: hidden;
+            background-color: var(--bg-main);
+            border-radius: 9999px;
+            height: 10px;
+            width: 100%;
+            margin-top: 1rem;
+            overflow: hidden;
         }
-        .progress-bar { background-color: var(--success); height: 100%; width: 0%; transition: width 0.5s ease-out; }
-        .panel-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; }
-        @media(max-width: 768px) { .panel-grid { grid-template-columns: 1fr; } }
-        .panel-card { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem; }
+        .progress-bar {
+            background-color: var(--success);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease-out;
+        }
+
+        .panel-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+        @media(max-width: 768px) {
+            .panel-grid { grid-template-columns: 1fr; }
+        }
+        .panel-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
         .panel-card h2 { font-size: 1.2rem; margin-top: 0; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+
         label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; margin-top: 1rem; }
         input[type="text"], input[type="password"] {
             width: 100%; padding: 0.75rem; border-radius: 6px; border: 1px solid var(--border);
             background-color: var(--bg-main); color: white; box-sizing: border-box; outline: none;
         }
         input:focus { border-color: var(--accent); }
+
         .btn {
             background-color: var(--accent); color: white; border: none; padding: 0.75rem 1.5rem;
             border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s;
@@ -87,78 +122,133 @@
             padding: 0.3rem 0.7rem; border-radius: 5px; font-size: 0.8rem; cursor: pointer;
         }
         .btn-small-danger:hover { background: var(--danger); color: white; }
+
         table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
         th { text-align: left; color: var(--text-muted); font-size: 0.85rem; padding: 0.75rem 0.5rem; border-bottom: 1px solid var(--border); }
         td { padding: 0.75rem 0.5rem; border-bottom: 1px solid #334155; font-size: 0.95rem; }
+
         .empty-state {
             text-align: center; padding: 4rem 2rem; background-color: var(--bg-card);
             border: 2px dashed var(--border); border-radius: 12px; margin-top: 2rem;
         }
         .empty-state h2 { margin-bottom: 0.5rem; }
         .empty-state p { color: var(--text-muted); margin-bottom: 1.5rem; margin-top: 0; }
-        .app-footer { text-align: center; margin-top: 2.5rem; font-size: 12px; color: var(--text-muted); }
+
+        .app-footer {
+            text-align: center;
+            margin-top: 2.5rem;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
         .status-msg { text-align: center; color: var(--text-muted); padding: 5rem 0; }
+
         .credential-box {
-            background: #1e3a8a; border: 1px solid #2563eb;
-            border-radius: 8px; padding: 14px; margin-top: 16px; font-size: 13px; display: none;
+            background: #1e3a8a;
+            border: 1px solid #2563eb;
+            border-radius: 8px;
+            padding: 14px;
+            margin-top: 16px;
+            font-size: 13px;
+            display: none;
         }
         .credential-box.active { display: block; }
         .credential-box .cred-line {
-            font-family: 'SF Mono', Consolas, monospace; background: rgba(0,0,0,0.25);
-            border-radius: 6px; padding: 6px 10px; margin: 6px 0; word-break: break-all;
+            font-family: 'SF Mono', Consolas, monospace;
+            background: rgba(0,0,0,0.25);
+            border-radius: 6px;
+            padding: 6px 10px;
+            margin: 6px 0;
+            word-break: break-all;
         }
+        .credential-box .warn { color: #93c5fd; font-size: 12px; margin-top: 8px; }
+
         .toast {
-            position: fixed; bottom: 24px; left: 50%;
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
             transform: translateX(-50%) translateY(100px);
-            background: #2d3748; color: #fff; padding: 12px 24px;
-            border-radius: 8px; font-size: 14px; font-weight: 600;
+            background: #2d3748;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
             box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 200;
         }
         .toast.active { transform: translateX(-50%) translateY(0); }
         .toast.error { background: var(--danger); }
         .toast.success { background: var(--success); }
+
         .modal-overlay {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(2,6,23,0.85);
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(2, 6, 23, 0.85);
             display: flex; align-items: center; justify-content: center;
-            opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 150;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.2s ease;
+            z-index: 150;
         }
         .modal-overlay.active { opacity: 1; pointer-events: auto; }
         .modal-box {
-            background: var(--bg-card); border: 1px solid var(--border);
-            padding: 28px; border-radius: 12px; width: 100%; max-width: 420px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 28px;
+            border-radius: 12px;
+            width: 100%; max-width: 420px;
         }
         .modal-box h3 { margin-top: 0; margin-bottom: 12px; }
         .modal-box p { font-size: 14px; color: var(--text-muted); line-height: 1.5; margin-bottom: 24px; }
         .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
-        .modal-actions button { padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; }
+        .modal-actions button {
+            padding: 10px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; border: none;
+        }
         .btn-modal-cancel { background: #334155; color: #fff; }
         .btn-modal-cancel:hover { background: #475569; }
         .btn-modal-confirm { background: var(--danger); color: #fff; }
         .btn-modal-confirm:hover { background: var(--danger-hover); }
-        .mode-switch { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 2rem; }
+
+        .mode-switch {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 2rem;
+        }
         .mode-tab {
-            padding: 10px 22px; font-size: 14px; font-weight: 600;
-            color: var(--text-muted); cursor: pointer;
-            border-bottom: 3px solid transparent; margin-bottom: -2px;
+            padding: 10px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
         }
         .mode-tab.active { color: #60a5fa; border-bottom-color: #60a5fa; }
         .mode-tab:hover:not(.active) { color: var(--text-main); }
+
         .acc-event-card {
-            background: var(--bg-card); border: 1px solid var(--border);
-            border-radius: 10px; padding: 1.25rem 1.5rem; margin-bottom: 12px;
-            display: flex; justify-content: space-between; align-items: center;
-            gap: 12px; flex-wrap: wrap;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
         }
         .acc-event-card .evt-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
         .acc-event-card .evt-meta { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
         .acc-event-card .evt-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .status-pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-left: 8px; }
+        .status-pill {
+            display: inline-block; font-size: 11px; font-weight: 700;
+            padding: 2px 8px; border-radius: 20px; margin-left: 8px;
+        }
         .status-pill.open { background: rgba(16,185,129,0.15); color: #34d399; }
         .status-pill.closed { background: var(--border); color: var(--text-muted); }
         .status-pill.draft { background: rgba(251,191,36,0.15); color: #fbbf24; }
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -167,95 +257,101 @@
 
     <div id="loadingWorkspace" class="status-msg">Loading your dashboard...</div>
 
+    <!-- Mode switch -->
     <div class="mode-switch" id="modeSwitchBar" style="display:none;">
         <div class="mode-tab active" data-mode="checkin">Check-In Events</div>
         <div class="mode-tab" data-mode="accommodation">Accommodation Events</div>
     </div>
 
-    <div id="checkinWorkspace" style="display:none;">
+    <!-- Check-in workspace (existing) -->
+    <div id="checkinWorkspace">
 
-        <div id="emptyStateContainer" class="empty-state hidden">
-            <h2>No Active Check-In Event</h2>
-            <p>What would you like to do?</p>
-            <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-                <a href="create-event.html" class="btn">📋 Create Check-In Event</a>
-                <a href="create-accommodation-event.html" class="btn" style="background:#0f766e;">🏨 Create Accommodation Event</a>
+    <div id="emptyStateContainer" class="empty-state hidden">
+        <h2>No Active Check-In Event</h2>
+        <p>What would you like to do?</p>
+        <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+            <a href="create-event.html" class="btn">📋 Create Check-In Event</a>
+            <a href="create-accommodation-event.html" class="btn" style="background:#0f766e;">🏨 Create Accommodation Event</a>
+        </div>
+    </div>
+
+    <div id="dashboardActiveWorkspace" class="hidden">
+
+        <div class="header-section">
+            <div>
+                <h1 id="activeEventNameLabel">Event</h1>
+                <p class="subtitle">Attendly — Event Manager Dashboard</p>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="btn btn-danger" id="closeEventBtn">Close Event</button>
+                <button class="btn-logout" id="logoutBtn">Log Out</button>
             </div>
         </div>
 
-        <div id="dashboardActiveWorkspace" class="hidden">
-            <div class="header-section">
-                <div>
-                    <h1 id="activeEventNameLabel">Event</h1>
-                    <p class="subtitle">Attendly — Event Manager Dashboard</p>
-                </div>
-                <div style="display:flex; gap:10px; align-items:center;">
-                    <button class="btn btn-danger" id="closeEventBtn">Close Event</button>
-                    <button class="btn-logout" id="logoutBtn">Log Out</button>
-                </div>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="label">Total Attendees</div>
+                <div class="value" id="metricTotal">0</div>
             </div>
-
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="label">Total Attendees</div>
-                    <div class="value" id="metricTotal">0</div>
-                </div>
-                <div class="metric-card">
-                    <div class="label">Checked In</div>
-                    <div class="value" id="metricCheckedIn" style="color: var(--success);">0</div>
-                </div>
-                <div class="metric-card">
-                    <div class="label">Progress</div>
-                    <div class="value" id="metricPercentage">0%</div>
-                    <div class="progress-container">
-                        <div id="progressBarFill" class="progress-bar"></div>
-                    </div>
-                </div>
+            <div class="metric-card">
+                <div class="label">Checked In</div>
+                <div class="value" id="metricCheckedIn" style="color: var(--success);">0</div>
             </div>
-
-            <div class="panel-grid">
-                <div class="panel-card">
-                    <h2>Ushers</h2>
-                    <p class="subtitle" style="margin-bottom:1rem; font-size:0.9rem;">Accounts that can check people in for this event only.</p>
-                    <table>
-                        <thead><tr><th>Username</th><th>Added</th><th></th></tr></thead>
-                        <tbody id="usherTableBody"></tbody>
-                    </table>
-                </div>
-                <div class="panel-card">
-                    <h2>Add Usher</h2>
-                    <p class="subtitle" style="font-size:0.9rem;">Create a login for someone helping with check-in.</p>
-                    <form id="provisionUsherForm">
-                        <label for="usherUsername">Username</label>
-                        <input type="text" id="usherUsername" placeholder="e.g. door_east" required autocomplete="off">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-end;">
-                            <label for="usherPassword" style="margin-bottom:0;">Password</label>
-                            <a href="#" id="genUsherPasswordLink" style="font-size:11px; color:#63b3ed; text-decoration:none; font-weight:600;">⚡ Generate</a>
-                        </div>
-                        <input type="text" id="usherPassword" required autocomplete="off">
-                        <button type="submit" class="btn" style="width:100%; margin-top:1.5rem;">Create Usher</button>
-                    </form>
-                    <div class="credential-box" id="usherCredentialBox">
-                        <p>✅ Usher created. Share these credentials — the password won't be shown again:</p>
-                        <div class="cred-line" id="usherCredUsername"></div>
-                        <div class="cred-line" id="usherCredPassword"></div>
-                    </div>
+            <div class="metric-card">
+                <div class="label">Progress</div>
+                <div class="value" id="metricPercentage">0%</div>
+                <div class="progress-container">
+                    <div id="progressBarFill" class="progress-bar"></div>
                 </div>
             </div>
         </div>
 
-    </div><!-- end checkinWorkspace -->
+        <div class="panel-grid">
 
-</div><!-- end container -->
+            <div class="panel-card">
+                <h2>Ushers</h2>
+                <p class="subtitle" style="margin-bottom: 1rem; font-size:0.9rem;">Accounts that can check people in for this event only.</p>
 
-<div id="accommodationWorkspace" style="display:none; max-width:1000px; margin:0 auto; padding:20px;">
-    <div id="accEventsList"></div>
-    <div style="margin-top:1rem;">
-        <a href="create-accommodation-event.html" class="btn" style="text-decoration:none; display:inline-block;">+ Create Accommodation Event</a>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Added</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="usherTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="panel-card">
+                <h2>Add Usher</h2>
+                <p class="subtitle" style="font-size:0.9rem;">Create a login for someone helping with check-in.</p>
+
+                <form id="provisionUsherForm">
+                    <label for="usherUsername">Username</label>
+                    <input type="text" id="usherUsername" placeholder="e.g. door_east" required autocomplete="off">
+
+                    <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+                        <label for="usherPassword" style="margin-bottom:0;">Password</label>
+                        <a href="#" id="genUsherPasswordLink" style="font-size: 11px; color: #63b3ed; text-decoration: none; font-weight: 600;">⚡ Generate</a>
+                    </div>
+                    <input type="text" id="usherPassword" required autocomplete="off">
+
+                    <button type="submit" class="btn" style="width: 100%; margin-top: 1.5rem;">Create Usher</button>
+                </form>
+
+                <div class="credential-box" id="usherCredentialBox">
+                    <p>✅ Usher created. Share these credentials — the password won't be shown again:</p>
+                    <div class="cred-line" id="usherCredUsername"></div>
+                    <div class="cred-line" id="usherCredPassword"></div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<p class="app-footer">Powered by Bapiego</p>
+<p class="app-footer">Powered by Marvelous Events</p>
 
 <div class="modal-overlay" id="closeEventModal">
     <div class="modal-box">
@@ -267,6 +363,7 @@
         </div>
     </div>
 </div>
+</div><!-- end checkinWorkspace -->
 
 <div class="modal-overlay" id="deleteUsherModal">
     <div class="modal-box">
@@ -281,14 +378,30 @@
 
 <div class="toast" id="toastBar"></div>
 
+<!-- Accommodation workspace -->
+<div id="accommodationWorkspace" style="display:none; max-width:1000px; margin:0 auto; padding:20px;">
+
+  <div id="accEventsList"></div>
+
+  <div style="margin-top: 1rem;">
+    <a href="create-accommodation-event.html" class="btn" style="text-decoration:none; display:inline-block;">+ Create Accommodation Event</a>
+  </div>
+</div>
+
+<p class="app-footer">Powered by Marvelous Events</p>
+
 <script>
     const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co';
     const SUPABASE_KEY = 'sb_publishable_PLI1DLUB_0DF3R0x3GPWYA_RNj2aScg';
     const sessionToken = localStorage.getItem('session_token');
+
     let activeEventId = null;
     let pendingDeleteUsherId = null;
 
-    document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.clear(); window.location.href = 'login.html'; });
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    });
 
     function showToast(message, type = 'success') {
         const toast = document.getElementById('toastBar');
@@ -298,10 +411,10 @@
     }
 
     function escapeHtml(str) {
-        if (!str) return '';
-        const d = document.createElement('div');
-        d.textContent = str;
-        return d.innerHTML;
+        if (str === null || str === undefined) return '';
+        const div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
     }
 
     async function callRPC(functionName, payload) {
@@ -317,62 +430,79 @@
         }
     }
 
+    // ---------- Load dashboard state ----------
     async function loadDashboard() {
         const res = await callRPC('get_my_active_event', { p_token: sessionToken });
         document.getElementById('loadingWorkspace').classList.add('hidden');
+
         if (!res.success) {
             document.getElementById('loadingWorkspace').classList.remove('hidden');
             document.getElementById('loadingWorkspace').textContent = res.error || 'Failed to load dashboard';
             return;
         }
+
         if (!res.has_active_event) {
             document.getElementById('emptyStateContainer').classList.remove('hidden');
             return;
         }
+
         activeEventId = res.event_id;
         document.getElementById('activeEventNameLabel').textContent = res.event_name;
         document.getElementById('dashboardActiveWorkspace').classList.remove('hidden');
+
         refreshMetricsAndUshers();
     }
 
     async function refreshMetricsAndUshers() {
         if (!activeEventId) return;
+
         const metrics = await callRPC('get_event_attendance_metrics', { p_token: sessionToken, p_event_id: activeEventId });
         if (metrics.success) {
             const total = metrics.total_registered;
             const checkedIn = metrics.total_checked_in;
             const pct = total > 0 ? Math.round((checkedIn / total) * 100) : 0;
+
             document.getElementById('metricTotal').textContent = total;
             document.getElementById('metricCheckedIn').textContent = checkedIn;
             document.getElementById('metricPercentage').textContent = `${pct}%`;
             document.getElementById('progressBarFill').style.width = `${pct}%`;
         }
+
         const ushers = await callRPC('get_event_ushers', { p_token: sessionToken, p_event_id: activeEventId });
         const tbody = document.getElementById('usherTableBody');
         tbody.innerHTML = '';
+
         if (!Array.isArray(ushers) || ushers.length === 0) {
             tbody.innerHTML = '<tr><td colspan="3" style="color:var(--text-muted); text-align:center;">No ushers added yet.</td></tr>';
             return;
         }
+
         ushers.forEach(usher => {
             const row = document.createElement('tr');
+            const dateStr = new Date(usher.created_at).toLocaleDateString();
             row.innerHTML = `
                 <td><strong>${escapeHtml(usher.username)}</strong></td>
-                <td>${new Date(usher.created_at).toLocaleDateString()}</td>
-                <td style="text-align:right;"><button class="btn-small-danger" data-id="${usher.id}" data-username="${escapeHtml(usher.username)}">Remove</button></td>
+                <td>${dateStr}</td>
+                <td style="text-align:right;">
+                    <button class="btn-small-danger" data-id="${usher.id}" data-username="${escapeHtml(usher.username)}">Remove</button>
+                </td>
             `;
             tbody.appendChild(row);
         });
+
         tbody.querySelectorAll('.btn-small-danger').forEach(btn => {
             btn.addEventListener('click', () => promptDeleteUsher(btn.dataset.id, btn.dataset.username));
         });
     }
 
+    // ---------- Add usher ----------
     document.getElementById('genUsherPasswordLink').addEventListener('click', (e) => {
         e.preventDefault();
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
         let pass = '';
-        for (let i = 0; i < 12; i++) pass += chars[Math.floor(Math.random() * chars.length)];
+        for (let i = 0; i < 12; i++) {
+            pass += chars[Math.floor(Math.random() * chars.length)];
+        }
         document.getElementById('usherPassword').value = pass;
     });
 
@@ -380,41 +510,82 @@
         e.preventDefault();
         const usernameInput = document.getElementById('usherUsername');
         const passwordInput = document.getElementById('usherPassword');
-        const res = await callRPC('create_event_usher', { p_manager_token: sessionToken, p_username: usernameInput.value.trim(), p_password: passwordInput.value });
-        if (!res.success) { showToast(res.error || 'Failed to create usher', 'error'); return; }
+
+        const res = await callRPC('create_event_usher', {
+            p_manager_token: sessionToken,
+            p_username: usernameInput.value.trim(),
+            p_password: passwordInput.value
+        });
+
+        if (!res.success) {
+            showToast(res.error || 'Failed to create usher', 'error');
+            return;
+        }
+
         document.getElementById('usherCredUsername').textContent = `Username: ${usernameInput.value.trim()}`;
         document.getElementById('usherCredPassword').textContent = `Password: ${passwordInput.value}`;
         document.getElementById('usherCredentialBox').classList.add('active');
+
         showToast('Usher created', 'success');
-        usernameInput.value = ''; passwordInput.value = '';
+        usernameInput.value = '';
+        passwordInput.value = '';
         refreshMetricsAndUshers();
     });
 
+    // ---------- Delete usher ----------
     function promptDeleteUsher(id, username) {
         pendingDeleteUsherId = id;
-        document.getElementById('deleteUsherText').innerHTML = `This will revoke login access for <strong>${escapeHtml(username)}</strong> immediately.`;
+        document.getElementById('deleteUsherText').innerHTML =
+            `This will revoke login access for <strong>${escapeHtml(username)}</strong> immediately.`;
         document.getElementById('deleteUsherModal').classList.add('active');
     }
 
-    document.getElementById('cancelDeleteUsherBtn').addEventListener('click', () => { document.getElementById('deleteUsherModal').classList.remove('active'); pendingDeleteUsherId = null; });
-    document.getElementById('confirmDeleteUsherBtn').addEventListener('click', async () => {
-        if (!pendingDeleteUsherId) return;
-        const res = await callRPC('delete_event_usher', { p_manager_token: sessionToken, p_usher_id: pendingDeleteUsherId });
+    document.getElementById('cancelDeleteUsherBtn').addEventListener('click', () => {
         document.getElementById('deleteUsherModal').classList.remove('active');
         pendingDeleteUsherId = null;
-        if (res.success) { showToast('Usher removed', 'success'); refreshMetricsAndUshers(); }
-        else showToast(res.error || 'Failed to remove usher', 'error');
     });
 
-    document.getElementById('closeEventBtn').addEventListener('click', () => { document.getElementById('closeEventModal').classList.add('active'); });
-    document.getElementById('cancelCloseBtn').addEventListener('click', () => { document.getElementById('closeEventModal').classList.remove('active'); });
+    document.getElementById('confirmDeleteUsherBtn').addEventListener('click', async () => {
+        if (!pendingDeleteUsherId) return;
+
+        const res = await callRPC('delete_event_usher', {
+            p_manager_token: sessionToken,
+            p_usher_id: pendingDeleteUsherId
+        });
+
+        document.getElementById('deleteUsherModal').classList.remove('active');
+        pendingDeleteUsherId = null;
+
+        if (res.success) {
+            showToast('Usher removed', 'success');
+            refreshMetricsAndUshers();
+        } else {
+            showToast(res.error || 'Failed to remove usher', 'error');
+        }
+    });
+
+    // ---------- Close event ----------
+    document.getElementById('closeEventBtn').addEventListener('click', () => {
+        document.getElementById('closeEventModal').classList.add('active');
+    });
+
+    document.getElementById('cancelCloseBtn').addEventListener('click', () => {
+        document.getElementById('closeEventModal').classList.remove('active');
+    });
+
     document.getElementById('confirmCloseBtn').addEventListener('click', async () => {
         const res = await callRPC('close_current_event', { p_manager_token: sessionToken });
         document.getElementById('closeEventModal').classList.remove('active');
-        if (res.success) { showToast('Event closed', 'success'); setTimeout(() => location.reload(), 1000); }
-        else showToast(res.error || 'Failed to close event', 'error');
+
+        if (res.success) {
+            showToast('Event closed', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast(res.error || 'Failed to close event', 'error');
+        }
     });
 
+    // ---------- Mode Switch ----------
     document.querySelectorAll('.mode-tab').forEach(tab => {
         tab.addEventListener('click', () => {
             document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
@@ -426,23 +597,31 @@
         });
     });
 
+    // ---------- Accommodation Events ----------
     async function loadAccommodationEvents() {
         const list = document.getElementById('accEventsList');
         list.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Loading...</p>';
+
         const res = await callRPC('get_my_accommodation_events', { p_token: sessionToken });
+
         if (!res.success || !res.events || res.events.length === 0) {
             list.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">No accommodation events yet. Create one below.</p>';
             return;
         }
+
         list.innerHTML = '';
         res.events.forEach(ev => {
             const card = document.createElement('div');
             card.className = 'acc-event-card';
-            const dateStr = ev.start_date ? new Date(ev.start_date).toDateString() : '';
+            const dateStr = ev.start_date ? `${new Date(ev.start_date).toDateString()}` : '';
             const deadlineStr = ev.deadline ? `Deadline: ${new Date(ev.deadline).toLocaleDateString()}` : '';
+
             card.innerHTML = `
                 <div>
-                    <div class="evt-name">${escapeHtml(ev.name)}<span class="status-pill ${ev.status}">${ev.status.toUpperCase()}</span></div>
+                    <div class="evt-name">
+                        ${escapeHtml(ev.name)}
+                        <span class="status-pill ${ev.status}">${ev.status.toUpperCase()}</span>
+                    </div>
                     <div class="evt-meta">
                         ${ev.location ? `📍 ${escapeHtml(ev.location)} &nbsp;` : ''}
                         ${dateStr ? `📅 ${dateStr} &nbsp;` : ''}
@@ -451,13 +630,21 @@
                 </div>
                 <div class="evt-actions">
                     <a href="accommodation-dashboard.html?event=${ev.id}" class="btn" style="text-decoration:none;">Dashboard</a>
-                    <a href="verify-payments.html?event=${ev.id}" class="btn" style="text-decoration:none; background:#0f766e;">Verify Payments</a>
+                    <a href="verify-payments.html?event=${ev.id}" class="btn secondary" style="text-decoration:none;">Verify Payments</a>
                 </div>
             `;
             list.appendChild(card);
         });
     }
 
+    function escapeHtml(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
+    // ---------- Init ----------
     if (!sessionToken) {
         window.location.href = 'login.html';
     } else if (localStorage.getItem('user_role') !== 'event_manager') {
