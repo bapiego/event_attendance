@@ -811,7 +811,50 @@
     }
   });
 
-  loadEvent();
+  // ---------- Reservation lookup on phone entry ----------
+  let reservationId = null;
+
+  document.getElementById('regPhone').addEventListener('blur', async () => {
+    const phone = document.getElementById('regPhone').value.trim();
+    if (!phone || phone.length < 10) return;
+
+    const params = new URLSearchParams(window.location.search);
+    const eventId = params.get('event');
+    if (!eventId) return;
+
+    try {
+      const res = await callRPC('lookup_reservation_by_phone', {
+        p_accommodation_event_id: eventId,
+        p_phone: phone
+      });
+
+      if (res.found) {
+        reservationId = res.reservation_id;
+        // Pre-fill all fields from reservation
+        document.getElementById('regName').value = res.full_name || '';
+        document.getElementById('regChurch').value = res.church || '';
+        document.getElementById('regDistrict').value = res.district || '';
+        document.getElementById('regRank').value = res.ministerial_rank || '';
+
+        // Pre-select the reserved room category
+        const catCards = document.querySelectorAll('.room-card');
+        catCards.forEach(card => {
+          card.classList.remove('selected');
+          if (card.dataset.id === res.room_category_id) {
+            card.classList.add('selected');
+            selectedCategoryId = res.room_category_id;
+            selectedCategoryPrice = parseFloat(res.price_per_person);
+            updateFeedingForCategory();
+            updateCostSummary();
+          }
+        });
+
+        showToast(`Welcome ${res.full_name.split(' ').find(p => !['rev.','rev','pastor','dr.','dr'].includes(p.toLowerCase())) || res.full_name.split(' ')[0]}! Your reservation details have been pre-filled.`);
+      }
+    } catch (e) {
+      // Silent fail — no reservation found is fine
+    }
+  });
 </script>
 </body>
 </html>
