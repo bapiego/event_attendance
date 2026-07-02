@@ -385,6 +385,22 @@
 
 <p class="app-footer">Powered by Bapiego</p>
 
+<!-- Edit Category Modal -->
+<div class="modal-overlay" id="editCatModal">
+  <div class="modal-box">
+    <h3>Edit Room Category</h3>
+    <div class="form-group"><label>Category Name</label><input type="text" id="ecName"></div>
+    <div class="form-group"><label>Total Beds</label><input type="number" id="ecBeds" min="1"></div>
+    <div class="form-group"><label>Persons Per Room</label><input type="number" id="ecPersons" min="1"></div>
+    <div class="form-group"><label>Price Per Person (GH₵)</label><input type="number" id="ecPrice" min="0" step="0.01"></div>
+    <div class="form-group"><label>Description (optional)</label><input type="text" id="ecDesc"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" id="cancelEditCatBtn">Cancel</button>
+      <button class="btn-confirm-modal" id="confirmEditCatBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- Edit Registration Modal -->
 <div class="modal-overlay" id="editRegModal">
   <div class="modal-box">
@@ -809,14 +825,73 @@
       row.innerHTML = `
         <div>
           <div class="item-name">${escapeHtml(cat.name)}</div>
-          <div class="item-meta">${cat.total_beds} beds · ${cat.persons_per_room} per room · GH₵${parseFloat(cat.price_per_person).toFixed(2)}/person</div>
+          <div class="item-meta">${cat.total_beds} beds · ${cat.persons_per_room} per room · GH₵${parseFloat(cat.price_per_person).toFixed(2)}/person${cat.description ? ' · ' + escapeHtml(cat.description) : ''}</div>
         </div>
-        <span style="font-size:12px; color:${cat.beds_taken > 0 ? '#fbbf24' : 'var(--text-muted)'};">${cat.beds_taken > 0 ? cat.beds_taken + ' registered' : 'No registrations'}</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:12px; color:${cat.beds_taken > 0 ? '#fbbf24' : 'var(--text-muted)'};">${cat.beds_taken > 0 ? cat.beds_taken + ' verified' : 'No registrations'}</span>
+          <button class="btn secondary" style="padding:4px 12px; font-size:12px;" data-id="${cat.id}" data-name="${escapeHtml(cat.name)}" data-beds="${cat.total_beds}" data-persons="${cat.persons_per_room}" data-price="${cat.price_per_person}" data-desc="${escapeHtml(cat.description || '')}">Edit</button>
+        </div>
       `;
+      row.querySelector('[data-id]').addEventListener('click', (e) => {
+        const btn = e.currentTarget;
+        openEditCatModal({
+          id: btn.dataset.id,
+          name: btn.dataset.name,
+          total_beds: parseInt(btn.dataset.beds),
+          persons_per_room: parseInt(btn.dataset.persons),
+          price_per_person: parseFloat(btn.dataset.price),
+          description: btn.dataset.desc
+        });
+      });
       list.appendChild(row);
     });
     updateMealCategoryDropdown();
   }
+
+  // ---------- Edit Category Modal ----------
+  let editingCatId = null;
+
+  function openEditCatModal(cat) {
+    editingCatId = cat.id;
+    document.getElementById('ecName').value = cat.name || '';
+    document.getElementById('ecBeds').value = cat.total_beds || '';
+    document.getElementById('ecPersons').value = cat.persons_per_room || '';
+    document.getElementById('ecPrice').value = cat.price_per_person || '';
+    document.getElementById('ecDesc').value = cat.description || '';
+    document.getElementById('editCatModal').classList.add('active');
+  }
+
+  document.getElementById('cancelEditCatBtn').addEventListener('click', () => {
+    document.getElementById('editCatModal').classList.remove('active');
+    editingCatId = null;
+  });
+
+  document.getElementById('confirmEditCatBtn').addEventListener('click', async () => {
+    if (!editingCatId) return;
+    const btn = document.getElementById('confirmEditCatBtn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+
+    const res = await callRPC('edit_room_category', {
+      p_token: sessionToken,
+      p_category_id: editingCatId,
+      p_name: document.getElementById('ecName').value.trim(),
+      p_total_beds: parseInt(document.getElementById('ecBeds').value),
+      p_persons_per_room: parseInt(document.getElementById('ecPersons').value),
+      p_price_per_person: parseFloat(document.getElementById('ecPrice').value),
+      p_description: document.getElementById('ecDesc').value.trim() || null
+    });
+
+    btn.disabled = false; btn.textContent = 'Save Changes';
+    document.getElementById('editCatModal').classList.remove('active');
+    editingCatId = null;
+
+    if (res.success) {
+      showToast('Category updated');
+      await loadDashboard();
+    } else {
+      showToast(res.error || 'Failed to update', 'error');
+    }
+  });
 
   document.getElementById('addCategorySettingsBtn').addEventListener('click', async () => {
     const name = document.getElementById('newCatName').value.trim();
