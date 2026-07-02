@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendly - Verify Payments</title>
+<style>
+  :root {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --success: #10b981;
+    --danger: #ef4444;
+    --border: #334155;
+    --warning: #d97706;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-main);
+    color: var(--text-main);
+    min-height: 100vh;
+    padding: 0 0 3rem;
+  }
+
+  header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  header h1 { font-size: 18px; font-weight: 600; }
+  header .user-info { font-size: 13px; opacity: 0.85; display: flex; align-items: center; gap: 12px; }
+
+  .btn-logout {
+    background: rgba(255,255,255,0.15); border: none; color: white;
+    padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
+  }
+  .btn-logout:hover { background: rgba(255,255,255,0.25); }
+
+  .summary-bar {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .stat { text-align: left; }
+  .stat .num { font-size: 20px; font-weight: 700; }
+  .stat .num.pending { color: #fbbf24; }
+  .stat .num.verified { color: var(--success); }
+  .stat .num.rejected { color: var(--danger); }
+  .stat .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+
+  .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+  .filter-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-btn {
+    background: var(--bg-card); border: 1px solid var(--border); color: var(--text-muted);
+    padding: 7px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .filter-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+  .reg-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 12px;
+  }
+
+  .reg-card.verified { border-left: 4px solid var(--success); }
+  .reg-card.rejected { border-left: 4px solid var(--danger); }
+  .reg-card.pending { border-left: 4px solid #fbbf24; }
+
+  .reg-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .reg-name { font-size: 17px; font-weight: 700; }
+  .reg-ref { font-size: 12px; color: var(--text-muted); font-family: monospace; margin-top: 2px; }
+
+  .status-badge {
+    font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; white-space: nowrap;
+  }
+  .status-badge.pending { background: rgba(251,191,36,0.15); color: #fbbf24; }
+  .status-badge.verified { background: rgba(16,185,129,0.15); color: #34d399; }
+  .status-badge.rejected { background: rgba(239,68,68,0.15); color: #f87171; }
+
+  .reg-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+
+  @media (max-width: 500px) {
+    .reg-details { grid-template-columns: 1fr; }
+  }
+
+  .reg-details .detail-item { display: flex; flex-direction: column; }
+  .reg-details .detail-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; }
+  .reg-details .detail-value { color: var(--text-main); font-weight: 500; }
+
+  .payment-proof {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .payment-proof .txn-id {
+    font-family: monospace;
+    font-size: 14px;
+    color: #60a5fa;
+    word-break: break-all;
+  }
+
+  .payment-proof a {
+    color: #60a5fa; font-size: 12px; text-decoration: none; white-space: nowrap;
+  }
+  .payment-proof a:hover { text-decoration: underline; }
+
+  .cost-line {
+    font-size: 14px;
+    font-weight: 700;
+    color: #60a5fa;
+    margin-bottom: 12px;
+  }
+
+  .rejection-note {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #f87171;
+    margin-bottom: 12px;
+  }
+
+  .action-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .btn-verify {
+    background: var(--success); color: white; border: none;
+    padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .btn-verify:hover { background: #059669; }
+
+  .btn-reject {
+    background: none; border: 1px solid var(--danger); color: var(--danger);
+    padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .btn-reject:hover { background: var(--danger); color: white; }
+
+  .verified-info {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 6px 0;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  /* Reject modal */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(2,6,23,0.85);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 150;
+    padding: 20px;
+  }
+  .modal-overlay.active { opacity: 1; pointer-events: auto; }
+  .modal-box {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px; width: 100%; max-width: 420px;
+  }
+  .modal-box h3 { margin-bottom: 10px; }
+  .modal-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
+  .modal-box textarea {
+    width: 100%; padding: 10px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--bg-main);
+    color: var(--text-main); font-size: 13px; resize: vertical;
+    min-height: 80px;
+  }
+  .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .modal-actions button {
+    flex: 1; padding: 10px; border-radius: 6px; font-weight: 600;
+    font-size: 14px; cursor: pointer; border: none;
+  }
+  .btn-cancel-modal { background: #334155; color: white; }
+  .btn-confirm-reject { background: var(--danger); color: white; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #2d3748; color: white; padding: 12px 24px;
+    border-radius: 8px; font-size: 14px; font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 200;
+  }
+  .toast.active { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--danger); }
+  .toast.success { background: var(--success); }
+
+  .app-footer { text-align: center; margin-top: 1.5rem; font-size: 12px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Attendly — Verify Payments</h1>
+  <div class="user-info">
+    <span id="loggedInAs"></span>
+    <button class="btn-logout" id="logoutBtn">Log Out</button>
+  </div>
+</header>
+
+<div class="summary-bar" id="summaryBar">
+  <div class="stat"><div class="num pending" id="statPending">–</div><div class="label">Pending</div></div>
+  <div class="stat"><div class="num verified" id="statVerified">–</div><div class="label">Verified</div></div>
+  <div class="stat"><div class="num rejected" id="statRejected">–</div><div class="label">Rejected</div></div>
+  <div class="stat"><div class="num" id="statRevenue" style="color:#60a5fa;">–</div><div class="label">Revenue Verified</div></div>
+</div>
+
+<div class="container">
+  <div class="filter-row">
+    <button class="filter-btn active" data-filter="pending">Pending</button>
+    <button class="filter-btn" data-filter="verified">Verified</button>
+    <button class="filter-btn" data-filter="rejected">Rejected</button>
+    <button class="filter-btn" data-filter="all">All</button>
+    <button class="filter-btn" id="refreshBtn" style="margin-left:auto;">↻ Refresh</button>
+  </div>
+
+  <div id="registrationList"></div>
+</div>
+
+<p class="app-footer">Powered by Bapiego</p>
+
+<!-- Reject modal -->
+<div class="modal-overlay" id="rejectModal">
+  <div class="modal-box">
+    <h3>Reject this payment?</h3>
+    <p>Provide a reason so the minister knows what went wrong. This will be visible on their registration record.</p>
+    <textarea id="rejectionReason" placeholder="e.g. Transaction ID not found. Please resubmit with the correct ID."></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" id="cancelRejectBtn">Cancel</button>
+      <button class="btn-confirm-reject" id="confirmRejectBtn">Reject</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastBar"></div>
+
+<script>
+  const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_PLI1DLUB_0DF3R0x3GPWYA_RNj2aScg';
+  const sessionToken = localStorage.getItem('session_token');
+  const userRole = localStorage.getItem('user_role');
+  const username = localStorage.getItem('username');
+
+  let accommodationEventId = localStorage.getItem('accommodation_event_id');
+  let currentFilter = 'pending';
+  let pendingRejectId = null;
+  let allRegistrations = [];
+
+  // ---------- Auth ----------
+  if (!sessionToken || !['event_manager', 'super_admin', 'accounts_officer'].includes(userRole)) {
+    window.location.href = 'login.html';
+  }
+
+  document.getElementById('loggedInAs').textContent = `${username}`;
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    window.location.href = 'login.html';
+  });
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toastBar');
+    t.className = `toast active ${type}`;
+    t.textContent = msg;
+    setTimeout(() => t.classList.remove('active'), 3500);
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  async function callRPC(fn, payload) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+        body: JSON.stringify(payload)
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: false, error: 'Connection failure' };
+    }
+  }
+
+  // ---------- Load ----------
+  async function loadDashboardStats() {
+    if (!accommodationEventId) return;
+
+    const res = await callRPC('get_accommodation_dashboard', {
+      p_token: sessionToken,
+      p_accommodation_event_id: accommodationEventId
+    });
+
+    if (res.success && res.payment_stats) {
+      const s = res.payment_stats;
+      document.getElementById('statPending').textContent = s.pending;
+      document.getElementById('statVerified').textContent = s.verified;
+      document.getElementById('statRejected').textContent = s.rejected;
+      document.getElementById('statRevenue').textContent =
+        `GH₵ ${parseFloat(s.total_revenue || 0).toLocaleString('en-GH', { minimumFractionDigits: 2 })}`;
+    }
+  }
+
+  async function loadRegistrations() {
+    if (!accommodationEventId) {
+      document.getElementById('registrationList').innerHTML =
+        '<div class="empty-state">No accommodation event assigned. Please contact your administrator.</div>';
+      return;
+    }
+
+    const res = await callRPC('get_all_registrations', {
+      p_token: sessionToken,
+      p_accommodation_event_id: accommodationEventId,
+      p_status: 'all'
+    });
+
+    if (!res.success) {
+      document.getElementById('registrationList').innerHTML =
+        `<div class="empty-state">${escapeHtml(res.error || 'Failed to load registrations')}</div>`;
+      return;
+    }
+
+    allRegistrations = res.registrations || [];
+    renderList();
+  }
+
+  function renderList() {
+    const list = document.getElementById('registrationList');
+    const filtered = currentFilter === 'all'
+      ? allRegistrations
+      : allRegistrations.filter(r => r.payment_status === currentFilter);
+
+    if (!filtered || filtered.length === 0) {
+      list.innerHTML = `<div class="empty-state">No ${currentFilter === 'all' ? '' : currentFilter + ' '}registrations found.</div>`;
+      return;
+    }
+
+    list.innerHTML = '';
+    filtered.forEach(reg => list.appendChild(buildRegCard(reg)));
+  }
+
+  function buildRegCard(reg) {
+    const card = document.createElement('div');
+    card.className = `reg-card ${reg.payment_status}`;
+
+    const submittedDate = new Date(reg.submitted_at).toLocaleString();
+    const verifiedDate = reg.verified_at ? new Date(reg.verified_at).toLocaleString() : null;
+
+    let mealsSummary = '—';
+    if (reg.feeding_selection) {
+      const fs = typeof reg.feeding_selection === 'string'
+        ? JSON.parse(reg.feeding_selection)
+        : reg.feeding_selection;
+      if (fs.type === 'a_la_carte' && fs.selections?.length > 0) {
+        mealsSummary = fs.selections.map(s => `${s.days?.length || 0} day(s)`).join(', ');
+      } else if (fs.included?.length > 0) {
+        mealsSummary = `${fs.included.length} meal package(s)`;
+      } else {
+        mealsSummary = 'No meals selected';
+      }
+    }
+
+    card.innerHTML = `
+      <div class="reg-top">
+        <div>
+          <div class="reg-name">${escapeHtml(reg.full_name)}</div>
+          <div class="reg-ref">${escapeHtml(reg.reference_number)}</div>
+        </div>
+        <span class="status-badge ${reg.payment_status}">${reg.payment_status.toUpperCase()}</span>
+      </div>
+
+      <div class="reg-details">
+        <div class="detail-item">
+          <span class="detail-label">Phone</span>
+          <span class="detail-value">${escapeHtml(reg.phone)}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Room Category</span>
+          <span class="detail-value">${escapeHtml(reg.room_category_name)}${reg.room_number ? ` · Room ${reg.room_number}` : ''}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Church</span>
+          <span class="detail-value">${escapeHtml(reg.church || '—')}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">District</span>
+          <span class="detail-value">${escapeHtml(reg.district || '—')}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Ministerial Rank</span>
+          <span class="detail-value">${escapeHtml(reg.ministerial_rank || '—')}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Meals</span>
+          <span class="detail-value">${mealsSummary}</span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Submitted</span>
+          <span class="detail-value">${submittedDate}</span>
+        </div>
+        ${reg.room_number ? `
+        <div class="detail-item">
+          <span class="detail-label">Room Assigned</span>
+          <span class="detail-value" style="color:var(--success);">Room ${reg.room_number}</span>
+        </div>` : ''}
+      </div>
+
+      <div class="payment-proof">
+        <div>
+          <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.05em;">Transaction ID</div>
+          <div class="txn-id">${escapeHtml(reg.momo_transaction_id)}</div>
+        </div>
+        ${reg.payment_screenshot_url
+          ? `<a href="${escapeHtml(reg.payment_screenshot_url)}" target="_blank">📷 View Screenshot</a>`
+          : '<span style="font-size:12px; color:var(--text-muted);">No screenshot</span>'}
+      </div>
+
+      <div class="cost-line">
+        Total: GH₵ ${parseFloat(reg.grand_total).toFixed(2)}
+        <span style="font-size:12px; font-weight:400; color:var(--text-muted);">
+          (Room: GH₵${parseFloat(reg.room_total).toFixed(2)} + Meals: GH₵${parseFloat(reg.meals_total).toFixed(2)})
+        </span>
+      </div>
+
+      ${reg.payment_status === 'rejected' && reg.rejection_reason
+        ? `<div class="rejection-note">Rejection reason: ${escapeHtml(reg.rejection_reason)}</div>`
+        : ''}
+
+      <div class="action-row" id="actions-${escapeHtml(reg.id)}"></div>
+    `;
+
+    const actionRow = card.querySelector(`#actions-${CSS.escape(reg.id)}`);
+
+    if (reg.payment_status === 'pending') {
+      const verifyBtn = document.createElement('button');
+      verifyBtn.className = 'btn-verify';
+      verifyBtn.textContent = '✓ Verify Payment';
+      verifyBtn.addEventListener('click', () => verifyPayment(reg.id, verifyBtn));
+      actionRow.appendChild(verifyBtn);
+
+      const rejectBtn = document.createElement('button');
+      rejectBtn.className = 'btn-reject';
+      rejectBtn.textContent = '✗ Reject';
+      rejectBtn.addEventListener('click', () => openRejectModal(reg.id));
+      actionRow.appendChild(rejectBtn);
+    } else if (reg.payment_status === 'verified') {
+      actionRow.innerHTML = `<span class="verified-info">✓ Verified ${verifiedDate ? 'on ' + verifiedDate : ''}</span>`;
+    } else {
+      actionRow.innerHTML = `<span class="verified-info" style="color:var(--danger);">✗ Rejected ${verifiedDate ? 'on ' + verifiedDate : ''}</span>`;
+    }
+
+    return card;
+  }
+
+  // ---------- Verify ----------
+  async function verifyPayment(regId, btn) {
+    btn.disabled = true;
+    btn.textContent = 'Verifying...';
+
+    const res = await callRPC('verify_payment', {
+      p_token: sessionToken,
+      p_registration_id: regId
+    });
+
+    if (res.success) {
+      showToast('Payment verified — room assigned', 'success');
+      await loadDashboardStats();
+      await loadRegistrations();
+    } else {
+      showToast(res.error || 'Failed to verify', 'error');
+      btn.disabled = false;
+      btn.textContent = '✓ Verify Payment';
+    }
+  }
+
+  // ---------- Reject modal ----------
+  function openRejectModal(regId) {
+    pendingRejectId = regId;
+    document.getElementById('rejectionReason').value = '';
+    document.getElementById('rejectModal').classList.add('active');
+  }
+
+  document.getElementById('cancelRejectBtn').addEventListener('click', () => {
+    document.getElementById('rejectModal').classList.remove('active');
+    pendingRejectId = null;
+  });
+
+  document.getElementById('confirmRejectBtn').addEventListener('click', async () => {
+    const reason = document.getElementById('rejectionReason').value.trim();
+    if (!reason) { showToast('Please provide a rejection reason', 'error'); return; }
+
+    const btn = document.getElementById('confirmRejectBtn');
+    btn.disabled = true;
+    btn.textContent = 'Rejecting...';
+
+    const res = await callRPC('reject_payment', {
+      p_token: sessionToken,
+      p_registration_id: pendingRejectId,
+      p_reason: reason
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'Reject';
+    document.getElementById('rejectModal').classList.remove('active');
+    pendingRejectId = null;
+
+    if (res.success) {
+      showToast('Registration rejected', 'error');
+      await loadDashboardStats();
+      await loadRegistrations();
+    } else {
+      showToast(res.error || 'Failed to reject', 'error');
+    }
+  });
+
+  // ---------- Filter ----------
+  document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      renderList();
+    });
+  });
+
+  document.getElementById('refreshBtn').addEventListener('click', async () => {
+    await loadDashboardStats();
+    await loadRegistrations();
+    showToast('Refreshed');
+  });
+
+  // ---------- Init ----------
+  async function init() {
+    // For accounts_officer: accommodation_event_id comes from login
+    // For event_manager/super_admin: get it from URL param or localStorage
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('event')) {
+      accommodationEventId = params.get('event');
+      localStorage.setItem('accommodation_event_id', accommodationEventId);
+    }
+
+    if (!accommodationEventId) {
+      document.getElementById('registrationList').innerHTML =
+        '<div class="empty-state">No event specified. Please navigate here from the dashboard.</div>';
+      return;
+    }
+
+    await loadDashboardStats();
+    await loadRegistrations();
+  }
+
+  init();
+</script>
+</body>
+</html>
