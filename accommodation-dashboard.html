@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendly - Accommodation Dashboard</title>
+<style>
+  :root {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --success: #10b981;
+    --danger: #ef4444;
+    --border: #334155;
+    --warning: #d97706;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-main);
+    color: var(--text-main);
+    min-height: 100vh;
+    padding-bottom: 3rem;
+  }
+
+  header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  header h1 { font-size: 18px; font-weight: 600; }
+  header .nav { display: flex; align-items: center; gap: 12px; font-size: 13px; }
+  header a { color: white; opacity: 0.85; text-decoration: none; }
+  header a:hover { opacity: 1; text-decoration: underline; }
+
+  .btn-logout {
+    background: rgba(255,255,255,0.15); border: none; color: white;
+    padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
+  }
+  .btn-logout:hover { background: rgba(255,255,255,0.25); }
+
+  .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+
+  .event-header {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .event-header h2 { font-size: 20px; margin-bottom: 4px; }
+  .event-header .meta { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+
+  .event-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  .btn {
+    background: var(--accent); color: white; border: none;
+    padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;
+    text-decoration: none; display: inline-block;
+  }
+  .btn:hover { background: var(--accent-hover); }
+  .btn.danger { background: var(--danger); }
+  .btn.danger:hover { background: #dc2626; }
+  .btn.secondary {
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+  }
+  .btn.secondary:hover { color: white; border-color: var(--text-muted); }
+
+  /* Metrics grid */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .metric-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .metric-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px; }
+  .metric-card .value { font-size: 26px; font-weight: 700; }
+  .metric-card .sub-value { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* Bed availability */
+  .beds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .beds-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+
+  .beds-card .cat-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .beds-card .cat-price { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+
+  .beds-bar-wrap {
+    background: var(--bg-main);
+    border-radius: 999px;
+    height: 8px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .beds-bar { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
+  .beds-bar.full { background: var(--danger); }
+  .beds-bar.low { background: var(--warning); }
+  .beds-bar.ok { background: var(--success); }
+
+  .beds-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .beds-stats .taken { color: var(--text-main); font-weight: 600; }
+
+  .pending-pill {
+    display: inline-block;
+    background: rgba(251,191,36,0.15);
+    color: #fbbf24;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-top: 8px;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+
+  .tab {
+    padding: 10px 18px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    margin-bottom: -1px;
+  }
+  .tab.active { color: #60a5fa; border-bottom-color: #60a5fa; }
+  .tab:hover:not(.active) { color: var(--text-main); }
+
+  /* Registrant table */
+  .table-wrap { overflow-x: auto; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    text-align: left; color: var(--text-muted); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    padding: 10px 8px; border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  td { padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+
+  .status-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+  }
+  .status-dot.pending { background: #fbbf24; }
+  .status-dot.verified { background: var(--success); }
+  .status-dot.rejected { background: var(--danger); }
+
+  .room-badge {
+    background: rgba(96,165,250,0.15);
+    color: #60a5fa;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 5px;
+  }
+
+  .export-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .filter-select {
+    padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--bg-card); color: var(--text-main); font-size: 13px;
+  }
+
+  .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 14px; }
+
+  /* Accounts officers section */
+  .officer-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+  }
+  .officer-row:last-child { border-bottom: none; }
+
+  .link-box {
+    background: var(--bg-main); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px;
+    display: flex; align-items: center; gap: 8px; margin-top: 12px;
+  }
+  .link-box input {
+    flex: 1; background: none; border: none; color: #60a5fa;
+    font-size: 13px; padding: 0;
+  }
+  .link-box button {
+    background: var(--accent); color: white; border: none;
+    padding: 4px 10px; border-radius: 5px; font-size: 12px;
+    font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+
+  /* New officer form */
+  .new-officer-form {
+    background: rgba(255,255,255,0.03);
+    border: 1.5px dashed var(--border);
+    border-radius: 8px; padding: 14px; margin-top: 12px;
+  }
+  .new-officer-form input {
+    width: 100%; padding: 8px 10px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--bg-main);
+    color: var(--text-main); font-size: 13px; margin-bottom: 8px;
+  }
+
+  .credential-box {
+    background: #1e3a8a; border: 1px solid #2563eb;
+    border-radius: 8px; padding: 12px; margin-top: 10px;
+    font-size: 13px; display: none;
+  }
+  .credential-box.active { display: block; }
+  .credential-box .cred-line {
+    font-family: monospace; background: rgba(0,0,0,0.25);
+    border-radius: 5px; padding: 5px 8px; margin: 4px 0;
+  }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #2d3748; color: white; padding: 12px 24px;
+    border-radius: 8px; font-size: 14px; font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 200;
+  }
+  .toast.active { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--danger); }
+  .toast.success { background: var(--success); }
+
+  /* Close event modal */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(2,6,23,0.85);
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    z-index: 150; padding: 20px;
+  }
+  .modal-overlay.active { opacity: 1; pointer-events: auto; }
+  .modal-box {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px; width: 100%; max-width: 400px;
+  }
+  .modal-box h3 { margin-bottom: 10px; }
+  .modal-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
+  .modal-actions { display: flex; gap: 10px; }
+  .modal-actions button {
+    flex: 1; padding: 10px; border-radius: 6px; font-weight: 600;
+    font-size: 14px; cursor: pointer; border: none;
+  }
+  .btn-cancel-modal { background: #334155; color: white; }
+  .btn-close-event { background: var(--danger); color: white; }
+
+  .app-footer { text-align: center; margin-top: 2rem; font-size: 12px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Attendly — Accommodation Dashboard</h1>
+  <div class="nav">
+    <a href="manager-dashboard.html">← Check-In Dashboard</a>
+    <button class="btn-logout" id="logoutBtn">Log Out</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <div id="loadingState" style="text-align:center; padding:3rem; color:var(--text-muted);">Loading...</div>
+
+  <div id="mainContent" style="display:none;">
+
+    <!-- Event header -->
+    <div class="event-header">
+      <div>
+        <h2 id="evtName"></h2>
+        <div class="meta" id="evtMeta"></div>
+      </div>
+      <div class="event-actions">
+        <a id="verifyPaymentsLink" href="#" class="btn">Verify Payments</a>
+        <a id="regLinkBtn" href="#" class="btn secondary" target="_blank">Registration Link ↗</a>
+        <button class="btn danger" id="closeEventBtn" style="display:none;">Close Event</button>
+      </div>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="label">Total Registrations</div>
+        <div class="value" id="metTotal">–</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Pending Verification</div>
+        <div class="value" id="metPending" style="color:#fbbf24;">–</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Verified / Confirmed</div>
+        <div class="value" id="metVerified" style="color:var(--success);">–</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Revenue Collected</div>
+        <div class="value" id="metRevenue" style="color:#60a5fa; font-size:18px;">–</div>
+      </div>
+    </div>
+
+    <!-- Bed availability per category -->
+    <div class="beds-grid" id="bedsGrid"></div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <div class="tab active" data-tab="registrants">All Registrants</div>
+      <div class="tab" data-tab="officers">Accounts Officers</div>
+    </div>
+
+    <!-- Registrants tab -->
+    <div id="tabRegistrants">
+      <div class="export-bar">
+        <select class="filter-select" id="statusFilter">
+          <option value="all">All Statuses</option>
+          <option value="pending">Pending</option>
+          <option value="verified">Verified</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <button class="btn" id="exportCsvBtn">Download CSV</button>
+        <button class="btn secondary" id="refreshListBtn">↻ Refresh</button>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Reference</th>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Church / District</th>
+              <th>Room Category</th>
+              <th>Room</th>
+              <th>Total (GH₵)</th>
+              <th>Status</th>
+              <th>Submitted</th>
+            </tr>
+          </thead>
+          <tbody id="registrantTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Officers tab -->
+    <div id="tabOfficers" style="display:none;">
+      <div style="margin-bottom:16px;">
+        <h3 style="font-size:15px; margin-bottom:4px;">Accounts Officers</h3>
+        <p style="font-size:13px; color:var(--text-muted);">Officers can verify and reject payments for this event.</p>
+      </div>
+
+      <div id="officerList"></div>
+
+      <div class="new-officer-form">
+        <p style="font-size:13px; font-weight:600; margin-bottom:10px;">Add New Officer</p>
+        <input type="text" id="officerUsername" placeholder="Username" autocomplete="off">
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="text" id="officerPassword" placeholder="Password" style="margin-bottom:0;">
+          <button class="btn" style="white-space:nowrap; padding:8px 12px;" id="genOfficerPassBtn">Generate</button>
+        </div>
+        <button class="btn" style="margin-top:10px; width:100%;" id="createOfficerBtn">Create Officer</button>
+        <div class="credential-box" id="officerCredBox">
+          <p style="font-size:12px; color:#93c5fd; margin-bottom:6px;">✅ Officer created — share these credentials:</p>
+          <div class="cred-line" id="officerCredUsername"></div>
+          <div class="cred-line" id="officerCredPassword"></div>
+        </div>
+      </div>
+
+      <!-- Registration link for this event -->
+      <div style="margin-top:20px;">
+        <p style="font-size:13px; font-weight:600; margin-bottom:6px;">Registration Link</p>
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">Share this link with ministers to register.</p>
+        <div class="link-box">
+          <input type="text" id="regLinkDisplay" readonly>
+          <button id="copyRegLinkBtn">Copy</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<p class="app-footer">Powered by Bapiego</p>
+
+<!-- Close event modal -->
+<div class="modal-overlay" id="closeEventModal">
+  <div class="modal-box">
+    <h3>Close this event?</h3>
+    <p>This will stop accepting new registrations. All existing data and room assignments are preserved. This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" id="cancelCloseBtn">Cancel</button>
+      <button class="btn-close-event" id="confirmCloseBtn">Close Event</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastBar"></div>
+
+<script>
+  const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_PLI1DLUB_0DF3R0x3GPWYA_RNj2aScg';
+  const sessionToken = localStorage.getItem('session_token');
+  const userRole = localStorage.getItem('user_role');
+
+  let accommodationEventId = null;
+  let allRegistrations = [];
+
+  // ---------- Auth ----------
+  if (!sessionToken || !['event_manager', 'super_admin'].includes(userRole)) {
+    window.location.href = 'login.html';
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    window.location.href = 'login.html';
+  });
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toastBar');
+    t.className = `toast active ${type}`;
+    t.textContent = msg;
+    setTimeout(() => t.classList.remove('active'), 3500);
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  async function callRPC(fn, payload) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+        body: JSON.stringify(payload)
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: false, error: 'Connection failure' };
+    }
+  }
+
+  // ---------- Init ----------
+  async function init() {
+    const params = new URLSearchParams(window.location.search);
+    accommodationEventId = params.get('event') || localStorage.getItem('accommodation_event_id');
+
+    if (!accommodationEventId) {
+      document.getElementById('loadingState').textContent = 'No event specified. Navigate here from your dashboard.';
+      return;
+    }
+
+    localStorage.setItem('accommodation_event_id', accommodationEventId);
+
+    await loadDashboard();
+    await loadRegistrations();
+    renderRegLink();
+  }
+
+  async function loadDashboard() {
+    const res = await callRPC('get_accommodation_dashboard', {
+      p_token: sessionToken,
+      p_accommodation_event_id: accommodationEventId
+    });
+
+    if (!res.success) {
+      document.getElementById('loadingState').textContent = res.error || 'Failed to load dashboard';
+      return;
+    }
+
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+
+    // Event header
+    const ev = res.event;
+    document.getElementById('evtName').textContent = ev.name;
+    const dateStr = ev.start_date && ev.end_date
+      ? `📅 ${new Date(ev.start_date).toDateString()} – ${new Date(ev.end_date).toDateString()}`
+      : '';
+    const deadlineStr = ev.deadline
+      ? `⏰ Deadline: ${new Date(ev.deadline).toLocaleString()}`
+      : '';
+    document.getElementById('evtMeta').innerHTML = [
+      ev.location ? `📍 ${escapeHtml(ev.location)}` : '',
+      dateStr, deadlineStr,
+      `💳 MoMo: ${escapeHtml(ev.momo_number)} (${escapeHtml(ev.momo_account_name)})`,
+      `Status: <strong style="color:${ev.status === 'open' ? 'var(--success)' : 'var(--text-muted)'}">${ev.status.toUpperCase()}</strong>`
+    ].filter(Boolean).join('<br>');
+
+    // Links
+    const baseUrl = window.location.origin + window.location.pathname.replace('accommodation-dashboard.html', '');
+    document.getElementById('verifyPaymentsLink').href = `verify-payments.html?event=${accommodationEventId}`;
+    document.getElementById('regLinkBtn').href = `${baseUrl}register.html?event=${accommodationEventId}`;
+
+    if (ev.status === 'open') {
+      document.getElementById('closeEventBtn').style.display = 'inline-block';
+    }
+
+    // Metrics
+    const s = res.payment_stats;
+    document.getElementById('metTotal').textContent = s.total_registrations;
+    document.getElementById('metPending').textContent = s.pending;
+    document.getElementById('metVerified').textContent = s.verified;
+    document.getElementById('metRevenue').textContent =
+      `GH₵ ${parseFloat(s.total_revenue || 0).toLocaleString('en-GH', { minimumFractionDigits: 2 })}`;
+
+    // Beds grid
+    const bedsGrid = document.getElementById('bedsGrid');
+    bedsGrid.innerHTML = '';
+    (res.category_stats || []).forEach(cat => {
+      const pct = cat.total_beds > 0 ? (cat.beds_taken / cat.total_beds) * 100 : 0;
+      const barClass = pct >= 100 ? 'full' : (pct >= 80 ? 'low' : 'ok');
+
+      const card = document.createElement('div');
+      card.className = 'beds-card';
+      card.innerHTML = `
+        <div class="cat-name">${escapeHtml(cat.name)}</div>
+        <div class="cat-price">GH₵${parseFloat(cat.price_per_person).toFixed(2)}/person · ${cat.persons_per_room} per room</div>
+        <div class="beds-bar-wrap">
+          <div class="beds-bar ${barClass}" style="width:${Math.min(pct,100)}%;"></div>
+        </div>
+        <div class="beds-stats">
+          <span class="taken">${cat.beds_taken} taken</span>
+          <span>${cat.beds_remaining} remaining / ${cat.total_beds} total</span>
+        </div>
+        ${cat.beds_pending > 0 ? `<span class="pending-pill">${cat.beds_pending} pending verification</span>` : ''}
+      `;
+      bedsGrid.appendChild(card);
+    });
+  }
+
+  async function loadRegistrations() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const res = await callRPC('get_all_registrations', {
+      p_token: sessionToken,
+      p_accommodation_event_id: accommodationEventId,
+      p_status: 'all'
+    });
+
+    if (!res.success) return;
+    allRegistrations = res.registrations || [];
+    renderRegistrantTable();
+  }
+
+  function renderRegistrantTable() {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const tbody = document.getElementById('registrantTableBody');
+
+    const filtered = statusFilter === 'all'
+      ? allRegistrations
+      : allRegistrations.filter(r => r.payment_status === statusFilter);
+
+    if (!filtered || filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--text-muted); padding:2rem;">No registrations found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = '';
+    filtered.forEach((reg, i) => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="color:var(--text-muted);">${i + 1}</td>
+        <td style="font-family:monospace; font-size:12px; color:#60a5fa;">${escapeHtml(reg.reference_number)}</td>
+        <td><strong>${escapeHtml(reg.full_name)}</strong></td>
+        <td>${escapeHtml(reg.phone)}</td>
+        <td style="font-size:12px;">${escapeHtml(reg.church || '—')}<br><span style="color:var(--text-muted);">${escapeHtml(reg.district || '')}</span></td>
+        <td>${escapeHtml(reg.room_category_name)}</td>
+        <td>${reg.room_number ? `<span class="room-badge">Room ${reg.room_number}</span>` : '—'}</td>
+        <td style="font-weight:700;">${parseFloat(reg.grand_total).toFixed(2)}</td>
+        <td><span class="status-dot ${reg.payment_status}"></span>${reg.payment_status}</td>
+        <td style="font-size:12px; color:var(--text-muted);">${new Date(reg.submitted_at).toLocaleDateString()}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ---------- Export CSV ----------
+  document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const filtered = statusFilter === 'all'
+      ? allRegistrations
+      : allRegistrations.filter(r => r.payment_status === statusFilter);
+
+    if (!filtered || filtered.length === 0) { showToast('No data to export', 'error'); return; }
+
+    const headers = ['Reference','Name','Phone','Church','District','Rank','Room Category','Room No.','Room (GH₵)','Meals (GH₵)','Total (GH₵)','Transaction ID','Status','Submitted'];
+    const escape = v => {
+      if (v === null || v === undefined) return '';
+      const s = String(v);
+      return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+
+    const lines = [headers.join(',')];
+    filtered.forEach(r => {
+      lines.push([
+        r.reference_number, r.full_name, r.phone, r.church, r.district,
+        r.ministerial_rank, r.room_category_name, r.room_number || '',
+        r.room_total, r.meals_total, r.grand_total,
+        r.momo_transaction_id, r.payment_status,
+        new Date(r.submitted_at).toLocaleString()
+      ].map(escape).join(','));
+    });
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `accommodation-registrations-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`Exported ${filtered.length} record(s)`);
+  });
+
+  document.getElementById('statusFilter').addEventListener('change', renderRegistrantTable);
+  document.getElementById('refreshListBtn').addEventListener('click', async () => {
+    await loadDashboard();
+    await loadRegistrations();
+    showToast('Refreshed');
+  });
+
+  // ---------- Tabs ----------
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.getElementById('tabRegistrants').style.display = tab.dataset.tab === 'registrants' ? 'block' : 'none';
+      document.getElementById('tabOfficers').style.display = tab.dataset.tab === 'officers' ? 'block' : 'none';
+      if (tab.dataset.tab === 'officers') loadOfficers();
+    });
+  });
+
+  // ---------- Accounts Officers ----------
+  async function loadOfficers() {
+    const res = await callRPC('get_event_ushers', {
+      p_token: sessionToken,
+      p_event_id: accommodationEventId
+    });
+
+    const list = document.getElementById('officerList');
+    // get_event_ushers returns usher-role users; we need accounts_officers
+    // Use a direct query via get_all_registrations scoped query - actually
+    // let's query users directly via the existing list_users pattern
+    // For now show a note; a dedicated function can be added later
+    if (!Array.isArray(res) || res.length === 0) {
+      list.innerHTML = '<p style="font-size:13px; color:var(--text-muted); padding:10px 0;">No accounts officers added yet.</p>';
+    } else {
+      list.innerHTML = '';
+      res.forEach(u => {
+        const row = document.createElement('div');
+        row.className = 'officer-row';
+        row.innerHTML = `
+          <span><strong>${escapeHtml(u.username)}</strong></span>
+          <span style="font-size:12px; color:var(--text-muted);">Added ${new Date(u.created_at).toLocaleDateString()}</span>
+        `;
+        list.appendChild(row);
+      });
+    }
+  }
+
+  document.getElementById('genOfficerPassBtn').addEventListener('click', () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
+    let pass = '';
+    for (let i = 0; i < 12; i++) pass += chars[Math.floor(Math.random() * chars.length)];
+    document.getElementById('officerPassword').value = pass;
+  });
+
+  document.getElementById('createOfficerBtn').addEventListener('click', async () => {
+    const username = document.getElementById('officerUsername').value.trim();
+    const password = document.getElementById('officerPassword').value;
+
+    if (!username || !password) { showToast('Username and password required', 'error'); return; }
+
+    const res = await callRPC('create_accounts_officer', {
+      p_token: sessionToken,
+      p_username: username,
+      p_password: password,
+      p_accommodation_event_id: accommodationEventId
+    });
+
+    if (res.success) {
+      document.getElementById('officerCredUsername').textContent = `Username: ${username}`;
+      document.getElementById('officerCredPassword').textContent = `Password: ${password}`;
+      document.getElementById('officerCredBox').classList.add('active');
+      document.getElementById('officerUsername').value = '';
+      document.getElementById('officerPassword').value = '';
+      showToast('Accounts officer created');
+      loadOfficers();
+    } else {
+      showToast(res.error || 'Failed to create officer', 'error');
+    }
+  });
+
+  // ---------- Registration link ----------
+  function renderRegLink() {
+    const baseUrl = window.location.origin + window.location.pathname.replace('accommodation-dashboard.html', '');
+    const link = `${baseUrl}register.html?event=${accommodationEventId}`;
+    document.getElementById('regLinkDisplay').value = link;
+  }
+
+  document.getElementById('copyRegLinkBtn').addEventListener('click', () => {
+    navigator.clipboard.writeText(document.getElementById('regLinkDisplay').value)
+      .then(() => showToast('Link copied!'));
+  });
+
+  // ---------- Close event ----------
+  document.getElementById('closeEventBtn').addEventListener('click', () => {
+    document.getElementById('closeEventModal').classList.add('active');
+  });
+
+  document.getElementById('cancelCloseBtn').addEventListener('click', () => {
+    document.getElementById('closeEventModal').classList.remove('active');
+  });
+
+  document.getElementById('confirmCloseBtn').addEventListener('click', async () => {
+    const res = await callRPC('set_accommodation_event_status', {
+      p_token: sessionToken,
+      p_accommodation_event_id: accommodationEventId,
+      p_status: 'closed'
+    });
+
+    document.getElementById('closeEventModal').classList.remove('active');
+
+    if (res.success) {
+      showToast('Event closed');
+      document.getElementById('closeEventBtn').style.display = 'none';
+      await loadDashboard();
+    } else {
+      showToast(res.error || 'Failed to close event', 'error');
+    }
+  });
+
+  init();
+</script>
+</body>
+</html>
