@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendly - Create Accommodation Event</title>
+<style>
+  :root {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --success: #10b981;
+    --danger: #ef4444;
+    --border: #334155;
+    --warning: #d97706;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg-main);
+    color: var(--text-main);
+    min-height: 100vh;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .container { max-width: 780px; width: 100%; }
+
+  .header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h1 { font-size: 1.6rem; margin: 0; }
+  p.lead { color: var(--text-muted); margin-top: 0; margin-bottom: 1.5rem; font-size: 0.9rem; }
+
+  .btn-logout {
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    padding: 0.4rem 0.9rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
+  }
+  .btn-logout:hover { color: white; border-color: var(--text-muted); }
+
+  .step-indicator {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1.5rem;
+  }
+
+  .step {
+    flex: 1;
+    text-align: center;
+    padding: 0.6rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 3px solid var(--border);
+    cursor: pointer;
+  }
+  .step.active { color: #60a5fa; border-bottom-color: #60a5fa; }
+  .step.done { color: var(--success); border-bottom-color: var(--success); }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .card h2 { font-size: 1.1rem; margin-bottom: 0.25rem; }
+  .card p.sub { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.25rem; }
+
+  label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.4rem;
+    margin-top: 1rem;
+  }
+
+  input[type="text"], input[type="number"], input[type="date"],
+  input[type="datetime-local"], select, textarea {
+    width: 100%;
+    padding: 0.7rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    color: var(--text-main);
+    font-size: 0.9rem;
+    box-sizing: border-box;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .feeding-option {
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    margin-bottom: 0.75rem;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .feeding-option:hover { border-color: var(--accent); }
+  .feeding-option.selected { border-color: var(--accent); background: rgba(37,99,235,0.1); }
+  .feeding-option h3 { font-size: 0.95rem; margin-bottom: 0.25rem; }
+  .feeding-option p { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
+
+  .room-category-item {
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .room-category-item .cat-name { font-weight: 600; font-size: 0.95rem; }
+  .room-category-item .cat-detail { font-size: 0.8rem; color: var(--text-muted); }
+
+  .btn-remove-small {
+    background: none; border: 1px solid var(--danger); color: var(--danger);
+    border-radius: 6px; padding: 0.3rem 0.6rem; font-size: 0.75rem; cursor: pointer;
+    white-space: nowrap;
+  }
+  .btn-remove-small:hover { background: var(--danger); color: white; }
+
+  .meal-item {
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.6rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .meal-item .meal-info { font-size: 0.9rem; }
+  .meal-item .meal-price { font-weight: 700; color: #60a5fa; white-space: nowrap; }
+
+  .add-item-form {
+    background: rgba(255,255,255,0.03);
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-top: 0.75rem;
+  }
+
+  .btn {
+    background: var(--accent); color: white; border: none;
+    padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600;
+    cursor: pointer; font-size: 0.9rem;
+  }
+  .btn:hover { background: var(--accent-hover); }
+  .btn:disabled { background: #475569; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; cursor: pointer;
+  }
+  .btn-secondary:hover { color: white; border-color: var(--text-muted); }
+
+  .btn-add {
+    background: none; border: 1.5px dashed var(--border); color: var(--text-muted);
+    padding: 0.65rem; border-radius: 6px; font-weight: 600; cursor: pointer;
+    width: 100%; margin-top: 0.5rem; font-size: 0.85rem;
+  }
+  .btn-add:hover { border-color: var(--accent); color: #60a5fa; }
+
+  .actions-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .hidden { display: none !important; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #2d3748; color: white; padding: 12px 24px;
+    border-radius: 8px; font-size: 14px; font-weight: 600;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 200;
+  }
+  .toast.active { transform: translateX(-50%) translateY(0); }
+  .toast.error { background: var(--danger); }
+  .toast.success { background: var(--success); }
+
+  .success-screen {
+    text-align: center;
+    padding: 3rem 2rem;
+  }
+  .success-screen .icon { font-size: 3rem; margin-bottom: 1rem; }
+  .success-screen h2 { margin-bottom: 0.5rem; }
+  .success-screen p { color: var(--text-muted); margin-bottom: 1.5rem; }
+
+  .link-box {
+    background: var(--bg-main);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  .link-box input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #60a5fa;
+    font-size: 0.85rem;
+    padding: 0;
+  }
+  .link-box button {
+    background: var(--accent); color: white; border: none;
+    padding: 0.4rem 0.8rem; border-radius: 5px; font-size: 0.8rem;
+    font-weight: 600; cursor: pointer; white-space: nowrap;
+  }
+
+  .app-footer { text-align: center; margin-top: 2rem; font-size: 12px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header-row">
+    <h1>Create Accommodation Event</h1>
+    <button class="btn-logout" id="logoutBtn">Log Out</button>
+  </div>
+
+  <!-- Step indicator -->
+  <div class="step-indicator">
+    <div class="step active" id="step1Indicator">1. Event Details</div>
+    <div class="step" id="step2Indicator">2. Room Categories</div>
+    <div class="step" id="step3Indicator">3. Feeding Options</div>
+    <div class="step" id="step4Indicator">4. Review & Launch</div>
+  </div>
+
+  <!-- ===================== STEP 1: Event Details ===================== -->
+  <div id="step1">
+    <div class="card">
+      <h2>Event Information</h2>
+      <p class="sub">Basic details about this accommodation event.</p>
+
+      <label>Event Name</label>
+      <input type="text" id="evtName" placeholder="e.g. 2026 General Council">
+
+      <label>Location / Venue</label>
+      <input type="text" id="evtLocation" placeholder="e.g. PCC, Gomoa Fetteh">
+
+      <div class="form-row">
+        <div>
+          <label>Start Date</label>
+          <input type="date" id="evtStartDate">
+        </div>
+        <div>
+          <label>End Date</label>
+          <input type="date" id="evtEndDate">
+        </div>
+      </div>
+
+      <label>Registration Deadline</label>
+      <input type="datetime-local" id="evtDeadline">
+    </div>
+
+    <div class="card">
+      <h2>MoMo Payment Details</h2>
+      <p class="sub">Registrants will be instructed to pay to this number.</p>
+
+      <div class="form-row">
+        <div>
+          <label>MoMo Number</label>
+          <input type="text" id="evtMomoNumber" placeholder="e.g. 0244000000">
+        </div>
+        <div>
+          <label>Account Name</label>
+          <input type="text" id="evtMomoName" placeholder="e.g. AG Ghana Accra East">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Feeding Model</h2>
+      <p class="sub">Choose how meals are priced for this event.</p>
+
+      <div class="feeding-option selected" data-model="flat" id="feedFlat">
+        <h3>🍽 Flat Rate</h3>
+        <p>Same meals cost for every registrant, regardless of room category. (e.g. GH₵772 for all)</p>
+      </div>
+      <div class="feeding-option" data-model="per_category" id="feedPerCat">
+        <h3>🏷 Per Category</h3>
+        <p>Different meals price for each room category. More expensive rooms may include different meal packages.</p>
+      </div>
+      <div class="feeding-option" data-model="a_la_carte" id="feedAlaCarte">
+        <h3>🥗 À La Carte</h3>
+        <p>Registrants choose which days and which meals (breakfast, lunch, supper) they want. Cost calculated from their selections.</p>
+      </div>
+    </div>
+
+    <div class="actions-row">
+      <button class="btn-secondary" onclick="window.location.href='manager-dashboard.html'">Cancel</button>
+      <button class="btn" id="step1NextBtn">Next: Room Categories →</button>
+    </div>
+  </div>
+
+  <!-- ===================== STEP 2: Room Categories ===================== -->
+  <div id="step2" class="hidden">
+    <div class="card">
+      <h2>Room Categories</h2>
+      <p class="sub">Define every room tier available for this event.</p>
+
+      <div id="categoryList"></div>
+
+      <div class="add-item-form" id="addCategoryForm">
+        <label>Category Name</label>
+        <input type="text" id="newCatName" placeholder="e.g. Standard Fan, Economy AC">
+
+        <div class="form-row" style="margin-top:0.75rem;">
+          <div>
+            <label>Total Beds Available</label>
+            <input type="number" id="newCatBeds" min="1" placeholder="e.g. 16">
+          </div>
+          <div>
+            <label>Persons Per Room</label>
+            <input type="number" id="newCatPersons" min="1" placeholder="e.g. 2">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div>
+            <label>Price Per Person (GH₵)</label>
+            <input type="number" id="newCatPrice" min="0" step="0.01" placeholder="e.g. 480.00">
+          </div>
+          <div>
+            <label>Description (optional)</label>
+            <input type="text" id="newCatDesc" placeholder="e.g. Fan-cooled, 2-person room">
+          </div>
+        </div>
+
+        <button class="btn" style="margin-top:1rem;" id="addCategoryBtn">+ Add Category</button>
+      </div>
+    </div>
+
+    <div class="actions-row">
+      <button class="btn-secondary" id="step2BackBtn">← Back</button>
+      <button class="btn" id="step2NextBtn">Next: Feeding Options →</button>
+    </div>
+  </div>
+
+  <!-- ===================== STEP 3: Feeding Options ===================== -->
+  <div id="step3" class="hidden">
+    <div class="card" id="mealCard">
+      <h2>Feeding Options</h2>
+      <p class="sub" id="mealCardSub">Define the meals included and their prices.</p>
+
+      <div id="mealList"></div>
+
+      <div class="add-item-form" id="addMealForm">
+        <div class="form-row">
+          <div>
+            <label>Meal Type</label>
+            <select id="newMealType">
+              <option value="breakfast">Breakfast</option>
+              <option value="lunch">Lunch</option>
+              <option value="supper">Supper</option>
+            </select>
+          </div>
+          <div>
+            <label>Label</label>
+            <input type="text" id="newMealLabel" placeholder="e.g. Breakfast">
+          </div>
+        </div>
+
+        <div class="form-row" id="mealCategoryRow">
+          <div>
+            <label>Price Per Person (GH₵)</label>
+            <input type="number" id="newMealPrice" min="0" step="0.01" placeholder="e.g. 150.00">
+          </div>
+          <div id="mealCategorySelectWrap">
+            <label>Apply To</label>
+            <select id="newMealCategory">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="availableDaysRow" class="hidden">
+          <label>Available Days (comma-separated, e.g. Day 1, Day 2, Day 3)</label>
+          <input type="text" id="newMealDays" placeholder="Day 1, Day 2, Day 3, Day 4">
+        </div>
+
+        <button class="btn" style="margin-top:1rem;" id="addMealBtn">+ Add Meal Option</button>
+      </div>
+    </div>
+
+    <div class="actions-row">
+      <button class="btn-secondary" id="step3BackBtn">← Back</button>
+      <button class="btn" id="step3NextBtn">Next: Review & Launch →</button>
+    </div>
+  </div>
+
+  <!-- ===================== STEP 4: Review & Launch ===================== -->
+  <div id="step4" class="hidden">
+    <div class="card">
+      <h2>Review Before Launching</h2>
+      <p class="sub">Check everything looks right, then launch the event to open registration.</p>
+
+      <div id="reviewContent"></div>
+    </div>
+
+    <div class="actions-row">
+      <button class="btn-secondary" id="step4BackBtn">← Back</button>
+      <button class="btn" id="launchBtn">🚀 Launch Event</button>
+    </div>
+  </div>
+
+  <!-- ===================== SUCCESS SCREEN ===================== -->
+  <div id="successScreen" class="hidden card success-screen">
+    <div class="icon">🎉</div>
+    <h2 id="successEventName">Event Launched!</h2>
+    <p>Your accommodation event is now open for registration. Share the link below with ministers.</p>
+
+    <div class="link-box">
+      <input type="text" id="registrationLink" readonly>
+      <button id="copyLinkBtn">Copy</button>
+    </div>
+
+    <button class="btn" onclick="window.location.href='manager-dashboard.html'">Go to Dashboard</button>
+  </div>
+</div>
+
+<p class="app-footer">Powered by Bapiego</p>
+<div class="toast" id="toastBar"></div>
+
+<script>
+  const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_PLI1DLUB_0DF3R0x3GPWYA_RNj2aScg';
+  const sessionToken = localStorage.getItem('session_token');
+
+  let selectedFeedingModel = 'flat';
+  let categories = []; // {name, total_beds, persons_per_room, price_per_person, description}
+  let meals = [];      // {meal_type, label, price_per_person, room_category_index, available_days}
+  let createdEventId = null;
+
+  // ---------- Auth ----------
+  if (!sessionToken || !['event_manager', 'super_admin'].includes(localStorage.getItem('user_role'))) {
+    window.location.href = 'login.html';
+  }
+
+  document.getElementById('logoutBtn').addEventListener('click', () => {
+    localStorage.clear();
+    window.location.href = 'login.html';
+  });
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toastBar');
+    t.className = `toast active ${type}`;
+    t.textContent = msg;
+    setTimeout(() => t.classList.remove('active'), 3500);
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  async function callRPC(fn, payload) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+        body: JSON.stringify(payload)
+      });
+      return await res.json();
+    } catch (e) {
+      return { success: false, error: 'Connection failure' };
+    }
+  }
+
+  // ---------- Feeding model selection ----------
+  document.querySelectorAll('.feeding-option').forEach(el => {
+    el.addEventListener('click', () => {
+      document.querySelectorAll('.feeding-option').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedFeedingModel = el.dataset.model;
+    });
+  });
+
+  // ---------- STEP 1 → 2 ----------
+  function goToStep(n) {
+    ['step1','step2','step3','step4'].forEach((id, i) => {
+      document.getElementById(id).classList.toggle('hidden', i + 1 !== n);
+      const ind = document.getElementById(`step${i+1}Indicator`);
+      ind.className = 'step' + (i + 1 === n ? ' active' : (i + 1 < n ? ' done' : ''));
+    });
+  }
+
+  document.getElementById('step1NextBtn').addEventListener('click', () => {
+    if (!document.getElementById('evtName').value.trim()) {
+      showToast('Event name is required', 'error'); return;
+    }
+    if (!document.getElementById('evtMomoNumber').value.trim() ||
+        !document.getElementById('evtMomoName').value.trim()) {
+      showToast('MoMo number and account name are required', 'error'); return;
+    }
+    goToStep(2);
+  });
+
+  // ---------- STEP 2: Room categories ----------
+  function renderCategoryList() {
+    const list = document.getElementById('categoryList');
+    list.innerHTML = '';
+    if (categories.length === 0) {
+      list.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:0.75rem;">No categories added yet.</p>';
+      return;
+    }
+    categories.forEach((cat, i) => {
+      const item = document.createElement('div');
+      item.className = 'room-category-item';
+      item.innerHTML = `
+        <div>
+          <div class="cat-name">${escapeHtml(cat.name)}</div>
+        </div>
+        <div class="cat-detail">${cat.total_beds} beds · ${cat.persons_per_room} per room</div>
+        <div class="cat-detail">GH₵${parseFloat(cat.price_per_person).toFixed(2)} / person</div>
+        <div class="cat-detail" style="font-size:0.75rem;">${escapeHtml(cat.description || '')}</div>
+        <button class="btn-remove-small" data-index="${i}">Remove</button>
+      `;
+      list.appendChild(item);
+    });
+    list.querySelectorAll('.btn-remove-small').forEach(btn => {
+      btn.addEventListener('click', () => {
+        categories.splice(parseInt(btn.dataset.index), 1);
+        renderCategoryList();
+        updateMealCategoryDropdown();
+      });
+    });
+  }
+
+  document.getElementById('addCategoryBtn').addEventListener('click', () => {
+    const name = document.getElementById('newCatName').value.trim();
+    const beds = parseInt(document.getElementById('newCatBeds').value);
+    const persons = parseInt(document.getElementById('newCatPersons').value);
+    const price = parseFloat(document.getElementById('newCatPrice').value);
+    const desc = document.getElementById('newCatDesc').value.trim();
+
+    if (!name || !beds || !persons || isNaN(price)) {
+      showToast('Please fill in all category fields', 'error'); return;
+    }
+
+    categories.push({ name, total_beds: beds, persons_per_room: persons, price_per_person: price, description: desc });
+    document.getElementById('newCatName').value = '';
+    document.getElementById('newCatBeds').value = '';
+    document.getElementById('newCatPersons').value = '';
+    document.getElementById('newCatPrice').value = '';
+    document.getElementById('newCatDesc').value = '';
+    renderCategoryList();
+    updateMealCategoryDropdown();
+    showToast('Category added');
+  });
+
+  document.getElementById('step2BackBtn').addEventListener('click', () => goToStep(1));
+  document.getElementById('step2NextBtn').addEventListener('click', () => {
+    if (categories.length === 0) {
+      showToast('Add at least one room category', 'error'); return;
+    }
+    updateMealCardForModel();
+    goToStep(3);
+  });
+
+  // ---------- STEP 3: Meal options ----------
+  function updateMealCategoryDropdown() {
+    const sel = document.getElementById('newMealCategory');
+    const current = sel.value;
+    sel.innerHTML = '<option value="">All Categories</option>';
+    categories.forEach((cat, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = cat.name;
+      sel.appendChild(opt);
+    });
+    sel.value = current;
+  }
+
+  function updateMealCardForModel() {
+    const sub = document.getElementById('mealCardSub');
+    const catWrap = document.getElementById('mealCategorySelectWrap');
+    const daysRow = document.getElementById('availableDaysRow');
+
+    if (selectedFeedingModel === 'flat') {
+      sub.textContent = 'Set a single meals package price. Applies to all room categories.';
+      catWrap.classList.add('hidden');
+      daysRow.classList.add('hidden');
+    } else if (selectedFeedingModel === 'per_category') {
+      sub.textContent = 'Set meal prices per room category. Add one entry per category that has different meal pricing.';
+      catWrap.classList.remove('hidden');
+      daysRow.classList.add('hidden');
+    } else {
+      sub.textContent = 'Define each meal type and which days it\'s available. Registrants will choose what they want.';
+      catWrap.classList.add('hidden');
+      daysRow.classList.remove('hidden');
+    }
+    updateMealCategoryDropdown();
+    renderMealList();
+  }
+
+  function renderMealList() {
+    const list = document.getElementById('mealList');
+    list.innerHTML = '';
+    if (meals.length === 0) {
+      list.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:0.75rem;">No meal options added yet.</p>';
+      return;
+    }
+    meals.forEach((meal, i) => {
+      const catLabel = meal.room_category_index !== null && meal.room_category_index !== ''
+        ? ` · ${categories[meal.room_category_index]?.name || ''}`
+        : ' · All categories';
+      const daysLabel = meal.available_days ? ` · ${meal.available_days}` : '';
+      const item = document.createElement('div');
+      item.className = 'meal-item';
+      item.innerHTML = `
+        <div class="meal-info">
+          <strong>${escapeHtml(meal.label)}</strong>
+          <span style="color:var(--text-muted); font-size:0.8rem;">${catLabel}${daysLabel}</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <span class="meal-price">GH₵${parseFloat(meal.price_per_person).toFixed(2)}</span>
+          <button class="btn-remove-small" data-index="${i}">Remove</button>
+        </div>
+      `;
+      list.appendChild(item);
+    });
+    list.querySelectorAll('.btn-remove-small').forEach(btn => {
+      btn.addEventListener('click', () => {
+        meals.splice(parseInt(btn.dataset.index), 1);
+        renderMealList();
+      });
+    });
+  }
+
+  document.getElementById('addMealBtn').addEventListener('click', () => {
+    const meal_type = document.getElementById('newMealType').value;
+    const label = document.getElementById('newMealLabel').value.trim();
+    const price = parseFloat(document.getElementById('newMealPrice').value);
+    const catIndex = document.getElementById('newMealCategory').value;
+    const days = document.getElementById('newMealDays').value.trim();
+
+    if (!label || isNaN(price)) {
+      showToast('Label and price are required', 'error'); return;
+    }
+
+    meals.push({
+      meal_type,
+      label,
+      price_per_person: price,
+      room_category_index: catIndex !== '' ? parseInt(catIndex) : null,
+      available_days: selectedFeedingModel === 'a_la_carte' && days
+        ? days.split(',').map(d => d.trim()).filter(Boolean)
+        : null
+    });
+
+    document.getElementById('newMealLabel').value = '';
+    document.getElementById('newMealPrice').value = '';
+    document.getElementById('newMealDays').value = '';
+    renderMealList();
+    showToast('Meal option added');
+  });
+
+  document.getElementById('step3BackBtn').addEventListener('click', () => goToStep(2));
+  document.getElementById('step3NextBtn').addEventListener('click', () => {
+    if (meals.length === 0) {
+      showToast('Add at least one meal option', 'error'); return;
+    }
+    renderReview();
+    goToStep(4);
+  });
+
+  // ---------- STEP 4: Review ----------
+  function renderReview() {
+    const el = document.getElementById('reviewContent');
+    const name = document.getElementById('evtName').value.trim();
+    const location = document.getElementById('evtLocation').value.trim();
+    const startDate = document.getElementById('evtStartDate').value;
+    const endDate = document.getElementById('evtEndDate').value;
+    const deadline = document.getElementById('evtDeadline').value;
+    const momoNum = document.getElementById('evtMomoNumber').value.trim();
+    const momoName = document.getElementById('evtMomoName').value.trim();
+
+    const feedingLabels = { flat: 'Flat Rate', per_category: 'Per Category', a_la_carte: 'À La Carte' };
+
+    el.innerHTML = `
+      <table style="width:100%; border-collapse:collapse; font-size:0.9rem; margin-bottom:1.25rem;">
+        <tr><td style="padding:0.5rem 0; color:var(--text-muted); width:40%;">Event Name</td><td><strong>${escapeHtml(name)}</strong></td></tr>
+        <tr><td style="padding:0.5rem 0; color:var(--text-muted);">Location</td><td>${escapeHtml(location) || '—'}</td></tr>
+        <tr><td style="padding:0.5rem 0; color:var(--text-muted);">Dates</td><td>${startDate || '—'} to ${endDate || '—'}</td></tr>
+        <tr><td style="padding:0.5rem 0; color:var(--text-muted);">Deadline</td><td>${deadline ? new Date(deadline).toLocaleString() : '—'}</td></tr>
+        <tr><td style="padding:0.5rem 0; color:var(--text-muted);">MoMo</td><td>${escapeHtml(momoNum)} (${escapeHtml(momoName)})</td></tr>
+        <tr><td style="padding:0.5rem 0; color:var(--text-muted);">Feeding Model</td><td>${feedingLabels[selectedFeedingModel]}</td></tr>
+      </table>
+      <h3 style="font-size:0.9rem; margin-bottom:0.5rem; color:var(--text-muted);">ROOM CATEGORIES (${categories.length})</h3>
+      ${categories.map(c => `
+        <div style="background:var(--bg-main); border:1px solid var(--border); border-radius:6px; padding:0.75rem; margin-bottom:0.5rem; font-size:0.85rem;">
+          <strong>${escapeHtml(c.name)}</strong> &nbsp;·&nbsp; ${c.total_beds} beds &nbsp;·&nbsp; ${c.persons_per_room} per room &nbsp;·&nbsp; <span style="color:#60a5fa;">GH₵${parseFloat(c.price_per_person).toFixed(2)}/person</span>
+        </div>
+      `).join('')}
+      <h3 style="font-size:0.9rem; margin:1rem 0 0.5rem; color:var(--text-muted);">MEAL OPTIONS (${meals.length})</h3>
+      ${meals.map(m => `
+        <div style="background:var(--bg-main); border:1px solid var(--border); border-radius:6px; padding:0.75rem; margin-bottom:0.5rem; font-size:0.85rem;">
+          <strong>${escapeHtml(m.label)}</strong> &nbsp;·&nbsp; <span style="color:#60a5fa;">GH₵${parseFloat(m.price_per_person).toFixed(2)}</span>
+          ${m.room_category_index !== null ? `&nbsp;·&nbsp; ${escapeHtml(categories[m.room_category_index]?.name)}` : ''}
+          ${m.available_days ? `&nbsp;·&nbsp; ${m.available_days.join(', ')}` : ''}
+        </div>
+      `).join('')}
+    `;
+  }
+
+  document.getElementById('step4BackBtn').addEventListener('click', () => goToStep(3));
+
+  // ---------- Launch event ----------
+  document.getElementById('launchBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('launchBtn');
+    btn.disabled = true;
+    btn.textContent = 'Launching...';
+
+    const name = document.getElementById('evtName').value.trim();
+    const location = document.getElementById('evtLocation').value.trim();
+    const startDate = document.getElementById('evtStartDate').value || null;
+    const endDate = document.getElementById('evtEndDate').value || null;
+    const deadline = document.getElementById('evtDeadline').value
+      ? new Date(document.getElementById('evtDeadline').value).toISOString()
+      : null;
+    const momoNumber = document.getElementById('evtMomoNumber').value.trim();
+    const momoName = document.getElementById('evtMomoName').value.trim();
+
+    // 1. Create event
+    const evtRes = await callRPC('create_accommodation_event', {
+      p_token: sessionToken,
+      p_name: name,
+      p_location: location,
+      p_start_date: startDate,
+      p_end_date: endDate,
+      p_deadline: deadline,
+      p_momo_number: momoNumber,
+      p_momo_account_name: momoName,
+      p_feeding_model: selectedFeedingModel
+    });
+
+    if (!evtRes.success) {
+      showToast(evtRes.error || 'Failed to create event', 'error');
+      btn.disabled = false; btn.textContent = '🚀 Launch Event'; return;
+    }
+
+    createdEventId = evtRes.event_id;
+
+    // 2. Add room categories
+    for (let i = 0; i < categories.length; i++) {
+      const cat = categories[i];
+      const catRes = await callRPC('add_room_category', {
+        p_token: sessionToken,
+        p_accommodation_event_id: createdEventId,
+        p_name: cat.name,
+        p_total_beds: cat.total_beds,
+        p_persons_per_room: cat.persons_per_room,
+        p_price_per_person: cat.price_per_person,
+        p_description: cat.description || null,
+        p_sort_order: i
+      });
+      if (!catRes.success) {
+        showToast(`Failed to save category "${cat.name}": ${catRes.error}`, 'error');
+        btn.disabled = false; btn.textContent = '🚀 Launch Event'; return;
+      }
+      // Store the DB id so meal options can reference it
+      categories[i]._db_id = catRes.category_id;
+    }
+
+    // 3. Add meal options
+    for (let i = 0; i < meals.length; i++) {
+      const meal = meals[i];
+      const catDbId = meal.room_category_index !== null && meal.room_category_index !== undefined
+        ? categories[meal.room_category_index]._db_id || null
+        : null;
+
+      const mealRes = await callRPC('add_meal_option', {
+        p_token: sessionToken,
+        p_accommodation_event_id: createdEventId,
+        p_meal_type: meal.meal_type,
+        p_label: meal.label,
+        p_price_per_person: meal.price_per_person,
+        p_room_category_id: catDbId,
+        p_available_days: meal.available_days ? JSON.stringify(meal.available_days) : null,
+        p_sort_order: i
+      });
+      if (!mealRes.success) {
+        showToast(`Failed to save meal "${meal.label}": ${mealRes.error}`, 'error');
+        btn.disabled = false; btn.textContent = '🚀 Launch Event'; return;
+      }
+    }
+
+    // 4. Open the event for registration
+    const openRes = await callRPC('set_accommodation_event_status', {
+      p_token: sessionToken,
+      p_accommodation_event_id: createdEventId,
+      p_status: 'open'
+    });
+    if (!openRes.success) {
+      showToast(openRes.error || 'Failed to open event for registration', 'error');
+      btn.disabled = false; btn.textContent = '🚀 Launch Event'; return;
+    }
+
+    // Show success
+    const baseUrl = window.location.origin + window.location.pathname.replace('create-accommodation-event.html', '');
+    const regLink = `${baseUrl}register.html?event=${createdEventId}`;
+    document.getElementById('successEventName').textContent = `"${name}" is now live!`;
+    document.getElementById('registrationLink').value = regLink;
+    document.getElementById('step1').classList.add('hidden');
+    document.getElementById('step2').classList.add('hidden');
+    document.getElementById('step3').classList.add('hidden');
+    document.getElementById('step4').classList.add('hidden');
+    document.getElementById('successScreen').classList.remove('hidden');
+  });
+
+  document.getElementById('copyLinkBtn').addEventListener('click', () => {
+    const input = document.getElementById('registrationLink');
+    navigator.clipboard.writeText(input.value).then(() => showToast('Link copied!'));
+  });
+</script>
+</body>
+</html>
