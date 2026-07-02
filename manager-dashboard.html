@@ -134,7 +134,12 @@
         .empty-state h2 { margin-bottom: 0.5rem; }
         .empty-state p { color: var(--text-muted); margin-bottom: 1.5rem; margin-top: 0; }
 
-        .hidden { display: none !important; }
+        .app-footer {
+            text-align: center;
+            margin-top: 2.5rem;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
         .status-msg { text-align: center; color: var(--text-muted); padding: 5rem 0; }
 
         .credential-box {
@@ -204,12 +209,46 @@
         .btn-modal-confirm { background: var(--danger); color: #fff; }
         .btn-modal-confirm:hover { background: var(--danger-hover); }
 
-        .app-footer {
-            text-align: center;
-            margin-top: 2.5rem;
-            font-size: 12px;
-            color: var(--text-muted);
+        .mode-switch {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 2rem;
         }
+        .mode-tab {
+            padding: 10px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+        .mode-tab.active { color: #60a5fa; border-bottom-color: #60a5fa; }
+        .mode-tab:hover:not(.active) { color: var(--text-main); }
+
+        .acc-event-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .acc-event-card .evt-name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+        .acc-event-card .evt-meta { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+        .acc-event-card .evt-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .status-pill {
+            display: inline-block; font-size: 11px; font-weight: 700;
+            padding: 2px 8px; border-radius: 20px; margin-left: 8px;
+        }
+        .status-pill.open { background: rgba(16,185,129,0.15); color: #34d399; }
+        .status-pill.closed { background: var(--border); color: var(--text-muted); }
+        .status-pill.draft { background: rgba(251,191,36,0.15); color: #fbbf24; }
     </style>
 </head>
 <body>
@@ -217,6 +256,15 @@
 <div class="container">
 
     <div id="loadingWorkspace" class="status-msg">Loading your dashboard...</div>
+
+    <!-- Mode switch -->
+    <div class="mode-switch" id="modeSwitchBar" style="display:none;">
+        <div class="mode-tab active" data-mode="checkin">Check-In Events</div>
+        <div class="mode-tab" data-mode="accommodation">Accommodation Events</div>
+    </div>
+
+    <!-- Check-in workspace (existing) -->
+    <div id="checkinWorkspace">
 
     <div id="emptyStateContainer" class="empty-state hidden">
         <h2>No Active Event</h2>
@@ -312,6 +360,7 @@
         </div>
     </div>
 </div>
+</div><!-- end checkinWorkspace -->
 
 <div class="modal-overlay" id="deleteUsherModal">
     <div class="modal-box">
@@ -325,6 +374,18 @@
 </div>
 
 <div class="toast" id="toastBar"></div>
+
+<!-- Accommodation workspace -->
+<div id="accommodationWorkspace" style="display:none; max-width:1000px; margin:0 auto; padding:20px;">
+
+  <div id="accEventsList"></div>
+
+  <div style="margin-top: 1rem;">
+    <a href="create-accommodation-event.html" class="btn" style="text-decoration:none; display:inline-block;">+ Create Accommodation Event</a>
+  </div>
+</div>
+
+<p class="app-footer">Powered by Bapiego</p>
 
 <script>
     const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co';
@@ -521,12 +582,73 @@
         }
     });
 
+    // ---------- Mode Switch ----------
+    document.querySelectorAll('.mode-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            const mode = tab.dataset.mode;
+            document.getElementById('checkinWorkspace').style.display = mode === 'checkin' ? 'block' : 'none';
+            document.getElementById('accommodationWorkspace').style.display = mode === 'accommodation' ? 'block' : 'none';
+            if (mode === 'accommodation') loadAccommodationEvents();
+        });
+    });
+
+    // ---------- Accommodation Events ----------
+    async function loadAccommodationEvents() {
+        const list = document.getElementById('accEventsList');
+        list.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">Loading...</p>';
+
+        const res = await callRPC('get_my_accommodation_events', { p_token: sessionToken });
+
+        if (!res.success || !res.events || res.events.length === 0) {
+            list.innerHTML = '<p style="color:var(--text-muted); font-size:13px;">No accommodation events yet. Create one below.</p>';
+            return;
+        }
+
+        list.innerHTML = '';
+        res.events.forEach(ev => {
+            const card = document.createElement('div');
+            card.className = 'acc-event-card';
+            const dateStr = ev.start_date ? `${new Date(ev.start_date).toDateString()}` : '';
+            const deadlineStr = ev.deadline ? `Deadline: ${new Date(ev.deadline).toLocaleDateString()}` : '';
+
+            card.innerHTML = `
+                <div>
+                    <div class="evt-name">
+                        ${escapeHtml(ev.name)}
+                        <span class="status-pill ${ev.status}">${ev.status.toUpperCase()}</span>
+                    </div>
+                    <div class="evt-meta">
+                        ${ev.location ? `📍 ${escapeHtml(ev.location)} &nbsp;` : ''}
+                        ${dateStr ? `📅 ${dateStr} &nbsp;` : ''}
+                        ${deadlineStr ? `⏰ ${deadlineStr}` : ''}
+                    </div>
+                </div>
+                <div class="evt-actions">
+                    <a href="accommodation-dashboard.html?event=${ev.id}" class="btn" style="text-decoration:none;">Dashboard</a>
+                    <a href="verify-payments.html?event=${ev.id}" class="btn secondary" style="text-decoration:none;">Verify Payments</a>
+                </div>
+            `;
+            list.appendChild(card);
+        });
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
     // ---------- Init ----------
     if (!sessionToken) {
         window.location.href = 'login.html';
     } else if (localStorage.getItem('user_role') !== 'event_manager') {
         window.location.href = 'login.html';
     } else {
+        document.getElementById('modeSwitchBar').style.display = 'flex';
+        document.getElementById('checkinWorkspace').style.display = 'block';
         loadDashboard();
     }
 </script>
