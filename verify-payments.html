@@ -246,7 +246,10 @@
 <body>
 
 <header>
-  <h1>Attendly — Verify Payments</h1>
+  <div>
+    <h1>Attendly — Verify Payments</h1>
+    <div id="eventNameDisplay" style="font-size:13px; opacity:0.85; margin-top:2px;"></div>
+  </div>
   <div class="user-info">
     <span id="loggedInAs"></span>
     <button class="btn-logout" id="logoutBtn">Log Out</button>
@@ -348,7 +351,14 @@
       p_accommodation_event_id: accommodationEventId
     });
 
-    if (res.success && res.payment_stats) {
+    if (res.success) {
+      // Show event name in header
+      if (res.event && res.event.name) {
+        const nameEl = document.getElementById('eventNameDisplay');
+        const status = res.event.status ? ` · ${res.event.status.toUpperCase()}` : '';
+        nameEl.textContent = `📋 ${res.event.name}${status}`;
+      }
+
       const s = res.payment_stats;
       document.getElementById('statPending').textContent = s.pending;
       document.getElementById('statVerified').textContent = s.verified;
