@@ -194,6 +194,7 @@
     <!-- Tabs -->
     <div class="tabs">
       <div class="tab active" data-tab="registrants">Registrants</div>
+      <div class="tab" data-tab="reservations">Reservations</div>
       <div class="tab" data-tab="officers">Accounts Officers</div>
       <div class="tab" data-tab="settings">Event Settings</div>
     </div>
@@ -220,6 +221,27 @@
             </tr>
           </thead>
           <tbody id="registrantTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RESERVATIONS TAB -->
+    <div id="tabReservations" style="display:none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+        <p style="font-size:13px; color:var(--text-muted);">Beds held for specific people pending payment. Reserved beds count against availability.</p>
+        <button class="btn secondary" id="refreshReservationsBtn">↻ Refresh</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th><th>Name</th><th>Phone</th><th>Church / District</th>
+              <th>Room Category</th><th>Price</th><th>Deadline</th><th>Status</th><th>Created</th>
+            </tr>
+          </thead>
+          <tbody id="reservationTableBody">
+            <tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:2rem;">Loading...</td></tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -384,6 +406,46 @@
 </div>
 
 <p class="app-footer">Powered by Bapiego</p>
+
+<!-- Reserve Bed Modal -->
+<div class="modal-overlay" id="reserveModal">
+  <div class="modal-box" style="max-width:520px;">
+    <h3>Reserve a Bed</h3>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">The person will receive an SMS with payment instructions and a deadline to complete registration.</p>
+
+    <div class="form-group"><label>Full Name *</label><input type="text" id="rvName" placeholder="e.g. Rev. John Mensah"></div>
+    <div class="form-group"><label>Phone Number *</label><input type="text" id="rvPhone" placeholder="e.g. 0244000000"></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="form-group"><label>Church</label><input type="text" id="rvChurch"></div>
+      <div class="form-group"><label>District</label><input type="text" id="rvDistrict"></div>
+    </div>
+    <div class="form-group">
+      <label>Ministerial Rank</label>
+      <select id="rvRank">
+        <option value="">-- Select --</option>
+        <option value="Ordained">Ordained</option>
+        <option value="Licentiate">Licentiate</option>
+        <option value="Exhorter">Exhorter</option>
+        <option value="Probationer">Probationer</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Room Category *</label>
+      <select id="rvRoomCategory"></select>
+    </div>
+    <div class="form-group">
+      <label>Payment Deadline *</label>
+      <input type="date" id="rvDeadline">
+      <p style="font-size:11px; color:var(--text-muted); margin-top:4px;">The bed will be automatically released if payment is not completed by this date.</p>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" id="cancelReserveBtn">Cancel</button>
+      <button class="btn-confirm-modal" style="background:var(--warning);" id="confirmReserveBtn">Reserve & Notify</button>
+    </div>
+  </div>
+</div>
 
 <!-- Admin Registration Modal -->
 <div class="modal-overlay" id="adminRegModal">
@@ -608,6 +670,12 @@
       registerBtn.textContent = '+ Register Attendee';
       registerBtn.addEventListener('click', () => openAdminRegModal());
       actions.appendChild(registerBtn);
+
+      const reserveBtn = document.createElement('button');
+      reserveBtn.className = 'btn warning';
+      reserveBtn.textContent = '🔒 Reserve Bed';
+      reserveBtn.addEventListener('click', () => openReserveModal());
+      actions.appendChild(reserveBtn);
     }
 
     const regLink = document.createElement('a');
@@ -781,10 +849,137 @@
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       document.getElementById('tabRegistrants').style.display = tab.dataset.tab === 'registrants' ? 'block' : 'none';
+      document.getElementById('tabReservations').style.display = tab.dataset.tab === 'reservations' ? 'block' : 'none';
       document.getElementById('tabOfficers').style.display = tab.dataset.tab === 'officers' ? 'block' : 'none';
       document.getElementById('tabSettings').style.display = tab.dataset.tab === 'settings' ? 'block' : 'none';
+      if (tab.dataset.tab === 'reservations') loadReservations();
       if (tab.dataset.tab === 'officers') loadOfficers();
     });
+  });
+
+  // ---------- Reservations ----------
+  async function loadReservations() {
+    const tbody = document.getElementById('reservationTableBody');
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:2rem;">Loading...</td></tr>';
+
+    const res = await callRPC('get_reservations_for_event', {
+      p_token: sessionToken,
+      p_accommodation_event_id: accommodationEventId
+    });
+
+    if (!res.success || !res.reservations || res.reservations.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:2rem;">No reservations yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = '';
+    res.reservations.forEach((r, i) => {
+      const statusColor = r.status === 'reserved' ? '#fbbf24' : r.status === 'converted' ? 'var(--success)' : 'var(--danger)';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="color:var(--text-muted);">${i+1}</td>
+        <td><strong>${escapeHtml(r.full_name)}</strong></td>
+        <td>${escapeHtml(r.phone)}</td>
+        <td style="font-size:12px;">${escapeHtml(r.church || '—')}<br><span style="color:var(--text-muted);">${escapeHtml(r.district || '')}</span></td>
+        <td>${escapeHtml(r.room_category_name)}</td>
+        <td style="font-weight:700;">GH₵${parseFloat(r.price_per_person).toFixed(2)}</td>
+        <td style="font-size:12px;">${new Date(r.payment_deadline).toLocaleDateString('en-GH', {day:'numeric', month:'short', year:'numeric'})}</td>
+        <td><span style="color:${statusColor}; font-weight:600; font-size:12px;">${r.status.toUpperCase()}</span></td>
+        <td style="font-size:11px; color:var(--text-muted);">${new Date(r.created_at).toLocaleDateString()}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  document.getElementById('refreshReservationsBtn').addEventListener('click', loadReservations);
+
+  // ---------- Reserve Bed Modal ----------
+  function openReserveModal() {
+    ['rvName','rvPhone','rvChurch','rvDistrict'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('rvRank').value = '';
+    document.getElementById('rvDeadline').value = '';
+
+    const catSel = document.getElementById('rvRoomCategory');
+    catSel.innerHTML = '';
+    currentCategories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat.id;
+      opt.dataset.price = cat.price_per_person;
+      opt.textContent = `${cat.name} — GH₵${parseFloat(cat.price_per_person).toFixed(2)}/person (${cat.beds_remaining} available)`;
+      catSel.appendChild(opt);
+    });
+
+    // Default deadline to 7 days from today
+    const defaultDeadline = new Date();
+    defaultDeadline.setDate(defaultDeadline.getDate() + 7);
+    document.getElementById('rvDeadline').value = defaultDeadline.toISOString().split('T')[0];
+
+    document.getElementById('reserveModal').classList.add('active');
+  }
+
+  document.getElementById('cancelReserveBtn').addEventListener('click', () => {
+    document.getElementById('reserveModal').classList.remove('active');
+  });
+
+  document.getElementById('confirmReserveBtn').addEventListener('click', async () => {
+    const name = document.getElementById('rvName').value.trim();
+    const phone = document.getElementById('rvPhone').value.trim();
+    const deadline = document.getElementById('rvDeadline').value;
+    const roomCatId = document.getElementById('rvRoomCategory').value;
+
+    if (!name) { showToast('Full name is required', 'error'); return; }
+    if (!phone) { showToast('Phone number is required', 'error'); return; }
+    if (!deadline) { showToast('Payment deadline is required', 'error'); return; }
+    if (!roomCatId) { showToast('Please select a room category', 'error'); return; }
+
+    const btn = document.getElementById('confirmReserveBtn');
+    btn.disabled = true; btn.textContent = 'Reserving...';
+
+    const res = await callRPC('create_bed_reservation', {
+      p_token: sessionToken,
+      p_accommodation_event_id: accommodationEventId,
+      p_room_category_id: roomCatId,
+      p_full_name: name,
+      p_phone: phone,
+      p_church: document.getElementById('rvChurch').value.trim() || null,
+      p_district: document.getElementById('rvDistrict').value.trim() || null,
+      p_ministerial_rank: document.getElementById('rvRank').value || null,
+      p_payment_deadline: deadline
+    });
+
+    btn.disabled = false; btn.textContent = 'Reserve & Notify';
+
+    if (!res.success) {
+      showToast(res.error || 'Failed to create reservation', 'error');
+      return;
+    }
+
+    // Send reservation SMS
+    const catOpt = document.getElementById('rvRoomCategory').options[document.getElementById('rvRoomCategory').selectedIndex];
+    const price = parseFloat(catOpt?.dataset.price || 0);
+    const deadlineFormatted = new Date(deadline).toLocaleDateString('en-GH', { day: 'numeric', month: 'long', year: 'numeric' });
+    const regLink = `${window.location.origin}/register.html?event=${accommodationEventId}`;
+
+    fetch(`${SUPABASE_URL}/functions/v1/send-sms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({
+        type: 'reservation_created',
+        phone: phone,
+        full_name: name,
+        event_name: currentEventData?.name || '',
+        room_category: catOpt?.text?.split(' —')[0] || '',
+        grand_total: price,
+        payment_deadline: deadlineFormatted,
+        momo_number: currentEventData?.momo_number || '',
+        momo_account_name: currentEventData?.momo_account_name || '',
+        registration_link: regLink
+      })
+    }).catch(() => {});
+
+    document.getElementById('reserveModal').classList.remove('active');
+    showToast(`Bed reserved for ${name} — SMS sent`);
+    await loadDashboard();
   });
 
   // ---------- Export ----------
