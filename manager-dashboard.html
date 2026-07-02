@@ -160,7 +160,6 @@
             margin: 6px 0;
             word-break: break-all;
         }
-        .credential-box .warn { color: #93c5fd; font-size: 12px; margin-top: 8px; }
 
         .toast {
             position: fixed;
@@ -249,6 +248,7 @@
         .status-pill.open { background: rgba(16,185,129,0.15); color: #34d399; }
         .status-pill.closed { background: var(--border); color: var(--text-muted); }
         .status-pill.draft { background: rgba(251,191,36,0.15); color: #fbbf24; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
@@ -263,8 +263,8 @@
         <div class="mode-tab" data-mode="accommodation">Accommodation Events</div>
     </div>
 
-    <!-- Check-in workspace (existing) -->
-    <div id="checkinWorkspace">
+    <!-- Check-in workspace -->
+    <div id="checkinWorkspace" style="display:none;">
 
     <div id="emptyStateContainer" class="empty-state hidden">
         <h2>No Active Event</h2>
@@ -308,7 +308,6 @@
             <div class="panel-card">
                 <h2>Ushers</h2>
                 <p class="subtitle" style="margin-bottom: 1rem; font-size:0.9rem;">Accounts that can check people in for this event only.</p>
-
                 <table>
                     <thead>
                         <tr>
@@ -324,20 +323,16 @@
             <div class="panel-card">
                 <h2>Add Usher</h2>
                 <p class="subtitle" style="font-size:0.9rem;">Create a login for someone helping with check-in.</p>
-
                 <form id="provisionUsherForm">
                     <label for="usherUsername">Username</label>
                     <input type="text" id="usherUsername" placeholder="e.g. door_east" required autocomplete="off">
-
                     <div style="display:flex; justify-content:space-between; align-items:flex-end;">
                         <label for="usherPassword" style="margin-bottom:0;">Password</label>
                         <a href="#" id="genUsherPasswordLink" style="font-size: 11px; color: #63b3ed; text-decoration: none; font-weight: 600;">⚡ Generate</a>
                     </div>
                     <input type="text" id="usherPassword" required autocomplete="off">
-
                     <button type="submit" class="btn" style="width: 100%; margin-top: 1.5rem;">Create Usher</button>
                 </form>
-
                 <div class="credential-box" id="usherCredentialBox">
                     <p>✅ Usher created. Share these credentials — the password won't be shown again:</p>
                     <div class="cred-line" id="usherCredUsername"></div>
@@ -346,6 +341,16 @@
             </div>
         </div>
     </div>
+    </div><!-- end checkinWorkspace -->
+
+</div><!-- end container -->
+
+<!-- Accommodation workspace -->
+<div id="accommodationWorkspace" style="display:none; max-width:1000px; margin:0 auto; padding:20px;">
+  <div id="accEventsList"></div>
+  <div style="margin-top: 1rem;">
+    <a href="create-accommodation-event.html" class="btn" style="text-decoration:none; display:inline-block;">+ Create Accommodation Event</a>
+  </div>
 </div>
 
 <p class="app-footer">Powered by Bapiego</p>
@@ -360,7 +365,6 @@
         </div>
     </div>
 </div>
-</div><!-- end checkinWorkspace -->
 
 <div class="modal-overlay" id="deleteUsherModal">
     <div class="modal-box">
@@ -374,18 +378,6 @@
 </div>
 
 <div class="toast" id="toastBar"></div>
-
-<!-- Accommodation workspace -->
-<div id="accommodationWorkspace" style="display:none; max-width:1000px; margin:0 auto; padding:20px;">
-
-  <div id="accEventsList"></div>
-
-  <div style="margin-top: 1rem;">
-    <a href="create-accommodation-event.html" class="btn" style="text-decoration:none; display:inline-block;">+ Create Accommodation Event</a>
-  </div>
-</div>
-
-<p class="app-footer">Powered by Bapiego</p>
 
 <script>
     const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co';
@@ -408,10 +400,10 @@
     }
 
     function escapeHtml(str) {
-        if (str === null || str === undefined) return '';
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
+        if (!str) return '';
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
     }
 
     async function callRPC(functionName, payload) {
@@ -427,7 +419,7 @@
         }
     }
 
-    // ---------- Load dashboard state ----------
+    // ---------- Load check-in dashboard ----------
     async function loadDashboard() {
         const res = await callRPC('get_my_active_event', { p_token: sessionToken });
         document.getElementById('loadingWorkspace').classList.add('hidden');
@@ -446,7 +438,6 @@
         activeEventId = res.event_id;
         document.getElementById('activeEventNameLabel').textContent = res.event_name;
         document.getElementById('dashboardActiveWorkspace').classList.remove('hidden');
-
         refreshMetricsAndUshers();
     }
 
@@ -458,7 +449,6 @@
             const total = metrics.total_registered;
             const checkedIn = metrics.total_checked_in;
             const pct = total > 0 ? Math.round((checkedIn / total) * 100) : 0;
-
             document.getElementById('metricTotal').textContent = total;
             document.getElementById('metricCheckedIn').textContent = checkedIn;
             document.getElementById('metricPercentage').textContent = `${pct}%`;
@@ -492,14 +482,11 @@
         });
     }
 
-    // ---------- Add usher ----------
     document.getElementById('genUsherPasswordLink').addEventListener('click', (e) => {
         e.preventDefault();
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
         let pass = '';
-        for (let i = 0; i < 12; i++) {
-            pass += chars[Math.floor(Math.random() * chars.length)];
-        }
+        for (let i = 0; i < 12; i++) pass += chars[Math.floor(Math.random() * chars.length)];
         document.getElementById('usherPassword').value = pass;
     });
 
@@ -514,22 +501,17 @@
             p_password: passwordInput.value
         });
 
-        if (!res.success) {
-            showToast(res.error || 'Failed to create usher', 'error');
-            return;
-        }
+        if (!res.success) { showToast(res.error || 'Failed to create usher', 'error'); return; }
 
         document.getElementById('usherCredUsername').textContent = `Username: ${usernameInput.value.trim()}`;
         document.getElementById('usherCredPassword').textContent = `Password: ${passwordInput.value}`;
         document.getElementById('usherCredentialBox').classList.add('active');
-
         showToast('Usher created', 'success');
         usernameInput.value = '';
         passwordInput.value = '';
         refreshMetricsAndUshers();
     });
 
-    // ---------- Delete usher ----------
     function promptDeleteUsher(id, username) {
         pendingDeleteUsherId = id;
         document.getElementById('deleteUsherText').innerHTML =
@@ -544,24 +526,13 @@
 
     document.getElementById('confirmDeleteUsherBtn').addEventListener('click', async () => {
         if (!pendingDeleteUsherId) return;
-
-        const res = await callRPC('delete_event_usher', {
-            p_manager_token: sessionToken,
-            p_usher_id: pendingDeleteUsherId
-        });
-
+        const res = await callRPC('delete_event_usher', { p_manager_token: sessionToken, p_usher_id: pendingDeleteUsherId });
         document.getElementById('deleteUsherModal').classList.remove('active');
         pendingDeleteUsherId = null;
-
-        if (res.success) {
-            showToast('Usher removed', 'success');
-            refreshMetricsAndUshers();
-        } else {
-            showToast(res.error || 'Failed to remove usher', 'error');
-        }
+        if (res.success) { showToast('Usher removed', 'success'); refreshMetricsAndUshers(); }
+        else showToast(res.error || 'Failed to remove usher', 'error');
     });
 
-    // ---------- Close event ----------
     document.getElementById('closeEventBtn').addEventListener('click', () => {
         document.getElementById('closeEventModal').classList.add('active');
     });
@@ -573,13 +544,8 @@
     document.getElementById('confirmCloseBtn').addEventListener('click', async () => {
         const res = await callRPC('close_current_event', { p_manager_token: sessionToken });
         document.getElementById('closeEventModal').classList.remove('active');
-
-        if (res.success) {
-            showToast('Event closed', 'success');
-            setTimeout(() => location.reload(), 1000);
-        } else {
-            showToast(res.error || 'Failed to close event', 'error');
-        }
+        if (res.success) { showToast('Event closed', 'success'); setTimeout(() => location.reload(), 1000); }
+        else showToast(res.error || 'Failed to close event', 'error');
     });
 
     // ---------- Mode Switch ----------
@@ -610,9 +576,8 @@
         res.events.forEach(ev => {
             const card = document.createElement('div');
             card.className = 'acc-event-card';
-            const dateStr = ev.start_date ? `${new Date(ev.start_date).toDateString()}` : '';
+            const dateStr = ev.start_date ? new Date(ev.start_date).toDateString() : '';
             const deadlineStr = ev.deadline ? `Deadline: ${new Date(ev.deadline).toLocaleDateString()}` : '';
-
             card.innerHTML = `
                 <div>
                     <div class="evt-name">
@@ -627,18 +592,11 @@
                 </div>
                 <div class="evt-actions">
                     <a href="accommodation-dashboard.html?event=${ev.id}" class="btn" style="text-decoration:none;">Dashboard</a>
-                    <a href="verify-payments.html?event=${ev.id}" class="btn secondary" style="text-decoration:none;">Verify Payments</a>
+                    <a href="verify-payments.html?event=${ev.id}" class="btn secondary" style="text-decoration:none; background:none; border:1px solid var(--border); color:var(--text-muted);">Verify Payments</a>
                 </div>
             `;
             list.appendChild(card);
         });
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        const d = document.createElement('div');
-        d.textContent = str;
-        return d.innerHTML;
     }
 
     // ---------- Init ----------
