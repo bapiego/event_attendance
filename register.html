@@ -434,7 +434,7 @@
       document.getElementById('loadingScreen').classList.add('hidden');
       document.getElementById('registrationForm').classList.remove('hidden');
     } catch (e) {
-      showError('Failed to load event. Please check your connection and try again.');
+      showError('Failed to load event. Error: ' + String(e));
     }
   }
 
@@ -792,7 +792,6 @@
       // Show success
       document.getElementById('successRefNumber').textContent = res.reference_number;
 
-      const cat = eventData.categories.find(c => c.id === selectedCategoryId);
       document.getElementById('successDetails').innerHTML = `
         <div class="detail-row"><span class="dlabel">Name</span><span class="dval">${escapeHtml(name)}</span></div>
         <div class="detail-row"><span class="dlabel">Room Category</span><span class="dval">${escapeHtml(cat?.name || '')}</span></div>
