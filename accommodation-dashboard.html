@@ -16,288 +16,145 @@
     --danger: #ef4444;
     --border: #334155;
     --warning: #d97706;
+    --teal: #0f766e;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--bg-main);
-    color: var(--text-main);
-    min-height: 100vh;
-    padding-bottom: 3rem;
+    background: var(--bg-main); color: var(--text-main);
+    min-height: 100vh; padding-bottom: 3rem;
   }
-
   header {
     background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
-    padding: 16px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
+    padding: 16px 20px; display: flex; justify-content: space-between;
+    align-items: center; flex-wrap: wrap; gap: 10px;
   }
-
   header h1 { font-size: 18px; font-weight: 600; }
   header .nav { display: flex; align-items: center; gap: 12px; font-size: 13px; }
   header a { color: white; opacity: 0.85; text-decoration: none; }
   header a:hover { opacity: 1; text-decoration: underline; }
-
   .btn-logout {
     background: rgba(255,255,255,0.15); border: none; color: white;
     padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer;
   }
   .btn-logout:hover { background: rgba(255,255,255,0.25); }
-
-  .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
-
+  .container { max-width: 1050px; margin: 0 auto; padding: 20px; }
   .event-header {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 18px 20px;
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    flex-wrap: wrap;
-    gap: 12px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px; margin-bottom: 20px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    flex-wrap: wrap; gap: 12px;
   }
-
   .event-header h2 { font-size: 20px; margin-bottom: 4px; }
   .event-header .meta { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
-
   .event-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-
   .btn {
     background: var(--accent); color: white; border: none;
-    padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer;
-    text-decoration: none; display: inline-block;
+    padding: 8px 16px; border-radius: 6px; font-weight: 600;
+    font-size: 13px; cursor: pointer; text-decoration: none; display: inline-block;
   }
   .btn:hover { background: var(--accent-hover); }
+  .btn.teal { background: var(--teal); }
+  .btn.teal:hover { background: #0d6460; }
   .btn.danger { background: var(--danger); }
   .btn.danger:hover { background: #dc2626; }
-  .btn.secondary {
-    background: none; border: 1px solid var(--border); color: var(--text-muted);
-  }
+  .btn.secondary { background: none; border: 1px solid var(--border); color: var(--text-muted); }
   .btn.secondary:hover { color: white; border-color: var(--text-muted); }
-
-  /* Metrics grid */
+  .btn.warning { background: var(--warning); }
+  .btn.warning:hover { background: #b45309; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 14px;
-    margin-bottom: 20px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px; margin-bottom: 20px;
   }
-
   .metric-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px;
   }
   .metric-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px; }
   .metric-card .value { font-size: 26px; font-weight: 700; }
-  .metric-card .sub-value { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
-  /* Bed availability */
   .beds-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 14px;
-    margin-bottom: 20px;
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px; margin-bottom: 20px;
   }
-
-  .beds-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-  }
-
+  .beds-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
   .beds-card .cat-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
   .beds-card .cat-price { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
-
-  .beds-bar-wrap {
-    background: var(--bg-main);
-    border-radius: 999px;
-    height: 8px;
-    overflow: hidden;
-    margin-bottom: 8px;
-  }
-
+  .beds-bar-wrap { background: var(--bg-main); border-radius: 999px; height: 8px; overflow: hidden; margin-bottom: 8px; }
   .beds-bar { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
   .beds-bar.full { background: var(--danger); }
   .beds-bar.low { background: var(--warning); }
   .beds-bar.ok { background: var(--success); }
-
-  .beds-stats {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: var(--text-muted);
-  }
+  .beds-stats { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); }
   .beds-stats .taken { color: var(--text-main); font-weight: 600; }
-
   .pending-pill {
-    display: inline-block;
-    background: rgba(251,191,36,0.15);
-    color: #fbbf24;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 8px;
-    border-radius: 20px;
-    margin-top: 8px;
+    display: inline-block; background: rgba(251,191,36,0.15); color: #fbbf24;
+    font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-top: 8px;
   }
-
-  /* Tabs */
-  .tabs {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 16px;
-  }
-
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 16px; }
   .tab {
-    padding: 10px 18px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-muted);
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    margin-bottom: -1px;
+    padding: 10px 18px; font-size: 13px; font-weight: 600; color: var(--text-muted);
+    cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -1px;
   }
   .tab.active { color: #60a5fa; border-bottom-color: #60a5fa; }
   .tab:hover:not(.active) { color: var(--text-main); }
-
-  /* Registrant table */
   .table-wrap { overflow-x: auto; }
-
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th {
-    text-align: left; color: var(--text-muted); font-size: 11px;
-    text-transform: uppercase; letter-spacing: 0.05em;
-    padding: 10px 8px; border-bottom: 2px solid var(--border);
-    white-space: nowrap;
-  }
+  th { text-align: left; color: var(--text-muted); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.05em; padding: 10px 8px; border-bottom: 2px solid var(--border); white-space: nowrap; }
   td { padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-
-  .status-dot {
-    display: inline-block;
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    margin-right: 5px;
-  }
+  .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
   .status-dot.pending { background: #fbbf24; }
   .status-dot.verified { background: var(--success); }
   .status-dot.rejected { background: var(--danger); }
-
-  .room-badge {
-    background: rgba(96,165,250,0.15);
-    color: #60a5fa;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 7px;
-    border-radius: 5px;
-  }
-
-  .export-bar {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 14px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-
-  .filter-select {
-    padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border);
-    background: var(--bg-card); color: var(--text-main); font-size: 13px;
-  }
-
+  .room-badge { background: rgba(96,165,250,0.15); color: #60a5fa; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 5px; }
+  .export-bar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+  .filter-select { padding: 7px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); font-size: 13px; }
   .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 14px; }
-
-  /* Accounts officers section */
-  .officer-row {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px;
-  }
+  /* Section cards for settings tabs */
+  .section-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 16px; }
+  .section-card h3 { font-size: 15px; margin-bottom: 4px; }
+  .section-card p.sub { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+  .form-group label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 5px; }
+  .form-group input, .form-group select { width: 100%; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); font-size: 13px; }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); }
+  .item-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; gap: 10px; flex-wrap: wrap; }
+  .item-row:last-child { border-bottom: none; }
+  .item-row .item-name { font-weight: 600; }
+  .item-row .item-meta { font-size: 12px; color: var(--text-muted); }
+  .btn-small-danger { background: none; border: 1px solid var(--danger); color: var(--danger); padding: 4px 10px; border-radius: 5px; font-size: 12px; cursor: pointer; }
+  .btn-small-danger:hover { background: var(--danger); color: white; }
+  .add-form { background: rgba(255,255,255,0.03); border: 1.5px dashed var(--border); border-radius: 8px; padding: 14px; margin-top: 12px; }
+  .officer-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
   .officer-row:last-child { border-bottom: none; }
-
-  .link-box {
-    background: var(--bg-main); border: 1px solid var(--border);
-    border-radius: 8px; padding: 10px 12px;
-    display: flex; align-items: center; gap: 8px; margin-top: 12px;
-  }
-  .link-box input {
-    flex: 1; background: none; border: none; color: #60a5fa;
-    font-size: 13px; padding: 0;
-  }
-  .link-box button {
-    background: var(--accent); color: white; border: none;
-    padding: 4px 10px; border-radius: 5px; font-size: 12px;
-    font-weight: 600; cursor: pointer; white-space: nowrap;
-  }
-
-  /* New officer form */
-  .new-officer-form {
-    background: rgba(255,255,255,0.03);
-    border: 1.5px dashed var(--border);
-    border-radius: 8px; padding: 14px; margin-top: 12px;
-  }
-  .new-officer-form input {
-    width: 100%; padding: 8px 10px; border-radius: 6px;
-    border: 1px solid var(--border); background: var(--bg-main);
-    color: var(--text-main); font-size: 13px; margin-bottom: 8px;
-  }
-
-  .credential-box {
-    background: #1e3a8a; border: 1px solid #2563eb;
-    border-radius: 8px; padding: 12px; margin-top: 10px;
-    font-size: 13px; display: none;
-  }
+  .credential-box { background: #1e3a8a; border: 1px solid #2563eb; border-radius: 8px; padding: 12px; margin-top: 10px; font-size: 13px; display: none; }
   .credential-box.active { display: block; }
-  .credential-box .cred-line {
-    font-family: monospace; background: rgba(0,0,0,0.25);
-    border-radius: 5px; padding: 5px 8px; margin: 4px 0;
-  }
-
-  .toast {
-    position: fixed; bottom: 24px; left: 50%;
-    transform: translateX(-50%) translateY(100px);
-    background: #2d3748; color: white; padding: 12px 24px;
-    border-radius: 8px; font-size: 14px; font-weight: 600;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    z-index: 200;
-  }
+  .credential-box .cred-line { font-family: monospace; background: rgba(0,0,0,0.25); border-radius: 5px; padding: 5px 8px; margin: 4px 0; }
+  .link-box { background: var(--bg-main); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+  .link-box input { flex: 1; background: none; border: none; color: #60a5fa; font-size: 13px; padding: 0; }
+  .link-box button { background: var(--accent); color: white; border: none; padding: 4px 10px; border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(100px); background: #2d3748; color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 200; }
   .toast.active { transform: translateX(-50%) translateY(0); }
   .toast.error { background: var(--danger); }
   .toast.success { background: var(--success); }
-
-  /* Close event modal */
-  .modal-overlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(2,6,23,0.85);
-    display: flex; align-items: center; justify-content: center;
-    opacity: 0; pointer-events: none; transition: opacity 0.2s;
-    z-index: 150; padding: 20px;
-  }
+  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(2,6,23,0.85); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 150; padding: 20px; }
   .modal-overlay.active { opacity: 1; pointer-events: auto; }
-  .modal-box {
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 24px; width: 100%; max-width: 400px;
-  }
-  .modal-box h3 { margin-bottom: 10px; }
-  .modal-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.6; }
-  .modal-actions { display: flex; gap: 10px; }
-  .modal-actions button {
-    flex: 1; padding: 10px; border-radius: 6px; font-weight: 600;
-    font-size: 14px; cursor: pointer; border: none;
-  }
+  .modal-box { background: var(--bg-card); border: 1px solid var(--border); padding: 24px; border-radius: 12px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
+  .modal-box h3 { margin-bottom: 16px; font-size: 17px; }
+  .modal-box .form-group { margin-bottom: 12px; }
+  .modal-box .form-group label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 5px; }
+  .modal-box .form-group input, .modal-box .form-group select { width: 100%; padding: 9px 11px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-main); color: var(--text-main); font-size: 14px; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal-actions button { flex: 1; padding: 11px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; border: none; }
   .btn-cancel-modal { background: #334155; color: white; }
-  .btn-close-event { background: var(--danger); color: white; }
-
+  .btn-confirm-modal { background: var(--accent); color: white; }
   .app-footer { text-align: center; margin-top: 2rem; font-size: 12px; color: var(--text-muted); }
+  .status-pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+  .status-pill.open { background: rgba(16,185,129,0.15); color: #34d399; }
+  .status-pill.closed { background: var(--border); color: var(--text-muted); }
+  .status-pill.draft { background: rgba(251,191,36,0.15); color: #fbbf24; }
 </style>
 </head>
 <body>
@@ -305,15 +162,13 @@
 <header>
   <h1>Attendly — Accommodation Dashboard</h1>
   <div class="nav">
-    <a href="manager-dashboard.html">← Check-In Dashboard</a>
+    <a href="manager-dashboard.html">← Manager Dashboard</a>
     <button class="btn-logout" id="logoutBtn">Log Out</button>
   </div>
 </header>
 
 <div class="container">
-
   <div id="loadingState" style="text-align:center; padding:3rem; color:var(--text-muted);">Loading...</div>
-
   <div id="mainContent" style="display:none;">
 
     <!-- Event header -->
@@ -322,43 +177,28 @@
         <h2 id="evtName"></h2>
         <div class="meta" id="evtMeta"></div>
       </div>
-      <div class="event-actions">
-        <a id="verifyPaymentsLink" href="#" class="btn">Verify Payments</a>
-        <a id="regLinkBtn" href="#" class="btn secondary" target="_blank">Registration Link ↗</a>
-        <button class="btn danger" id="closeEventBtn" style="display:none;">Close Event</button>
-      </div>
+      <div class="event-actions" id="eventActions"></div>
     </div>
 
     <!-- Metrics -->
     <div class="metrics-grid">
-      <div class="metric-card">
-        <div class="label">Total Registrations</div>
-        <div class="value" id="metTotal">–</div>
-      </div>
-      <div class="metric-card">
-        <div class="label">Pending Verification</div>
-        <div class="value" id="metPending" style="color:#fbbf24;">–</div>
-      </div>
-      <div class="metric-card">
-        <div class="label">Verified / Confirmed</div>
-        <div class="value" id="metVerified" style="color:var(--success);">–</div>
-      </div>
-      <div class="metric-card">
-        <div class="label">Revenue Collected</div>
-        <div class="value" id="metRevenue" style="color:#60a5fa; font-size:18px;">–</div>
-      </div>
+      <div class="metric-card"><div class="label">Total Registrations</div><div class="value" id="metTotal">–</div></div>
+      <div class="metric-card"><div class="label">Pending</div><div class="value" id="metPending" style="color:#fbbf24;">–</div></div>
+      <div class="metric-card"><div class="label">Verified</div><div class="value" id="metVerified" style="color:var(--success);">–</div></div>
+      <div class="metric-card"><div class="label">Revenue</div><div class="value" id="metRevenue" style="color:#60a5fa; font-size:18px;">–</div></div>
     </div>
 
-    <!-- Bed availability per category -->
+    <!-- Bed availability -->
     <div class="beds-grid" id="bedsGrid"></div>
 
     <!-- Tabs -->
     <div class="tabs">
-      <div class="tab active" data-tab="registrants">All Registrants</div>
+      <div class="tab active" data-tab="registrants">Registrants</div>
       <div class="tab" data-tab="officers">Accounts Officers</div>
+      <div class="tab" data-tab="settings">Event Settings</div>
     </div>
 
-    <!-- Registrants tab -->
+    <!-- REGISTRANTS TAB -->
     <div id="tabRegistrants">
       <div class="export-bar">
         <select class="filter-select" id="statusFilter">
@@ -370,21 +210,13 @@
         <button class="btn" id="exportCsvBtn">Download CSV</button>
         <button class="btn secondary" id="refreshListBtn">↻ Refresh</button>
       </div>
-
       <div class="table-wrap">
         <table>
           <thead>
             <tr>
-              <th>#</th>
-              <th>Reference</th>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Church / District</th>
-              <th>Room Category</th>
-              <th>Room</th>
-              <th>Total (GH₵)</th>
-              <th>Status</th>
-              <th>Submitted</th>
+              <th>#</th><th>Ref</th><th>Name</th><th>Phone</th>
+              <th>Church / District</th><th>Room</th><th>Assigned</th>
+              <th>Total (GH₵)</th><th>Status</th><th>Submitted</th><th></th>
             </tr>
           </thead>
           <tbody id="registrantTableBody"></tbody>
@@ -392,34 +224,38 @@
       </div>
     </div>
 
-    <!-- Officers tab -->
+    <!-- ACCOUNTS OFFICERS TAB -->
     <div id="tabOfficers" style="display:none;">
-      <div style="margin-bottom:16px;">
-        <h3 style="font-size:15px; margin-bottom:4px;">Accounts Officers</h3>
-        <p style="font-size:13px; color:var(--text-muted);">Officers can verify and reject payments for this event.</p>
-      </div>
-
-      <div id="officerList"></div>
-
-      <div class="new-officer-form">
-        <p style="font-size:13px; font-weight:600; margin-bottom:10px;">Add New Officer</p>
-        <input type="text" id="officerUsername" placeholder="Username" autocomplete="off">
-        <div style="display:flex; gap:8px; align-items:center;">
-          <input type="text" id="officerPassword" placeholder="Password" style="margin-bottom:0;">
-          <button class="btn" style="white-space:nowrap; padding:8px 12px;" id="genOfficerPassBtn">Generate</button>
+      <div class="section-card">
+        <h3>Accounts Officers</h3>
+        <p class="sub">Officers can verify and reject payments for this event.</p>
+        <div id="officerList"></div>
+        <div class="add-form">
+          <p style="font-size:13px; font-weight:600; margin-bottom:10px;">Add New Officer</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Username</label>
+              <input type="text" id="officerUsername" autocomplete="off">
+            </div>
+            <div class="form-group">
+              <label>Password</label>
+              <div style="display:flex; gap:6px;">
+                <input type="text" id="officerPassword" autocomplete="off" style="flex:1;">
+                <button class="btn" style="padding:8px 10px; white-space:nowrap;" id="genOfficerPassBtn">⚡</button>
+              </div>
+            </div>
+          </div>
+          <button class="btn teal" style="margin-top:10px;" id="createOfficerBtn">Create Officer</button>
+          <div class="credential-box" id="officerCredBox">
+            <p style="font-size:12px; color:#93c5fd; margin-bottom:6px;">✅ Share these credentials — password won't be shown again:</p>
+            <div class="cred-line" id="officerCredUsername"></div>
+            <div class="cred-line" id="officerCredPassword"></div>
+          </div>
         </div>
-        <button class="btn" style="margin-top:10px; width:100%;" id="createOfficerBtn">Create Officer</button>
-        <div class="credential-box" id="officerCredBox">
-          <p style="font-size:12px; color:#93c5fd; margin-bottom:6px;">✅ Officer created — share these credentials:</p>
-          <div class="cred-line" id="officerCredUsername"></div>
-          <div class="cred-line" id="officerCredPassword"></div>
-        </div>
       </div>
-
-      <!-- Registration link for this event -->
-      <div style="margin-top:20px;">
+      <div class="section-card">
         <p style="font-size:13px; font-weight:600; margin-bottom:6px;">Registration Link</p>
-        <p style="font-size:12px; color:var(--text-muted); margin-bottom:6px;">Share this link with ministers to register.</p>
+        <p style="font-size:12px; color:var(--text-muted); margin-bottom:4px;">Share this with ministers to register.</p>
         <div class="link-box">
           <input type="text" id="regLinkDisplay" readonly>
           <button id="copyRegLinkBtn">Copy</button>
@@ -427,19 +263,163 @@
       </div>
     </div>
 
+    <!-- SETTINGS TAB -->
+    <div id="tabSettings" style="display:none;">
+
+      <!-- Edit event details -->
+      <div class="section-card">
+        <h3>Event Details</h3>
+        <p class="sub">Update event name, dates, deadline or MoMo payment details.</p>
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label>Event Name</label>
+            <input type="text" id="editEvtName">
+          </div>
+          <div class="form-group">
+            <label>Location</label>
+            <input type="text" id="editEvtLocation">
+          </div>
+          <div class="form-group">
+            <label>MoMo Number</label>
+            <input type="text" id="editEvtMomo">
+          </div>
+          <div class="form-group">
+            <label>MoMo Account Name</label>
+            <input type="text" id="editEvtMomoName">
+          </div>
+          <div class="form-group">
+            <label>Start Date</label>
+            <input type="date" id="editEvtStart">
+          </div>
+          <div class="form-group">
+            <label>End Date</label>
+            <input type="date" id="editEvtEnd">
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label>Registration Deadline</label>
+            <input type="datetime-local" id="editEvtDeadline">
+          </div>
+        </div>
+        <button class="btn" style="margin-top:14px;" id="saveEventDetailsBtn">Save Event Details</button>
+      </div>
+
+      <!-- Room Categories -->
+      <div class="section-card">
+        <h3>Room Categories</h3>
+        <p class="sub">You can add new categories. Categories with existing registrations cannot be deleted.</p>
+        <div id="categorySettingsList"></div>
+        <div class="add-form">
+          <p style="font-size:13px; font-weight:600; margin-bottom:10px;">Add New Category</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Name</label>
+              <input type="text" id="newCatName" placeholder="e.g. Standard Fan">
+            </div>
+            <div class="form-group">
+              <label>Total Beds</label>
+              <input type="number" id="newCatBeds" min="1">
+            </div>
+            <div class="form-group">
+              <label>Persons Per Room</label>
+              <input type="number" id="newCatPersons" min="1">
+            </div>
+            <div class="form-group">
+              <label>Price Per Person (GH₵)</label>
+              <input type="number" id="newCatPrice" min="0" step="0.01">
+            </div>
+            <div class="form-group" style="grid-column:1/-1;">
+              <label>Description (optional)</label>
+              <input type="text" id="newCatDesc">
+            </div>
+          </div>
+          <button class="btn teal" style="margin-top:10px;" id="addCategorySettingsBtn">Add Category</button>
+        </div>
+      </div>
+
+      <!-- Meal Options -->
+      <div class="section-card">
+        <h3>Meal Options</h3>
+        <p class="sub">Add or remove meal options. Options already selected by registrants cannot be removed.</p>
+        <div id="mealSettingsList"></div>
+        <div class="add-form">
+          <p style="font-size:13px; font-weight:600; margin-bottom:10px;">Add New Meal Option</p>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Meal Type</label>
+              <select id="newMealType">
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="supper">Supper</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Label</label>
+              <input type="text" id="newMealLabel" placeholder="e.g. Breakfast">
+            </div>
+            <div class="form-group">
+              <label>Price Per Person (GH₵)</label>
+              <input type="number" id="newMealPrice" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+              <label>Apply To Category (optional)</label>
+              <select id="newMealCategory">
+                <option value="">All Categories</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn teal" style="margin-top:10px;" id="addMealSettingsBtn">Add Meal Option</button>
+        </div>
+      </div>
+
+      <!-- Danger zone -->
+      <div class="section-card" id="dangerZone" style="border-color:rgba(239,68,68,0.3);">
+        <h3 style="color:var(--danger);">Close Event</h3>
+        <p class="sub">Permanently stops accepting registrations. Existing data is preserved. Cannot be undone.</p>
+        <button class="btn danger" id="closeEventBtn">Close This Event</button>
+      </div>
+
+    </div>
+
   </div>
 </div>
 
 <p class="app-footer">Powered by Bapiego</p>
 
+<!-- Edit Registration Modal -->
+<div class="modal-overlay" id="editRegModal">
+  <div class="modal-box">
+    <h3>Edit Registration</h3>
+    <div class="form-group"><label>Full Name</label><input type="text" id="erName"></div>
+    <div class="form-group"><label>Phone</label><input type="text" id="erPhone"></div>
+    <div class="form-group"><label>Church</label><input type="text" id="erChurch"></div>
+    <div class="form-group"><label>District</label><input type="text" id="erDistrict"></div>
+    <div class="form-group"><label>Ministerial Rank</label>
+      <select id="erRank">
+        <option value="">-- Select --</option>
+        <option value="Ordained">Ordained</option>
+        <option value="Licentiate">Licentiate</option>
+        <option value="Exhorter">Exhorter</option>
+        <option value="Probationer">Probationer</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Room Category</label><select id="erRoomCategory"></select></div>
+    <div class="form-group"><label>MoMo Transaction ID</label><input type="text" id="erTransactionId"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" id="cancelEditRegBtn">Cancel</button>
+      <button class="btn-confirm-modal" id="confirmEditRegBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- Close event modal -->
 <div class="modal-overlay" id="closeEventModal">
   <div class="modal-box">
     <h3>Close this event?</h3>
-    <p>This will stop accepting new registrations. All existing data and room assignments are preserved. This cannot be undone.</p>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:20px; line-height:1.6;">This will stop accepting new registrations. All existing data and room assignments are preserved. This cannot be undone.</p>
     <div class="modal-actions">
       <button class="btn-cancel-modal" id="cancelCloseBtn">Cancel</button>
-      <button class="btn-close-event" id="confirmCloseBtn">Close Event</button>
+      <button class="btn-confirm-modal" style="background:var(--danger);" id="confirmCloseBtn">Close Event</button>
     </div>
   </div>
 </div>
@@ -454,16 +434,16 @@
 
   let accommodationEventId = null;
   let allRegistrations = [];
+  let currentEventData = null;
+  let currentCategories = [];
+  let currentMeals = [];
+  let editingRegId = null;
 
-  // ---------- Auth ----------
   if (!sessionToken || !['event_manager', 'super_admin'].includes(userRole)) {
     window.location.href = 'login.html';
   }
 
-  document.getElementById('logoutBtn').addEventListener('click', () => {
-    localStorage.clear();
-    window.location.href = 'login.html';
-  });
+  document.getElementById('logoutBtn').addEventListener('click', () => { localStorage.clear(); window.location.href = 'login.html'; });
 
   function showToast(msg, type = 'success') {
     const t = document.getElementById('toastBar');
@@ -492,18 +472,14 @@
     }
   }
 
-  // ---------- Init ----------
   async function init() {
     const params = new URLSearchParams(window.location.search);
     accommodationEventId = params.get('event') || localStorage.getItem('accommodation_event_id');
-
     if (!accommodationEventId) {
-      document.getElementById('loadingState').textContent = 'No event specified. Navigate here from your dashboard.';
+      document.getElementById('loadingState').textContent = 'No event specified.';
       return;
     }
-
     localStorage.setItem('accommodation_event_id', accommodationEventId);
-
     await loadDashboard();
     await loadRegistrations();
     renderRegLink();
@@ -523,29 +499,44 @@
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('mainContent').style.display = 'block';
 
-    // Event header
     const ev = res.event;
+    currentEventData = ev;
     document.getElementById('evtName').textContent = ev.name;
-    const dateStr = ev.start_date && ev.end_date
-      ? `📅 ${new Date(ev.start_date).toDateString()} – ${new Date(ev.end_date).toDateString()}`
-      : '';
-    const deadlineStr = ev.deadline
-      ? `⏰ Deadline: ${new Date(ev.deadline).toLocaleString()}`
-      : '';
+
+    const dateStr = ev.start_date && ev.end_date ? `📅 ${new Date(ev.start_date).toDateString()} – ${new Date(ev.end_date).toDateString()}` : '';
+    const deadlineStr = ev.deadline ? `⏰ Deadline: ${new Date(ev.deadline).toLocaleString()}` : '';
+
     document.getElementById('evtMeta').innerHTML = [
       ev.location ? `📍 ${escapeHtml(ev.location)}` : '',
       dateStr, deadlineStr,
-      `💳 MoMo: ${escapeHtml(ev.momo_number)} (${escapeHtml(ev.momo_account_name)})`,
-      `Status: <strong style="color:${ev.status === 'open' ? 'var(--success)' : 'var(--text-muted)'}">${ev.status.toUpperCase()}</strong>`
+      `💳 ${escapeHtml(ev.momo_number)} (${escapeHtml(ev.momo_account_name)})`,
+      `Status: <strong style="color:${ev.status === 'open' ? 'var(--success)' : ev.status === 'draft' ? '#fbbf24' : 'var(--text-muted)'}">${ev.status.toUpperCase()}</strong>`
     ].filter(Boolean).join('<br>');
 
-    // Links
-    const baseUrl = window.location.origin + window.location.pathname.replace('accommodation-dashboard.html', '');
-    document.getElementById('verifyPaymentsLink').href = `verify-payments.html?event=${accommodationEventId}`;
-    document.getElementById('regLinkBtn').href = `${baseUrl}register.html?event=${accommodationEventId}`;
+    // Event action buttons
+    const actions = document.getElementById('eventActions');
+    actions.innerHTML = '';
 
-    if (ev.status === 'open') {
-      document.getElementById('closeEventBtn').style.display = 'inline-block';
+    const verifyLink = document.createElement('a');
+    verifyLink.href = `verify-payments.html?event=${accommodationEventId}`;
+    verifyLink.className = 'btn';
+    verifyLink.textContent = 'Verify Payments';
+    actions.appendChild(verifyLink);
+
+    const regLink = document.createElement('a');
+    regLink.href = `${window.location.origin}/register.html?event=${accommodationEventId}`;
+    regLink.className = 'btn secondary';
+    regLink.target = '_blank';
+    regLink.textContent = 'Registration Link ↗';
+    actions.appendChild(regLink);
+
+    if (ev.status === 'closed') {
+      const dupBtn = document.createElement('button');
+      dupBtn.className = 'btn teal';
+      dupBtn.textContent = '⧉ Duplicate as New';
+      dupBtn.addEventListener('click', duplicateEvent);
+      actions.appendChild(dupBtn);
+      document.getElementById('dangerZone').style.display = 'none';
     }
 
     // Metrics
@@ -553,42 +544,56 @@
     document.getElementById('metTotal').textContent = s.total_registrations;
     document.getElementById('metPending').textContent = s.pending;
     document.getElementById('metVerified').textContent = s.verified;
-    document.getElementById('metRevenue').textContent =
-      `GH₵ ${parseFloat(s.total_revenue || 0).toLocaleString('en-GH', { minimumFractionDigits: 2 })}`;
+    document.getElementById('metRevenue').textContent = `GH₵ ${parseFloat(s.total_revenue || 0).toLocaleString('en-GH', { minimumFractionDigits: 2 })}`;
 
     // Beds grid
+    currentCategories = res.category_stats || [];
     const bedsGrid = document.getElementById('bedsGrid');
     bedsGrid.innerHTML = '';
-    (res.category_stats || []).forEach(cat => {
+    currentCategories.forEach(cat => {
       const pct = cat.total_beds > 0 ? (cat.beds_taken / cat.total_beds) * 100 : 0;
-      const barClass = pct >= 100 ? 'full' : (pct >= 80 ? 'low' : 'ok');
-
+      const barClass = pct >= 100 ? 'full' : pct >= 80 ? 'low' : 'ok';
       const card = document.createElement('div');
       card.className = 'beds-card';
       card.innerHTML = `
         <div class="cat-name">${escapeHtml(cat.name)}</div>
         <div class="cat-price">GH₵${parseFloat(cat.price_per_person).toFixed(2)}/person · ${cat.persons_per_room} per room</div>
-        <div class="beds-bar-wrap">
-          <div class="beds-bar ${barClass}" style="width:${Math.min(pct,100)}%;"></div>
-        </div>
-        <div class="beds-stats">
-          <span class="taken">${cat.beds_taken} taken</span>
-          <span>${cat.beds_remaining} remaining / ${cat.total_beds} total</span>
-        </div>
-        ${cat.beds_pending > 0 ? `<span class="pending-pill">${cat.beds_pending} pending verification</span>` : ''}
+        <div class="beds-bar-wrap"><div class="beds-bar ${barClass}" style="width:${Math.min(pct,100)}%;"></div></div>
+        <div class="beds-stats"><span class="taken">${cat.beds_taken} taken</span><span>${cat.beds_remaining} remaining / ${cat.total_beds} total</span></div>
+        ${cat.beds_pending > 0 ? `<span class="pending-pill">${cat.beds_pending} pending</span>` : ''}
       `;
       bedsGrid.appendChild(card);
     });
+
+    // Pre-fill edit form
+    document.getElementById('editEvtName').value = ev.name || '';
+    document.getElementById('editEvtLocation').value = ev.location || '';
+    document.getElementById('editEvtMomo').value = ev.momo_number || '';
+    document.getElementById('editEvtMomoName').value = ev.momo_account_name || '';
+    if (ev.start_date) document.getElementById('editEvtStart').value = ev.start_date;
+    if (ev.end_date) document.getElementById('editEvtEnd').value = ev.end_date;
+    if (ev.deadline) document.getElementById('editEvtDeadline').value = new Date(ev.deadline).toISOString().slice(0,16);
+
+    // Load meals for settings tab
+    await loadMealsForSettings();
+    renderCategorySettings();
+  }
+
+  async function loadMealsForSettings() {
+    const res = await callRPC('get_accommodation_event_public', { p_event_id: accommodationEventId });
+    if (res.success) {
+      currentMeals = res.meals || [];
+      renderMealSettings();
+      updateMealCategoryDropdown();
+    }
   }
 
   async function loadRegistrations() {
-    const statusFilter = document.getElementById('statusFilter').value;
     const res = await callRPC('get_all_registrations', {
       p_token: sessionToken,
       p_accommodation_event_id: accommodationEventId,
       p_status: 'all'
     });
-
     if (!res.success) return;
     allRegistrations = res.registrations || [];
     renderRegistrantTable();
@@ -597,13 +602,10 @@
   function renderRegistrantTable() {
     const statusFilter = document.getElementById('statusFilter').value;
     const tbody = document.getElementById('registrantTableBody');
-
-    const filtered = statusFilter === 'all'
-      ? allRegistrations
-      : allRegistrations.filter(r => r.payment_status === statusFilter);
+    const filtered = statusFilter === 'all' ? allRegistrations : allRegistrations.filter(r => r.payment_status === statusFilter);
 
     if (!filtered || filtered.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:var(--text-muted); padding:2rem;">No registrations found.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:var(--text-muted); padding:2rem;">No registrations found.</td></tr>';
       return;
     }
 
@@ -611,8 +613,8 @@
     filtered.forEach((reg, i) => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td style="color:var(--text-muted);">${i + 1}</td>
-        <td style="font-family:monospace; font-size:12px; color:#60a5fa;">${escapeHtml(reg.reference_number)}</td>
+        <td style="color:var(--text-muted);">${i+1}</td>
+        <td style="font-family:monospace; font-size:11px; color:#60a5fa;">${escapeHtml(reg.reference_number)}</td>
         <td><strong>${escapeHtml(reg.full_name)}</strong></td>
         <td>${escapeHtml(reg.phone)}</td>
         <td style="font-size:12px;">${escapeHtml(reg.church || '—')}<br><span style="color:var(--text-muted);">${escapeHtml(reg.district || '')}</span></td>
@@ -620,54 +622,70 @@
         <td>${reg.room_number ? `<span class="room-badge">Room ${reg.room_number}</span>` : '—'}</td>
         <td style="font-weight:700;">${parseFloat(reg.grand_total).toFixed(2)}</td>
         <td><span class="status-dot ${reg.payment_status}"></span>${reg.payment_status}</td>
-        <td style="font-size:12px; color:var(--text-muted);">${new Date(reg.submitted_at).toLocaleDateString()}</td>
+        <td style="font-size:11px; color:var(--text-muted);">${new Date(reg.submitted_at).toLocaleDateString()}</td>
+        <td><button class="btn secondary" style="padding:4px 10px; font-size:12px;" data-id="${reg.id}">Edit</button></td>
       `;
+      tbody.querySelector('[data-id]').addEventListener('click', () => openEditRegModal(reg));
       tbody.appendChild(tr);
     });
   }
 
-  // ---------- Export CSV ----------
-  document.getElementById('exportCsvBtn').addEventListener('click', () => {
-    const statusFilter = document.getElementById('statusFilter').value;
-    const filtered = statusFilter === 'all'
-      ? allRegistrations
-      : allRegistrations.filter(r => r.payment_status === statusFilter);
+  // ---------- Edit Registration ----------
+  function openEditRegModal(reg) {
+    editingRegId = reg.id;
+    document.getElementById('erName').value = reg.full_name || '';
+    document.getElementById('erPhone').value = reg.phone || '';
+    document.getElementById('erChurch').value = reg.church || '';
+    document.getElementById('erDistrict').value = reg.district || '';
+    document.getElementById('erRank').value = reg.ministerial_rank || '';
+    document.getElementById('erTransactionId').value = reg.momo_transaction_id || '';
 
-    if (!filtered || filtered.length === 0) { showToast('No data to export', 'error'); return; }
-
-    const headers = ['Reference','Name','Phone','Church','District','Rank','Room Category','Room No.','Room (GH₵)','Meals (GH₵)','Total (GH₵)','Transaction ID','Status','Submitted'];
-    const escape = v => {
-      if (v === null || v === undefined) return '';
-      const s = String(v);
-      return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
-    };
-
-    const lines = [headers.join(',')];
-    filtered.forEach(r => {
-      lines.push([
-        r.reference_number, r.full_name, r.phone, r.church, r.district,
-        r.ministerial_rank, r.room_category_name, r.room_number || '',
-        r.room_total, r.meals_total, r.grand_total,
-        r.momo_transaction_id, r.payment_status,
-        new Date(r.submitted_at).toLocaleString()
-      ].map(escape).join(','));
+    const catSelect = document.getElementById('erRoomCategory');
+    catSelect.innerHTML = '';
+    currentCategories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat.id;
+      opt.textContent = `${cat.name} — GH₵${parseFloat(cat.price_per_person).toFixed(2)}`;
+      if (cat.name === reg.room_category_name) opt.selected = true;
+      catSelect.appendChild(opt);
     });
 
-    const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `accommodation-registrations-${new Date().toISOString().split('T')[0]}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast(`Exported ${filtered.length} record(s)`);
+    document.getElementById('editRegModal').classList.add('active');
+  }
+
+  document.getElementById('cancelEditRegBtn').addEventListener('click', () => {
+    document.getElementById('editRegModal').classList.remove('active');
+    editingRegId = null;
   });
 
-  document.getElementById('statusFilter').addEventListener('change', renderRegistrantTable);
-  document.getElementById('refreshListBtn').addEventListener('click', async () => {
-    await loadDashboard();
-    await loadRegistrations();
-    showToast('Refreshed');
+  document.getElementById('confirmEditRegBtn').addEventListener('click', async () => {
+    if (!editingRegId) return;
+    const btn = document.getElementById('confirmEditRegBtn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+
+    const res = await callRPC('edit_registration', {
+      p_token: sessionToken,
+      p_registration_id: editingRegId,
+      p_full_name: document.getElementById('erName').value.trim(),
+      p_phone: document.getElementById('erPhone').value.trim(),
+      p_church: document.getElementById('erChurch').value.trim() || null,
+      p_district: document.getElementById('erDistrict').value.trim() || null,
+      p_ministerial_rank: document.getElementById('erRank').value || null,
+      p_room_category_id: document.getElementById('erRoomCategory').value || null,
+      p_feeding_selection: null,
+      p_meals_total: null,
+      p_momo_transaction_id: document.getElementById('erTransactionId').value.trim()
+    });
+
+    btn.disabled = false; btn.textContent = 'Save Changes';
+    document.getElementById('editRegModal').classList.remove('active');
+
+    if (res.success) {
+      showToast('Registration updated');
+      await loadRegistrations();
+    } else {
+      showToast(res.error || 'Failed to update', 'error');
+    }
   });
 
   // ---------- Tabs ----------
@@ -677,109 +695,229 @@
       tab.classList.add('active');
       document.getElementById('tabRegistrants').style.display = tab.dataset.tab === 'registrants' ? 'block' : 'none';
       document.getElementById('tabOfficers').style.display = tab.dataset.tab === 'officers' ? 'block' : 'none';
+      document.getElementById('tabSettings').style.display = tab.dataset.tab === 'settings' ? 'block' : 'none';
       if (tab.dataset.tab === 'officers') loadOfficers();
     });
   });
 
+  // ---------- Export ----------
+  document.getElementById('exportCsvBtn').addEventListener('click', () => {
+    const statusFilter = document.getElementById('statusFilter').value;
+    const filtered = statusFilter === 'all' ? allRegistrations : allRegistrations.filter(r => r.payment_status === statusFilter);
+    if (!filtered || filtered.length === 0) { showToast('No data to export', 'error'); return; }
+    const headers = ['Reference','Name','Phone','Church','District','Rank','Room Category','Room No.','Room (GH₵)','Meals (GH₵)','Total (GH₵)','Transaction ID','Status','Submitted'];
+    const esc = v => { if (!v && v !== 0) return ''; const s = String(v); return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g,'""')}"` : s; };
+    const lines = [headers.join(',')];
+    filtered.forEach(r => lines.push([r.reference_number,r.full_name,r.phone,r.church,r.district,r.ministerial_rank,r.room_category_name,r.room_number||'',r.room_total,r.meals_total,r.grand_total,r.momo_transaction_id,r.payment_status,new Date(r.submitted_at).toLocaleString()].map(esc).join(',')));
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = `registrations-${new Date().toISOString().split('T')[0]}.csv`; a.click();
+    URL.revokeObjectURL(url);
+    showToast(`Exported ${filtered.length} record(s)`);
+  });
+
+  document.getElementById('statusFilter').addEventListener('change', renderRegistrantTable);
+  document.getElementById('refreshListBtn').addEventListener('click', async () => { await loadDashboard(); await loadRegistrations(); showToast('Refreshed'); });
+
   // ---------- Accounts Officers ----------
   async function loadOfficers() {
-    const res = await callRPC('get_event_ushers', {
-      p_token: sessionToken,
-      p_event_id: accommodationEventId
-    });
-
     const list = document.getElementById('officerList');
-    // get_event_ushers returns usher-role users; we need accounts_officers
-    // Use a direct query via get_all_registrations scoped query - actually
-    // let's query users directly via the existing list_users pattern
-    // For now show a note; a dedicated function can be added later
+    const res = await callRPC('list_accounts_officers', { p_token: sessionToken, p_accommodation_event_id: accommodationEventId });
     if (!Array.isArray(res) || res.length === 0) {
-      list.innerHTML = '<p style="font-size:13px; color:var(--text-muted); padding:10px 0;">No accounts officers added yet.</p>';
-    } else {
-      list.innerHTML = '';
-      res.forEach(u => {
-        const row = document.createElement('div');
-        row.className = 'officer-row';
-        row.innerHTML = `
-          <span><strong>${escapeHtml(u.username)}</strong></span>
-          <span style="font-size:12px; color:var(--text-muted);">Added ${new Date(u.created_at).toLocaleDateString()}</span>
-        `;
-        list.appendChild(row);
-      });
+      list.innerHTML = '<p style="font-size:13px; color:var(--text-muted); padding:10px 0;">No accounts officers yet.</p>';
+      return;
     }
+    list.innerHTML = '';
+    res.forEach(o => {
+      const row = document.createElement('div');
+      row.className = 'officer-row';
+      row.innerHTML = `
+        <span><strong>${escapeHtml(o.username)}</strong> <span style="font-size:12px; color:var(--text-muted);">Added ${new Date(o.created_at).toLocaleDateString()}</span></span>
+        <button class="btn-small-danger" data-id="${o.id}">Remove</button>
+      `;
+      row.querySelector('.btn-small-danger').addEventListener('click', async () => {
+        const res = await callRPC('delete_accounts_officer', { p_token: sessionToken, p_officer_id: o.id });
+        if (res.success) { showToast('Officer removed'); loadOfficers(); }
+        else showToast(res.error || 'Failed', 'error');
+      });
+      list.appendChild(row);
+    });
   }
 
   document.getElementById('genOfficerPassBtn').addEventListener('click', () => {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
-    let pass = '';
-    for (let i = 0; i < 12; i++) pass += chars[Math.floor(Math.random() * chars.length)];
+    let pass = ''; for (let i=0;i<12;i++) pass += chars[Math.floor(Math.random()*chars.length)];
     document.getElementById('officerPassword').value = pass;
   });
 
   document.getElementById('createOfficerBtn').addEventListener('click', async () => {
     const username = document.getElementById('officerUsername').value.trim();
     const password = document.getElementById('officerPassword').value;
-
     if (!username || !password) { showToast('Username and password required', 'error'); return; }
-
-    const res = await callRPC('create_accounts_officer', {
-      p_token: sessionToken,
-      p_username: username,
-      p_password: password,
-      p_accommodation_event_id: accommodationEventId
-    });
-
+    const res = await callRPC('create_accounts_officer', { p_token: sessionToken, p_username: username, p_password: password, p_accommodation_event_id: accommodationEventId });
     if (res.success) {
       document.getElementById('officerCredUsername').textContent = `Username: ${username}`;
       document.getElementById('officerCredPassword').textContent = `Password: ${password}`;
       document.getElementById('officerCredBox').classList.add('active');
       document.getElementById('officerUsername').value = '';
       document.getElementById('officerPassword').value = '';
-      showToast('Accounts officer created');
+      showToast('Officer created');
       loadOfficers();
-    } else {
-      showToast(res.error || 'Failed to create officer', 'error');
-    }
+    } else showToast(res.error || 'Failed', 'error');
   });
 
-  // ---------- Registration link ----------
   function renderRegLink() {
-    const baseUrl = window.location.origin + window.location.pathname.replace('accommodation-dashboard.html', '');
-    const link = `${baseUrl}register.html?event=${accommodationEventId}`;
+    const link = `${window.location.origin}/register.html?event=${accommodationEventId}`;
     document.getElementById('regLinkDisplay').value = link;
   }
-
   document.getElementById('copyRegLinkBtn').addEventListener('click', () => {
-    navigator.clipboard.writeText(document.getElementById('regLinkDisplay').value)
-      .then(() => showToast('Link copied!'));
+    navigator.clipboard.writeText(document.getElementById('regLinkDisplay').value).then(() => showToast('Link copied!'));
+  });
+
+  // ---------- Settings: Edit event details ----------
+  document.getElementById('saveEventDetailsBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('saveEventDetailsBtn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+    const deadline = document.getElementById('editEvtDeadline').value ? new Date(document.getElementById('editEvtDeadline').value).toISOString() : null;
+    const res = await callRPC('edit_accommodation_event', {
+      p_token: sessionToken,
+      p_accommodation_event_id: accommodationEventId,
+      p_name: document.getElementById('editEvtName').value.trim(),
+      p_location: document.getElementById('editEvtLocation').value.trim() || null,
+      p_start_date: document.getElementById('editEvtStart').value || null,
+      p_end_date: document.getElementById('editEvtEnd').value || null,
+      p_deadline: deadline,
+      p_momo_number: document.getElementById('editEvtMomo').value.trim(),
+      p_momo_account_name: document.getElementById('editEvtMomoName').value.trim()
+    });
+    btn.disabled = false; btn.textContent = 'Save Event Details';
+    if (res.success) { showToast('Event details updated'); await loadDashboard(); }
+    else showToast(res.error || 'Failed to save', 'error');
+  });
+
+  // ---------- Settings: Room categories ----------
+  function renderCategorySettings() {
+    const list = document.getElementById('categorySettingsList');
+    if (!currentCategories || currentCategories.length === 0) {
+      list.innerHTML = '<p style="font-size:13px; color:var(--text-muted); padding:8px 0;">No categories yet.</p>';
+      return;
+    }
+    list.innerHTML = '';
+    currentCategories.forEach(cat => {
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = `
+        <div>
+          <div class="item-name">${escapeHtml(cat.name)}</div>
+          <div class="item-meta">${cat.total_beds} beds · ${cat.persons_per_room} per room · GH₵${parseFloat(cat.price_per_person).toFixed(2)}/person</div>
+        </div>
+        <span style="font-size:12px; color:${cat.beds_taken > 0 ? '#fbbf24' : 'var(--text-muted)'};">${cat.beds_taken > 0 ? cat.beds_taken + ' registered' : 'No registrations'}</span>
+      `;
+      list.appendChild(row);
+    });
+    updateMealCategoryDropdown();
+  }
+
+  document.getElementById('addCategorySettingsBtn').addEventListener('click', async () => {
+    const name = document.getElementById('newCatName').value.trim();
+    const beds = parseInt(document.getElementById('newCatBeds').value);
+    const persons = parseInt(document.getElementById('newCatPersons').value);
+    const price = parseFloat(document.getElementById('newCatPrice').value);
+    const desc = document.getElementById('newCatDesc').value.trim();
+    if (!name || !beds || !persons || isNaN(price)) { showToast('Please fill in all category fields', 'error'); return; }
+    const res = await callRPC('add_room_category', {
+      p_token: sessionToken, p_accommodation_event_id: accommodationEventId,
+      p_name: name, p_total_beds: beds, p_persons_per_room: persons,
+      p_price_per_person: price, p_description: desc || null, p_sort_order: currentCategories.length
+    });
+    if (res.success) {
+      showToast('Category added');
+      document.getElementById('newCatName').value = '';
+      document.getElementById('newCatBeds').value = '';
+      document.getElementById('newCatPersons').value = '';
+      document.getElementById('newCatPrice').value = '';
+      document.getElementById('newCatDesc').value = '';
+      await loadDashboard();
+    } else showToast(res.error || 'Failed', 'error');
+  });
+
+  // ---------- Settings: Meal options ----------
+  function renderMealSettings() {
+    const list = document.getElementById('mealSettingsList');
+    if (!currentMeals || currentMeals.length === 0) {
+      list.innerHTML = '<p style="font-size:13px; color:var(--text-muted); padding:8px 0;">No meal options yet.</p>';
+      return;
+    }
+    list.innerHTML = '';
+    currentMeals.forEach(meal => {
+      const row = document.createElement('div');
+      row.className = 'item-row';
+      row.innerHTML = `
+        <div>
+          <div class="item-name">${escapeHtml(meal.label)}</div>
+          <div class="item-meta">${meal.meal_type} · GH₵${parseFloat(meal.price_per_person).toFixed(2)}</div>
+        </div>
+        <button class="btn-small-danger" data-id="${meal.id}">Remove</button>
+      `;
+      row.querySelector('.btn-small-danger').addEventListener('click', async () => {
+        const res = await callRPC('delete_meal_option', { p_token: sessionToken, p_meal_option_id: meal.id });
+        if (res.success) { showToast('Meal option removed'); await loadMealsForSettings(); }
+        else showToast(res.error || 'Failed', 'error');
+      });
+      list.appendChild(row);
+    });
+  }
+
+  function updateMealCategoryDropdown() {
+    const sel = document.getElementById('newMealCategory');
+    const current = sel.value;
+    sel.innerHTML = '<option value="">All Categories</option>';
+    currentCategories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat.id;
+      opt.textContent = cat.name;
+      sel.appendChild(opt);
+    });
+    sel.value = current;
+  }
+
+  document.getElementById('addMealSettingsBtn').addEventListener('click', async () => {
+    const label = document.getElementById('newMealLabel').value.trim();
+    const price = parseFloat(document.getElementById('newMealPrice').value);
+    if (!label || isNaN(price)) { showToast('Label and price required', 'error'); return; }
+    const catId = document.getElementById('newMealCategory').value || null;
+    const res = await callRPC('add_meal_option', {
+      p_token: sessionToken, p_accommodation_event_id: accommodationEventId,
+      p_meal_type: document.getElementById('newMealType').value,
+      p_label: label, p_price_per_person: price,
+      p_room_category_id: catId, p_available_days: null, p_sort_order: currentMeals.length
+    });
+    if (res.success) {
+      showToast('Meal option added');
+      document.getElementById('newMealLabel').value = '';
+      document.getElementById('newMealPrice').value = '';
+      await loadMealsForSettings();
+    } else showToast(res.error || 'Failed', 'error');
   });
 
   // ---------- Close event ----------
-  document.getElementById('closeEventBtn').addEventListener('click', () => {
-    document.getElementById('closeEventModal').classList.add('active');
-  });
-
-  document.getElementById('cancelCloseBtn').addEventListener('click', () => {
-    document.getElementById('closeEventModal').classList.remove('active');
-  });
-
+  document.getElementById('closeEventBtn').addEventListener('click', () => document.getElementById('closeEventModal').classList.add('active'));
+  document.getElementById('cancelCloseBtn').addEventListener('click', () => document.getElementById('closeEventModal').classList.remove('active'));
   document.getElementById('confirmCloseBtn').addEventListener('click', async () => {
-    const res = await callRPC('set_accommodation_event_status', {
-      p_token: sessionToken,
-      p_accommodation_event_id: accommodationEventId,
-      p_status: 'closed'
-    });
-
+    const res = await callRPC('set_accommodation_event_status', { p_token: sessionToken, p_accommodation_event_id: accommodationEventId, p_status: 'closed' });
     document.getElementById('closeEventModal').classList.remove('active');
-
-    if (res.success) {
-      showToast('Event closed');
-      document.getElementById('closeEventBtn').style.display = 'none';
-      await loadDashboard();
-    } else {
-      showToast(res.error || 'Failed to close event', 'error');
-    }
+    if (res.success) { showToast('Event closed'); setTimeout(() => location.reload(), 1000); }
+    else showToast(res.error || 'Failed', 'error');
   });
+
+  // ---------- Duplicate event ----------
+  async function duplicateEvent() {
+    const res = await callRPC('duplicate_accommodation_event', { p_token: sessionToken, p_source_event_id: accommodationEventId });
+    if (res.success) {
+      showToast('Event duplicated as draft — redirecting to edit it...');
+      setTimeout(() => { window.location.href = `accommodation-dashboard.html?event=${res.new_event_id}`; }, 1500);
+    } else showToast(res.error || 'Failed to duplicate', 'error');
+  }
 
   init();
 </script>
