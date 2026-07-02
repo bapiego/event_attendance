@@ -774,6 +774,21 @@
         return;
       }
 
+      // Send SMS notification (non-blocking — don't wait for it or fail if it errors)
+      const cat = eventData.categories.find(c => c.id === selectedCategoryId);
+      fetch(`${SUPABASE_URL}/functions/v1/send-sms`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+        body: JSON.stringify({
+          type: 'registration_received',
+          phone: phone,
+          full_name: name,
+          reference_number: res.reference_number,
+          event_name: eventData.event.name,
+          grand_total: parseFloat(res.grand_total)
+        })
+      }).catch(() => {}); // silently ignore SMS errors — registration already saved
+
       // Show success
       document.getElementById('successRefNumber').textContent = res.reference_number;
 

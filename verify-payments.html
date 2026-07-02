@@ -531,6 +531,24 @@
 
     if (res.success) {
       showToast('Payment verified — room assigned', 'success');
+
+      // Find the registration details for SMS
+      const reg = allRegistrations.find(r => r.id === regId);
+      if (reg) {
+        fetch(`${SUPABASE_URL}/functions/v1/send-sms`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+          body: JSON.stringify({
+            type: 'payment_verified',
+            phone: reg.phone,
+            full_name: reg.full_name,
+            reference_number: reg.reference_number,
+            event_name: document.getElementById('eventNameDisplay').textContent.replace('📋 ', '').replace(/ · .*/, '').trim(),
+            room_category: reg.room_category_name
+          })
+        }).catch(() => {});
+      }
+
       await loadDashboardStats();
       await loadRegistrations();
     } else {
@@ -572,6 +590,23 @@
     pendingRejectId = null;
 
     if (res.success) {
+      // Send rejection SMS
+      const reg = allRegistrations.find(r => r.id === pendingRejectId);
+      if (reg) {
+        fetch(`${SUPABASE_URL}/functions/v1/send-sms`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+          body: JSON.stringify({
+            type: 'payment_rejected',
+            phone: reg.phone,
+            full_name: reg.full_name,
+            reference_number: reg.reference_number,
+            event_name: document.getElementById('eventNameDisplay').textContent.replace('📋 ', '').replace(/ · .*/, '').trim(),
+            rejection_reason: reason
+          })
+        }).catch(() => {});
+      }
+
       showToast('Registration rejected', 'error');
       await loadDashboardStats();
       await loadRegistrations();
