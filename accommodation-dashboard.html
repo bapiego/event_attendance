@@ -706,7 +706,10 @@
     const bedsGrid = document.getElementById('bedsGrid');
     bedsGrid.innerHTML = '';
     currentCategories.forEach(cat => {
-      const pct = cat.total_beds > 0 ? (cat.beds_taken / cat.total_beds) * 100 : 0;
+      const verified = cat.beds_taken || 0;
+      const reserved = cat.beds_reserved || 0;
+      const totalOccupied = verified + reserved;
+      const pct = cat.total_beds > 0 ? (totalOccupied / cat.total_beds) * 100 : 0;
       const barClass = pct >= 100 ? 'full' : pct >= 80 ? 'low' : 'ok';
       const card = document.createElement('div');
       card.className = 'beds-card';
@@ -714,8 +717,15 @@
         <div class="cat-name">${escapeHtml(cat.name)}</div>
         <div class="cat-price">GH₵${parseFloat(cat.price_per_person).toFixed(2)}/person · ${cat.persons_per_room} per room</div>
         <div class="beds-bar-wrap"><div class="beds-bar ${barClass}" style="width:${Math.min(pct,100)}%;"></div></div>
-        <div class="beds-stats"><span class="taken">${cat.beds_taken} taken</span><span>${cat.beds_remaining} remaining / ${cat.total_beds} total</span></div>
-        ${cat.beds_pending > 0 ? `<span class="pending-pill">${cat.beds_pending} pending</span>` : ''}
+        <div class="beds-stats">
+          <span class="taken">${totalOccupied} taken</span>
+          <span>${cat.beds_remaining} remaining / ${cat.total_beds} total</span>
+        </div>
+        <div style="margin-top:8px; font-size:11px; display:flex; gap:10px; flex-wrap:wrap;">
+          <span style="color:var(--success);">✓ ${verified} verified</span>
+          ${reserved > 0 ? `<span style="color:#fbbf24;">⏳ ${reserved} reserved</span>` : ''}
+          ${cat.beds_pending > 0 ? `<span style="color:var(--text-muted);">⌛ ${cat.beds_pending} pending verification</span>` : ''}
+        </div>
       `;
       bedsGrid.appendChild(card);
     });
