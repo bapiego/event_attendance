@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendly - Accommodation Registration</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f4f6f9;
+    color: #1a202c;
+    min-height: 100vh;
+  }
+
+  header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+    color: white;
+    padding: 20px;
+    text-align: center;
+  }
+  header h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  header p { font-size: 13px; opacity: 0.85; }
+
+  .container {
+    max-width: 560px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .event-banner {
+    background: white;
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .event-banner h2 { font-size: 17px; margin-bottom: 6px; color: #1e3a5f; }
+  .event-banner .meta { font-size: 13px; color: #718096; line-height: 1.7; }
+
+  .card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .card h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #2c5282;
+    margin-bottom: 4px;
+  }
+  .card p.sub {
+    font-size: 12px;
+    color: #718096;
+    margin-bottom: 14px;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 5px;
+    margin-top: 14px;
+  }
+  label .req { color: #c53030; }
+
+  input[type="text"], input[type="tel"], select {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 15px;
+    background: white;
+  }
+  input:focus, select:focus {
+    outline: none;
+    border-color: #2c5282;
+  }
+  input.invalid { border-color: #c53030; background: #fff5f5; }
+
+  /* Room category cards */
+  .room-card {
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    position: relative;
+  }
+  .room-card:hover:not(.full) { border-color: #2c5282; }
+  .room-card.selected { border-color: #2c5282; background: #f0f7ff; }
+  .room-card.full { opacity: 0.5; cursor: not-allowed; }
+
+  .room-card .room-name { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .room-card .room-meta { font-size: 12px; color: #718096; line-height: 1.6; }
+  .room-card .room-price {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2c5282;
+    margin-top: 6px;
+  }
+  .room-card .beds-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+  .beds-badge.available { background: #d4f8d4; color: #1a5c1a; }
+  .beds-badge.low { background: #fef3e2; color: #92400e; }
+  .beds-badge.full { background: #fed7d7; color: #c53030; }
+
+  .room-card .selected-check {
+    display: none;
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    color: #2c5282;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .room-card.selected .selected-check { display: block; }
+  .room-card.selected .beds-badge { display: none; }
+
+  /* Meal options */
+  .meal-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .meal-toggle:hover { border-color: #2c5282; }
+  .meal-toggle.selected { border-color: #2c5282; background: #f0f7ff; }
+  .meal-toggle .meal-name { font-size: 14px; font-weight: 600; }
+  .meal-toggle .meal-price { font-size: 14px; font-weight: 700; color: #2c5282; }
+  .meal-toggle .meal-days { font-size: 11px; color: #718096; margin-top: 2px; }
+
+  .a-la-carte-section { margin-top: 8px; display: none; }
+  .a-la-carte-section.visible { display: block; }
+
+  .day-checkboxes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .day-check-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 13px; cursor: pointer;
+    background: #f7fafc; border: 1.5px solid #e2e8f0;
+    border-radius: 6px; padding: 6px 10px;
+  }
+  .day-check-label input { width: auto; }
+  .day-check-label.checked { background: #f0f7ff; border-color: #2c5282; }
+
+  /* Cost summary */
+  .cost-summary {
+    background: #f0f7ff;
+    border: 1.5px solid #bee3f8;
+    border-radius: 10px;
+    padding: 14px;
+    margin-top: 16px;
+  }
+  .cost-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 4px 0;
+    color: #4a5568;
+  }
+  .cost-row.total {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e3a5f;
+    border-top: 1.5px solid #bee3f8;
+    margin-top: 8px;
+    padding-top: 10px;
+  }
+
+  /* Payment section */
+  .momo-box {
+    background: #f0fff4;
+    border: 1.5px solid #9ae6b4;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 14px;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+  .momo-box strong { color: #1a5c1a; }
+  .momo-number {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a5c1a;
+    letter-spacing: 1px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    background: #2c5282;
+    color: white;
+    border: none;
+    padding: 16px;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+  .submit-btn:hover { background: #1e3a5f; }
+  .submit-btn:disabled { background: #a0aec0; cursor: not-allowed; }
+
+  /* Success screen */
+  .success-screen {
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+  .success-screen .icon { font-size: 4rem; margin-bottom: 1rem; }
+  .success-screen h2 { font-size: 22px; margin-bottom: 8px; color: #1e3a5f; }
+  .success-screen p { color: #718096; font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
+
+  .ref-box {
+    background: #f0f7ff;
+    border: 2px solid #2c5282;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .ref-box .ref-label { font-size: 12px; color: #718096; font-weight: 600; margin-bottom: 4px; }
+  .ref-box .ref-number { font-size: 24px; font-weight: 700; color: #2c5282; letter-spacing: 2px; }
+
+  .detail-row { display: flex; justify-content: space-between; font-size: 13px; padding: 5px 0; border-bottom: 1px solid #e2e8f0; }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-row .dlabel { color: #718096; }
+  .detail-row .dval { font-weight: 600; }
+
+  .loading-screen {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #718096;
+    font-size: 14px;
+  }
+
+  .error-screen {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #c53030;
+    font-size: 14px;
+  }
+
+  .hidden { display: none !important; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%);
+    background: #c53030; color: white;
+    padding: 12px 24px; border-radius: 10px;
+    font-size: 14px; font-weight: 600; z-index: 200;
+    display: none;
+  }
+  .toast.visible { display: block; }
+
+  .app-footer { text-align: center; padding: 20px; font-size: 12px; color: #a0aec0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Attendly</h1>
+  <p>Accommodation Registration</p>
+</header>
+
+<div class="container">
+
+  <div id="loadingScreen" class="loading-screen card">Loading event details...</div>
+  <div id="errorScreen" class="error-screen card hidden"></div>
+
+  <!-- Main registration form -->
+  <div id="registrationForm" class="hidden">
+
+    <div class="event-banner" id="eventBanner"></div>
+
+    <!-- Room category selection -->
+    <div class="card">
+      <h3>Select Room Category</h3>
+      <p class="sub">Choose your preferred accommodation. Prices shown are per person.</p>
+      <div id="roomCategoryList"></div>
+    </div>
+
+    <!-- Feeding selection - rendered dynamically -->
+    <div class="card hidden" id="feedingCard">
+      <h3>Feeding Package</h3>
+      <p class="sub" id="feedingCardSub"></p>
+      <div id="feedingOptionsList"></div>
+    </div>
+
+    <!-- Cost summary -->
+    <div class="cost-summary" id="costSummary">
+      <div class="cost-row"><span>Room</span><span id="costRoom">GH₵ 0.00</span></div>
+      <div class="cost-row" id="costMealsRow"><span>Meals</span><span id="costMeals">GH₵ 0.00</span></div>
+      <div class="cost-row total"><span>Total</span><span id="costTotal">GH₵ 0.00</span></div>
+    </div>
+
+    <!-- Personal details -->
+    <div class="card">
+      <h3>Your Details</h3>
+      <p class="sub">As they should appear on your registration.</p>
+
+      <label>Full Name <span class="req">*</span></label>
+      <input type="text" id="regName" placeholder="e.g. Rev. John Mensah">
+
+      <label>Phone Number <span class="req">*</span></label>
+      <input type="tel" id="regPhone" placeholder="e.g. 0244000000">
+
+      <label>Church</label>
+      <input type="text" id="regChurch" placeholder="Name of your local church">
+
+      <label>District</label>
+      <input type="text" id="regDistrict" placeholder="Your district">
+
+      <label>Ministerial Rank</label>
+      <select id="regRank">
+        <option value="">-- Select --</option>
+        <option value="Ordained">Ordained</option>
+        <option value="Licentiate">Licentiate</option>
+        <option value="Exhorter">Exhorter</option>
+        <option value="Probationer">Probationer</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <!-- Payment -->
+    <div class="card">
+      <h3>Payment</h3>
+      <p class="sub">Pay via MoMo, then enter your transaction ID below.</p>
+
+      <div class="momo-box" id="momoInstructions"></div>
+
+      <label>MoMo Transaction ID <span class="req">*</span></label>
+      <input type="text" id="regTransactionId" placeholder="e.g. GH1234567890">
+
+      <label>Screenshot URL <span style="color:#a0aec0; font-weight:400;">(optional)</span></label>
+      <input type="text" id="regScreenshotUrl" placeholder="Paste a link to your screenshot (optional)">
+      <p style="font-size:11px; color:#a0aec0; margin-top:4px;">You can upload a screenshot to Google Drive or WhatsApp Web and paste the link here.</p>
+    </div>
+
+    <button class="submit-btn" id="submitBtn">Submit Registration</button>
+  </div>
+
+  <!-- Success screen -->
+  <div id="successScreen" class="hidden">
+    <div class="success-screen card">
+      <div class="icon">✅</div>
+      <h2>Registration Submitted!</h2>
+      <p>Your registration has been received. Please save your reference number below. You will be notified once your payment is verified.</p>
+
+      <div class="ref-box">
+        <div class="ref-label">YOUR REFERENCE NUMBER</div>
+        <div class="ref-number" id="successRefNumber"></div>
+      </div>
+
+      <div id="successDetails" style="text-align:left; margin-bottom:16px;"></div>
+
+      <p style="font-size:12px; color:#a0aec0;">Quote this reference number for any enquiries about your registration.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="app-footer">Powered by Bapiego</p>
+<div class="toast" id="toast"></div>
+
+<script>
+  const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_PLI1DLUB_0DF3R0x3GPWYA_RNj2aScg';
+
+  let eventData = null;
+  let selectedCategoryId = null;
+  let selectedCategoryPrice = 0;
+  let selectedMeals = {}; // meal_option_id → {selected: bool, days: [...]}
+  let feedingModel = null;
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('visible');
+    setTimeout(() => t.classList.remove('visible'), 3000);
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  async function callRPC(fn, payload) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify(payload)
+    });
+    return res.json();
+  }
+
+  // ---------- Load event ----------
+  async function loadEvent() {
+    const params = new URLSearchParams(window.location.search);
+    const eventId = params.get('event');
+
+    if (!eventId) {
+      showError('No event specified in the URL.');
+      return;
+    }
+
+    try {
+      const res = await callRPC('get_accommodation_event_public', { p_event_id: eventId });
+
+      if (!res.success) {
+        showError(res.error || 'Event not found or not open for registration.');
+        return;
+      }
+
+      eventData = res;
+      feedingModel = res.event.feeding_model;
+      renderEvent();
+      document.getElementById('loadingScreen').classList.add('hidden');
+      document.getElementById('registrationForm').classList.remove('hidden');
+    } catch (e) {
+      showError('Failed to load event. Please check your connection and try again.');
+    }
+  }
+
+  function showError(msg) {
+    document.getElementById('loadingScreen').classList.add('hidden');
+    const el = document.getElementById('errorScreen');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+  }
+
+  // ---------- Render event ----------
+  function renderEvent() {
+    const ev = eventData.event;
+    const banner = document.getElementById('eventBanner');
+
+    const dateStr = ev.start_date && ev.end_date
+      ? `${new Date(ev.start_date).toDateString()} – ${new Date(ev.end_date).toDateString()}`
+      : '';
+    const deadlineStr = ev.deadline
+      ? `Registration closes: ${new Date(ev.deadline).toLocaleString()}`
+      : '';
+
+    banner.innerHTML = `
+      <h2>${escapeHtml(ev.name)}</h2>
+      <div class="meta">
+        ${ev.location ? `📍 ${escapeHtml(ev.location)}<br>` : ''}
+        ${dateStr ? `📅 ${dateStr}<br>` : ''}
+        ${deadlineStr ? `⏰ ${deadlineStr}` : ''}
+      </div>
+    `;
+
+    renderRoomCategories();
+    renderFeedingOptions();
+    renderMomoInstructions();
+  }
+
+  function renderRoomCategories() {
+    const list = document.getElementById('roomCategoryList');
+    list.innerHTML = '';
+
+    eventData.categories.forEach(cat => {
+      const bedsLeft = cat.beds_remaining;
+      const isFull = bedsLeft <= 0;
+      const isLow = bedsLeft > 0 && bedsLeft <= 5;
+
+      const badgeClass = isFull ? 'full' : (isLow ? 'low' : 'available');
+      const badgeText = isFull ? 'FULLY BOOKED' : `${bedsLeft} bed${bedsLeft !== 1 ? 's' : ''} left`;
+
+      const card = document.createElement('div');
+      card.className = `room-card${isFull ? ' full' : ''}`;
+      card.dataset.id = cat.id;
+      card.dataset.price = cat.price_per_person;
+      card.innerHTML = `
+        <span class="beds-badge ${badgeClass}">${badgeText}</span>
+        <div class="room-name">${escapeHtml(cat.name)}</div>
+        <div class="room-meta">
+          ${cat.persons_per_room} persons per room
+          ${cat.description ? `<br>${escapeHtml(cat.description)}` : ''}
+        </div>
+        <div class="room-price">GH₵ ${parseFloat(cat.price_per_person).toFixed(2)} <span style="font-size:13px; font-weight:400; color:#718096;">/ person</span></div>
+        <span class="selected-check">✓ Selected</span>
+      `;
+
+      if (!isFull) {
+        card.addEventListener('click', () => {
+          document.querySelectorAll('.room-card').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          selectedCategoryId = cat.id;
+          selectedCategoryPrice = parseFloat(cat.price_per_person);
+          updateFeedingForCategory();
+          updateCostSummary();
+        });
+      }
+
+      list.appendChild(card);
+    });
+  }
+
+  function renderFeedingOptions() {
+    const feedingCard = document.getElementById('feedingCard');
+    const feedingList = document.getElementById('feedingOptionsList');
+    const sub = document.getElementById('feedingCardSub');
+    feedingList.innerHTML = '';
+
+    if (!eventData.meals || eventData.meals.length === 0) {
+      feedingCard.classList.add('hidden');
+      return;
+    }
+
+    feedingCard.classList.remove('hidden');
+
+    if (feedingModel === 'flat') {
+      sub.textContent = 'The following meals package is included. Select to include it in your registration.';
+      renderFlatMeals(feedingList);
+    } else if (feedingModel === 'per_category') {
+      sub.textContent = 'Meals pricing varies by your selected room category.';
+      renderFlatMeals(feedingList); // Same UI, just filtered per category
+    } else {
+      sub.textContent = 'Choose which meals and which days you\'d like to be fed.';
+      renderALaCarteMeals(feedingList);
+    }
+  }
+
+  function getRelevantMeals() {
+    if (!selectedCategoryId || feedingModel === 'flat') {
+      return eventData.meals.filter(m => !m.room_category_id);
+    }
+    if (feedingModel === 'per_category') {
+      const catMeals = eventData.meals.filter(m => m.room_category_id === selectedCategoryId);
+      if (catMeals.length > 0) return catMeals;
+      return eventData.meals.filter(m => !m.room_category_id);
+    }
+    return eventData.meals;
+  }
+
+  function updateFeedingForCategory() {
+    const feedingList = document.getElementById('feedingOptionsList');
+    feedingList.innerHTML = '';
+    selectedMeals = {};
+    if (feedingModel === 'flat' || feedingModel === 'per_category') {
+      renderFlatMeals(feedingList);
+    } else {
+      renderALaCarteMeals(feedingList);
+    }
+  }
+
+  function renderFlatMeals(container) {
+    const relevant = getRelevantMeals();
+    relevant.forEach(meal => {
+      selectedMeals[meal.id] = { selected: false };
+
+      const toggle = document.createElement('div');
+      toggle.className = 'meal-toggle';
+      toggle.dataset.id = meal.id;
+      toggle.dataset.price = meal.price_per_person;
+      toggle.innerHTML = `
+        <div>
+          <div class="meal-name">${escapeHtml(meal.label)}</div>
+        </div>
+        <div class="meal-price">GH₵ ${parseFloat(meal.price_per_person).toFixed(2)}</div>
+      `;
+      toggle.addEventListener('click', () => {
+        const isSelected = !selectedMeals[meal.id].selected;
+        selectedMeals[meal.id].selected = isSelected;
+        toggle.classList.toggle('selected', isSelected);
+        updateCostSummary();
+      });
+      container.appendChild(toggle);
+    });
+  }
+
+  function renderALaCarteMeals(container) {
+    eventData.meals.forEach(meal => {
+      selectedMeals[meal.id] = { selected: false, days: [] };
+
+      const days = meal.available_days || [];
+
+      const toggle = document.createElement('div');
+      toggle.className = 'meal-toggle';
+      toggle.dataset.id = meal.id;
+      toggle.dataset.price = meal.price_per_person;
+      toggle.innerHTML = `
+        <div>
+          <div class="meal-name">${escapeHtml(meal.label)}</div>
+          ${days.length > 0 ? `<div class="meal-days">Available: ${days.map(escapeHtml).join(', ')}</div>` : ''}
+        </div>
+        <div class="meal-price">GH₵ ${parseFloat(meal.price_per_person).toFixed(2)} / day</div>
+      `;
+
+      const daySection = document.createElement('div');
+      daySection.className = 'a-la-carte-section';
+
+      if (days.length > 0) {
+        const dayBoxes = document.createElement('div');
+        dayBoxes.className = 'day-checkboxes';
+        days.forEach(day => {
+          const lbl = document.createElement('label');
+          lbl.className = 'day-check-label';
+          const chk = document.createElement('input');
+          chk.type = 'checkbox';
+          chk.value = day;
+          chk.addEventListener('change', () => {
+            if (chk.checked) {
+              selectedMeals[meal.id].days.push(day);
+              lbl.classList.add('checked');
+            } else {
+              selectedMeals[meal.id].days = selectedMeals[meal.id].days.filter(d => d !== day);
+              lbl.classList.remove('checked');
+            }
+            updateCostSummary();
+          });
+          lbl.appendChild(chk);
+          lbl.appendChild(document.createTextNode(day));
+          dayBoxes.appendChild(lbl);
+        });
+        daySection.appendChild(dayBoxes);
+      }
+
+      toggle.addEventListener('click', (e) => {
+        if (e.target.type === 'checkbox' || e.target.classList.contains('day-check-label')) return;
+        const isSelected = !selectedMeals[meal.id].selected;
+        selectedMeals[meal.id].selected = isSelected;
+        toggle.classList.toggle('selected', isSelected);
+        daySection.classList.toggle('visible', isSelected);
+        if (!isSelected) {
+          selectedMeals[meal.id].days = [];
+          daySection.querySelectorAll('input[type=checkbox]').forEach(c => c.checked = false);
+          daySection.querySelectorAll('.day-check-label').forEach(l => l.classList.remove('checked'));
+        }
+        updateCostSummary();
+      });
+
+      const wrap = document.createElement('div');
+      wrap.appendChild(toggle);
+      wrap.appendChild(daySection);
+      container.appendChild(wrap);
+    });
+  }
+
+  function updateCostSummary() {
+    let mealsCost = 0;
+
+    Object.entries(selectedMeals).forEach(([mealId, sel]) => {
+      if (!sel.selected) return;
+      const meal = eventData.meals.find(m => m.id === mealId);
+      if (!meal) return;
+
+      if (feedingModel === 'a_la_carte') {
+        mealsCost += parseFloat(meal.price_per_person) * (sel.days ? sel.days.length : 0);
+      } else {
+        mealsCost += parseFloat(meal.price_per_person);
+      }
+    });
+
+    const roomCost = selectedCategoryPrice;
+    const total = roomCost + mealsCost;
+
+    document.getElementById('costRoom').textContent = `GH₵ ${roomCost.toFixed(2)}`;
+    document.getElementById('costMeals').textContent = `GH₵ ${mealsCost.toFixed(2)}`;
+    document.getElementById('costTotal').textContent = `GH₵ ${total.toFixed(2)}`;
+  }
+
+  function renderMomoInstructions() {
+    const ev = eventData.event;
+    document.getElementById('momoInstructions').innerHTML = `
+      Send <strong>GH₵ <span id="momoAmount">—</span></strong> to:<br>
+      <span class="momo-number">${escapeHtml(ev.momo_number)}</span><br>
+      <strong>${escapeHtml(ev.momo_account_name)}</strong><br>
+      <br>
+      Then enter your transaction ID below.
+    `;
+  }
+
+  // Live update of MoMo amount
+  function updateMomoAmount() {
+    const total = parseFloat(document.getElementById('costTotal').textContent.replace('GH₵', '').trim()) || 0;
+    const el = document.getElementById('momoAmount');
+    if (el) el.textContent = total.toFixed(2);
+  }
+
+  // Watch cost changes to update MoMo amount
+  const observer = new MutationObserver(updateMomoAmount);
+  observer.observe(document.getElementById('costTotal'), { childList: true, subtree: true });
+
+  // ---------- Submit ----------
+  document.getElementById('submitBtn').addEventListener('click', async () => {
+    const name = document.getElementById('regName').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const transId = document.getElementById('regTransactionId').value.trim();
+
+    // Validate
+    let valid = true;
+    if (!name) { document.getElementById('regName').classList.add('invalid'); valid = false; }
+    else document.getElementById('regName').classList.remove('invalid');
+    if (!phone) { document.getElementById('regPhone').classList.add('invalid'); valid = false; }
+    else document.getElementById('regPhone').classList.remove('invalid');
+    if (!selectedCategoryId) { showToast('Please select a room category'); return; }
+    if (!transId) { document.getElementById('regTransactionId').classList.add('invalid'); valid = false; }
+    else document.getElementById('regTransactionId').classList.remove('invalid');
+    if (!valid) { showToast('Please fill in all required fields'); return; }
+
+    // Build feeding selection payload
+    const feedingSelection = {};
+    let mealsCost = 0;
+
+    if (feedingModel === 'a_la_carte') {
+      const selections = [];
+      Object.entries(selectedMeals).forEach(([mealId, sel]) => {
+        if (sel.selected && sel.days.length > 0) {
+          const meal = eventData.meals.find(m => m.id === mealId);
+          const dayCost = parseFloat(meal.price_per_person) * sel.days.length;
+          mealsCost += dayCost;
+          selections.push({ meal_option_id: mealId, days: sel.days, cost: dayCost });
+        }
+      });
+      feedingSelection.type = 'a_la_carte';
+      feedingSelection.selections = selections;
+      feedingSelection.total_meals_cost = mealsCost;
+    } else {
+      const included = [];
+      Object.entries(selectedMeals).forEach(([mealId, sel]) => {
+        if (sel.selected) {
+          const meal = eventData.meals.find(m => m.id === mealId);
+          mealsCost += parseFloat(meal.price_per_person);
+          included.push({ meal_option_id: mealId });
+        }
+      });
+      feedingSelection.type = feedingModel;
+      feedingSelection.included = included;
+      feedingSelection.total_meals_cost = mealsCost;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting...';
+
+    try {
+      const res = await callRPC('submit_registration', {
+        p_accommodation_event_id: params.get('event'),
+        p_room_category_id: selectedCategoryId,
+        p_full_name: name,
+        p_phone: phone,
+        p_church: document.getElementById('regChurch').value.trim() || null,
+        p_district: document.getElementById('regDistrict').value.trim() || null,
+        p_ministerial_rank: document.getElementById('regRank').value || null,
+        p_feeding_selection: feedingSelection,
+        p_meals_total: mealsCost,
+        p_momo_transaction_id: transId,
+        p_payment_screenshot_url: document.getElementById('regScreenshotUrl').value.trim() || null
+      });
+
+      if (!res.success) {
+        showToast(res.error || 'Submission failed. Please try again.');
+        btn.disabled = false;
+        btn.textContent = 'Submit Registration';
+        return;
+      }
+
+      // Show success
+      document.getElementById('successRefNumber').textContent = res.reference_number;
+
+      const cat = eventData.categories.find(c => c.id === selectedCategoryId);
+      document.getElementById('successDetails').innerHTML = `
+        <div class="detail-row"><span class="dlabel">Name</span><span class="dval">${escapeHtml(name)}</span></div>
+        <div class="detail-row"><span class="dlabel">Room Category</span><span class="dval">${escapeHtml(cat?.name || '')}</span></div>
+        <div class="detail-row"><span class="dlabel">Total Amount</span><span class="dval">GH₵ ${parseFloat(res.grand_total).toFixed(2)}</span></div>
+        <div class="detail-row"><span class="dlabel">Transaction ID</span><span class="dval">${escapeHtml(transId)}</span></div>
+        <div class="detail-row"><span class="dlabel">Status</span><span class="dval" style="color:#d97706;">⏳ Awaiting Verification</span></div>
+      `;
+
+      document.getElementById('registrationForm').classList.add('hidden');
+      document.getElementById('successScreen').classList.remove('hidden');
+      window.scrollTo(0, 0);
+    } catch (e) {
+      showToast('Connection error. Please try again.');
+      btn.disabled = false;
+      btn.textContent = 'Submit Registration';
+    }
+  });
+
+  loadEvent();
+</script>
+</body>
+</html>
