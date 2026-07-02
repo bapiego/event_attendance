@@ -319,6 +319,18 @@
       <label>Phone Number <span class="req">*</span></label>
       <input type="tel" id="regPhone" placeholder="e.g. 0244000000">
 
+      <label>Sex <span class="req">*</span></label>
+      <div style="display:flex; gap:10px; margin-bottom:4px;">
+        <label style="display:flex; align-items:center; gap:6px; font-weight:normal; text-transform:none; letter-spacing:0; margin-top:0; cursor:pointer; padding:10px 16px; border:1.5px solid #e2e8f0; border-radius:8px; flex:1; justify-content:center;" id="sexMaleLabel">
+          <input type="radio" name="regSex" id="regSexMale" value="male" style="width:auto;">
+          <span>Male</span>
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; font-weight:normal; text-transform:none; letter-spacing:0; margin-top:0; cursor:pointer; padding:10px 16px; border:1.5px solid #e2e8f0; border-radius:8px; flex:1; justify-content:center;" id="sexFemaleLabel">
+          <input type="radio" name="regSex" id="regSexFemale" value="female" style="width:auto;">
+          <span>Female</span>
+        </label>
+      </div>
+
       <label>Church</label>
       <input type="text" id="regChurch" placeholder="Name of your local church">
 
@@ -334,6 +346,54 @@
         <option value="Probationer">Probationer</option>
         <option value="Other">Other</option>
       </select>
+
+      <!-- Couple toggle — only shown for 2-person room categories -->
+      <div id="coupleToggleWrap" style="display:none; margin-top:16px; padding:14px; background:#f0f7ff; border:1.5px solid #bee3f8; border-radius:8px;">
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:600; text-transform:none; letter-spacing:0; margin:0; font-size:14px; color:#1e3a5f;">
+          <input type="checkbox" id="coupleToggle" style="width:auto; transform:scale(1.3);">
+          I am registering with my spouse (also a minister)
+        </label>
+        <p style="font-size:12px; color:#718096; margin:6px 0 0 28px;">Both of you will share one room. Payment covers both.</p>
+      </div>
+
+      <!-- Spouse details — shown when couple toggle is checked -->
+      <div id="spouseFields" style="display:none; margin-top:14px; padding:14px; background:#f7fafc; border:1.5px solid #e2e8f0; border-radius:8px;">
+        <p style="font-size:13px; font-weight:700; color:#2c5282; margin-bottom:12px;">Spouse Details</p>
+
+        <label>Spouse Full Name <span class="req">*</span></label>
+        <input type="text" id="spouseName" placeholder="e.g. Rev. Mary Mensah">
+
+        <label>Spouse Phone <span class="req">*</span></label>
+        <input type="tel" id="spousePhone" placeholder="e.g. 0244000001">
+
+        <label>Spouse Sex <span class="req">*</span></label>
+        <div style="display:flex; gap:10px; margin-bottom:4px;">
+          <label style="display:flex; align-items:center; gap:6px; font-weight:normal; text-transform:none; letter-spacing:0; margin-top:0; cursor:pointer; padding:10px 16px; border:1.5px solid #e2e8f0; border-radius:8px; flex:1; justify-content:center;">
+            <input type="radio" name="spouseSex" id="spouseSexMale" value="male" style="width:auto;">
+            <span>Male</span>
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; font-weight:normal; text-transform:none; letter-spacing:0; margin-top:0; cursor:pointer; padding:10px 16px; border:1.5px solid #e2e8f0; border-radius:8px; flex:1; justify-content:center;">
+            <input type="radio" name="spouseSex" id="spouseSexFemale" value="female" style="width:auto;">
+            <span>Female</span>
+          </label>
+        </div>
+
+        <label>Spouse Church</label>
+        <input type="text" id="spouseChurch" placeholder="Spouse's church">
+
+        <label>Spouse District</label>
+        <input type="text" id="spouseDistrict" placeholder="Spouse's district">
+
+        <label>Spouse Ministerial Rank</label>
+        <select id="spouseRank">
+          <option value="">-- Select --</option>
+          <option value="Ordained">Ordained</option>
+          <option value="Licentiate">Licentiate</option>
+          <option value="Exhorter">Exhorter</option>
+          <option value="Probationer">Probationer</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
     </div>
 
     <!-- Payment -->
@@ -484,23 +544,29 @@
     list.innerHTML = '';
 
     eventData.categories.forEach(cat => {
-      const bedsLeft = cat.beds_remaining;
+      const selectedSex = document.querySelector('input[name="regSex"]:checked')?.value || null;
+      const bedsLeft = selectedSex
+        ? (selectedSex === 'male' ? (cat.beds_remaining_male ?? cat.beds_remaining) : (cat.beds_remaining_female ?? cat.beds_remaining))
+        : cat.beds_remaining;
       const isFull = bedsLeft <= 0;
       const isLow = bedsLeft > 0 && bedsLeft <= 5;
-
       const badgeClass = isFull ? 'full' : (isLow ? 'low' : 'available');
-      const badgeText = isFull ? 'FULLY BOOKED' : `${bedsLeft} bed${bedsLeft !== 1 ? 's' : ''} left`;
+      const badgeText = isFull
+        ? (selectedSex ? `No beds for ${selectedSex === 'male' ? 'Males' : 'Females'}` : 'FULLY BOOKED')
+        : `${bedsLeft} bed${bedsLeft !== 1 ? 's' : ''} left${selectedSex ? ' for ' + (selectedSex === 'male' ? 'Males' : 'Females') : ''}`;
 
       const card = document.createElement('div');
       card.className = `room-card${isFull ? ' full' : ''}`;
       card.dataset.id = cat.id;
       card.dataset.price = cat.price_per_person;
+      card.dataset.personsPerRoom = cat.persons_per_room;
       card.innerHTML = `
         <span class="beds-badge ${badgeClass}">${badgeText}</span>
         <div class="room-name">${escapeHtml(cat.name)}</div>
         <div class="room-meta">
           ${cat.persons_per_room} persons per room
           ${cat.description ? `<br>${escapeHtml(cat.description)}` : ''}
+          ${cat.persons_per_room === 2 ? '<br><span style="color:#9ae6b4; font-size:11px;">✓ Couple sharing available</span>' : ''}
         </div>
         <div class="room-price">GH₵ ${parseFloat(cat.price_per_person).toFixed(2)} <span style="font-size:13px; font-weight:400; color:#718096;">/ person</span></div>
         <span class="selected-check">✓ Selected</span>
@@ -514,6 +580,7 @@
           selectedCategoryPrice = parseFloat(cat.price_per_person);
           updateFeedingForCategory();
           updateCostSummary();
+          updateCoupleToggleVisibility();
         });
       }
 
@@ -664,12 +731,10 @@
 
   function updateCostSummary() {
     let mealsCost = 0;
-
     Object.entries(selectedMeals).forEach(([mealId, sel]) => {
       if (!sel.selected) return;
       const meal = eventData.meals.find(m => m.id === mealId);
       if (!meal) return;
-
       if (feedingModel === 'a_la_carte') {
         mealsCost += parseFloat(meal.price_per_person) * (sel.days ? sel.days.length : 0);
       } else {
@@ -677,10 +742,11 @@
       }
     });
 
-    const roomCost = selectedCategoryPrice;
+    const isCouple = document.getElementById('coupleToggle')?.checked;
+    const roomCost = selectedCategoryPrice * (isCouple ? 2 : 1);
     const total = roomCost + mealsCost;
 
-    document.getElementById('costRoom').textContent = `GH₵ ${roomCost.toFixed(2)}`;
+    document.getElementById('costRoom').textContent = `GH₵ ${roomCost.toFixed(2)}${isCouple ? ' (×2)' : ''}`;
     document.getElementById('costMeals').textContent = `GH₵ ${mealsCost.toFixed(2)}`;
     document.getElementById('costTotal').textContent = `GH₵ ${total.toFixed(2)}`;
   }
@@ -696,8 +762,38 @@
     `;
   }
 
-  // Live update of MoMo amount
-  function updateMomoAmount() {
+  // ---------- Sex selector styling ----------
+  document.querySelectorAll('input[name="regSex"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.getElementById('sexMaleLabel').style.borderColor = '';
+      document.getElementById('sexFemaleLabel').style.borderColor = '';
+      document.getElementById('sexMaleLabel').style.background = '';
+      document.getElementById('sexFemaleLabel').style.background = '';
+      const lbl = document.getElementById(radio.value === 'male' ? 'sexMaleLabel' : 'sexFemaleLabel');
+      lbl.style.borderColor = '#2c5282';
+      lbl.style.background = '#f0f7ff';
+      // Re-render room categories with sex-specific availability
+      if (eventData) renderRoomCategories();
+      updateCoupleToggleVisibility();
+    });
+  });
+
+  // ---------- Couple toggle ----------
+  function updateCoupleToggleVisibility() {
+    if (!selectedCategoryId) return;
+    const cat = eventData?.categories?.find(c => c.id === selectedCategoryId);
+    const is2person = cat && cat.persons_per_room === 2;
+    document.getElementById('coupleToggleWrap').style.display = is2person ? 'block' : 'none';
+    if (!is2person) {
+      document.getElementById('coupleToggle').checked = false;
+      document.getElementById('spouseFields').style.display = 'none';
+    }
+  }
+
+  document.getElementById('coupleToggle').addEventListener('change', (e) => {
+    document.getElementById('spouseFields').style.display = e.target.checked ? 'block' : 'none';
+    updateCostSummary();
+  });
     const total = parseFloat(document.getElementById('costTotal').textContent.replace('GH₵', '').trim()) || 0;
     const el = document.getElementById('momoAmount');
     if (el) el.textContent = total.toFixed(2);
@@ -708,6 +804,11 @@
     const name = document.getElementById('regName').value.trim();
     const phone = document.getElementById('regPhone').value.trim();
     const transId = document.getElementById('regTransactionId').value.trim();
+    const sex = document.querySelector('input[name="regSex"]:checked')?.value || '';
+    const isCouple = document.getElementById('coupleToggle').checked;
+    const spouseName = document.getElementById('spouseName').value.trim();
+    const spousePhone = document.getElementById('spousePhone').value.trim();
+    const spouseSex = document.querySelector('input[name="spouseSex"]:checked')?.value || '';
 
     // Validate
     let valid = true;
@@ -715,9 +816,19 @@
     else document.getElementById('regName').classList.remove('invalid');
     if (!phone) { document.getElementById('regPhone').classList.add('invalid'); valid = false; }
     else document.getElementById('regPhone').classList.remove('invalid');
+    if (!sex) { showToast('Please select your sex'); return; }
     if (!selectedCategoryId) { showToast('Please select a room category'); return; }
     if (!transId) { document.getElementById('regTransactionId').classList.add('invalid'); valid = false; }
     else document.getElementById('regTransactionId').classList.remove('invalid');
+
+    if (isCouple) {
+      if (!spouseName) { document.getElementById('spouseName').classList.add('invalid'); valid = false; }
+      else document.getElementById('spouseName').classList.remove('invalid');
+      if (!spousePhone) { document.getElementById('spousePhone').classList.add('invalid'); valid = false; }
+      else document.getElementById('spousePhone').classList.remove('invalid');
+      if (!spouseSex) { showToast('Please select your spouse\'s sex'); return; }
+    }
+
     if (!valid) { showToast('Please fill in all required fields'); return; }
 
     // Build feeding selection payload
@@ -765,10 +876,17 @@
         p_church: document.getElementById('regChurch').value.trim() || null,
         p_district: document.getElementById('regDistrict').value.trim() || null,
         p_ministerial_rank: document.getElementById('regRank').value || null,
+        p_sex: sex,
         p_feeding_selection: feedingSelection,
         p_meals_total: mealsCost,
         p_momo_transaction_id: transId,
-        p_payment_screenshot_url: document.getElementById('regScreenshotUrl').value.trim() || null
+        p_payment_screenshot_url: document.getElementById('regScreenshotUrl').value.trim() || null,
+        p_spouse_name: isCouple ? spouseName : null,
+        p_spouse_phone: isCouple ? spousePhone : null,
+        p_spouse_church: isCouple ? (document.getElementById('spouseChurch').value.trim() || null) : null,
+        p_spouse_district: isCouple ? (document.getElementById('spouseDistrict').value.trim() || null) : null,
+        p_spouse_rank: isCouple ? (document.getElementById('spouseRank').value || null) : null,
+        p_spouse_sex: isCouple ? spouseSex : null
       });
 
       if (!res.success) {
@@ -801,6 +919,7 @@
         <div class="detail-row"><span class="dlabel">Room Category</span><span class="dval">${escapeHtml(cat?.name || '')}</span></div>
         <div class="detail-row"><span class="dlabel">Total Amount</span><span class="dval">GH₵ ${parseFloat(res.grand_total).toFixed(2)}</span></div>
         <div class="detail-row"><span class="dlabel">Transaction ID</span><span class="dval">${escapeHtml(transId)}</span></div>
+        ${res.is_couple ? `<div class="detail-row"><span class="dlabel">Spouse Ref</span><span class="dval">${escapeHtml(res.spouse_reference || '')}</span></div>` : ''}
         <div class="detail-row"><span class="dlabel">Status</span><span class="dval" style="color:#d97706;">⏳ Awaiting Verification</span></div>
       `;
 

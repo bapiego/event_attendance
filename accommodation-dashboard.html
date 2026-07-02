@@ -216,7 +216,7 @@
           <thead>
             <tr>
               <th>#</th><th>Ref</th><th>Name</th><th>Phone</th>
-              <th>Church / District</th><th>Room</th><th>Assigned</th>
+              <th>Church / District</th><th>Sex</th><th>Room</th><th>Assigned</th>
               <th>Total (GH₵)</th><th>Status</th><th>Submitted</th><th></th>
             </tr>
           </thead>
@@ -415,6 +415,14 @@
 
     <div class="form-group"><label>Full Name *</label><input type="text" id="rvName" placeholder="e.g. Rev. John Mensah"></div>
     <div class="form-group"><label>Phone Number *</label><input type="text" id="rvPhone" placeholder="e.g. 0244000000"></div>
+    <div class="form-group">
+      <label>Sex *</label>
+      <select id="rvSex">
+        <option value="">-- Select --</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+    </div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
       <div class="form-group"><label>Church</label><input type="text" id="rvChurch"></div>
       <div class="form-group"><label>District</label><input type="text" id="rvDistrict"></div>
@@ -455,6 +463,14 @@
 
     <div class="form-group"><label>Full Name *</label><input type="text" id="arName" placeholder="e.g. Rev. John Mensah"></div>
     <div class="form-group"><label>Phone Number *</label><input type="text" id="arPhone" placeholder="e.g. 0244000000"></div>
+    <div class="form-group">
+      <label>Sex *</label>
+      <select id="arSex">
+        <option value="">-- Select --</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+    </div>
 
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
       <div class="form-group"><label>Church</label><input type="text" id="arChurch"></div>
@@ -762,6 +778,32 @@
     if (!res.success) return;
     allRegistrations = res.registrations || [];
     renderRegistrantTable();
+    checkMixedRooms();
+  }
+
+  function checkMixedRooms() {
+    // Group by room_number + category and check for mixed sex without couple flag
+    const roomMap = {};
+    allRegistrations.filter(r => r.payment_status === 'verified' && r.room_number).forEach(r => {
+      const key = `${r.room_category_name}-Room${r.room_number}`;
+      if (!roomMap[key]) roomMap[key] = { sexes: new Set(), isCouple: false, name: `${r.room_category_name} Room ${r.room_number}` };
+      if (r.sex) roomMap[key].sexes.add(r.sex);
+      if (r.slot_type === 'couple') roomMap[key].isCouple = true;
+    });
+
+    const mixedRooms = Object.values(roomMap).filter(r => r.sexes.size > 1 && !r.isCouple);
+
+    // Remove existing warning
+    const existingWarning = document.getElementById('mixedRoomWarning');
+    if (existingWarning) existingWarning.remove();
+
+    if (mixedRooms.length > 0) {
+      const warning = document.createElement('div');
+      warning.id = 'mixedRoomWarning';
+      warning.style.cssText = 'background:rgba(239,68,68,0.1); border:1.5px solid var(--danger); border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:13px; color:#f87171;';
+      warning.innerHTML = `⚠️ <strong>Mixed-sex room alert:</strong> The following rooms have both male and female occupants but are not flagged as couple rooms: <strong>${mixedRooms.map(r => r.name).join(', ')}</strong>. Please review and correct if needed.`;
+      document.getElementById('tabRegistrants').insertBefore(warning, document.getElementById('tabRegistrants').firstChild);
+    }
   }
 
   function renderRegistrantTable() {
@@ -780,11 +822,12 @@
       tr.innerHTML = `
         <td style="color:var(--text-muted);">${i+1}</td>
         <td style="font-family:monospace; font-size:11px; color:#60a5fa;">${escapeHtml(reg.reference_number)}</td>
-        <td><strong>${escapeHtml(reg.full_name)}</strong></td>
+        <td><strong>${escapeHtml(reg.full_name)}</strong>${reg.couple_id ? '<br><span style="font-size:10px; color:#9ae6b4;">💑 Couple</span>' : ''}</td>
         <td>${escapeHtml(reg.phone)}</td>
         <td style="font-size:12px;">${escapeHtml(reg.church || '—')}<br><span style="color:var(--text-muted);">${escapeHtml(reg.district || '')}</span></td>
+        <td style="font-size:12px; text-transform:capitalize;">${reg.sex ? (reg.sex === 'male' ? '♂ Male' : '♀ Female') : '—'}</td>
         <td>${escapeHtml(reg.room_category_name)}</td>
-        <td>${reg.room_number ? `<span class="room-badge">Room ${reg.room_number}</span>` : '—'}</td>
+        <td>${reg.room_number ? `<span class="room-badge">${reg.slot_type === 'couple' ? '💑' : ''} Room ${reg.room_number}</span>` : '—'}</td>
         <td style="font-weight:700;">${parseFloat(reg.grand_total).toFixed(2)}</td>
         <td><span class="status-dot ${reg.payment_status}"></span>${reg.payment_status}</td>
         <td style="font-size:11px; color:var(--text-muted);">${new Date(reg.submitted_at).toLocaleDateString()}</td>
@@ -907,6 +950,7 @@
   function openReserveModal() {
     ['rvName','rvPhone','rvChurch','rvDistrict'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('rvRank').value = '';
+    document.getElementById('rvSex').value = '';
     document.getElementById('rvDeadline').value = '';
 
     const catSel = document.getElementById('rvRoomCategory');
@@ -936,9 +980,11 @@
     const phone = document.getElementById('rvPhone').value.trim();
     const deadline = document.getElementById('rvDeadline').value;
     const roomCatId = document.getElementById('rvRoomCategory').value;
+    const sex = document.getElementById('rvSex').value;
 
     if (!name) { showToast('Full name is required', 'error'); return; }
     if (!phone) { showToast('Phone number is required', 'error'); return; }
+    if (!sex) { showToast('Please select sex', 'error'); return; }
     if (!deadline) { showToast('Payment deadline is required', 'error'); return; }
     if (!roomCatId) { showToast('Please select a room category', 'error'); return; }
 
@@ -954,6 +1000,7 @@
       p_church: document.getElementById('rvChurch').value.trim() || null,
       p_district: document.getElementById('rvDistrict').value.trim() || null,
       p_ministerial_rank: document.getElementById('rvRank').value || null,
+      p_sex: sex,
       p_payment_deadline: deadline
     });
 
@@ -1132,6 +1179,7 @@
     // Reset form
     ['arName','arPhone','arChurch','arDistrict','arTransactionId'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('arRank').value = '';
+    document.getElementById('arSex').value = '';
     adminRegMeals = {};
 
     // Populate room categories
@@ -1200,10 +1248,12 @@
     const name = document.getElementById('arName').value.trim();
     const phone = document.getElementById('arPhone').value.trim();
     const transId = document.getElementById('arTransactionId').value.trim();
+    const sex = document.getElementById('arSex').value;
     const roomCatId = document.getElementById('arRoomCategory').value;
 
     if (!name) { showToast('Full name is required', 'error'); return; }
     if (!phone) { showToast('Phone number is required', 'error'); return; }
+    if (!sex) { showToast('Please select sex', 'error'); return; }
     if (!transId) { showToast('MoMo Transaction ID is required', 'error'); return; }
     if (!roomCatId) { showToast('Please select a room category', 'error'); return; }
 
@@ -1227,6 +1277,7 @@
       p_church: document.getElementById('arChurch').value.trim() || null,
       p_district: document.getElementById('arDistrict').value.trim() || null,
       p_ministerial_rank: document.getElementById('arRank').value || null,
+      p_sex: sex,
       p_feeding_selection: feedingSelection,
       p_meals_total: mealsCost,
       p_momo_transaction_id: transId,
