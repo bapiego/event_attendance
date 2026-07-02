@@ -679,7 +679,7 @@
     }
 
     const regLink = document.createElement('a');
-    regLink.href = `${window.location.origin}/register.html?event=${accommodationEventId}`;
+    regLink.href = `${window.location.origin}/register?event=${accommodationEventId}`;
     regLink.className = 'btn secondary';
     regLink.target = '_blank';
     regLink.textContent = 'Registration Link ↗';
@@ -958,7 +958,7 @@
     const catOpt = document.getElementById('rvRoomCategory').options[document.getElementById('rvRoomCategory').selectedIndex];
     const price = parseFloat(catOpt?.dataset.price || 0);
     const deadlineFormatted = new Date(deadline).toLocaleDateString('en-GH', { day: 'numeric', month: 'long', year: 'numeric' });
-    const regLink = `${window.location.origin}/register.html?event=${accommodationEventId}`;
+    const regLink = `${window.location.origin}/register?event=${accommodationEventId}`;
 
     fetch(`${SUPABASE_URL}/functions/v1/send-sms`, {
       method: 'POST',
@@ -1049,7 +1049,7 @@
   });
 
   function renderRegLink() {
-    const link = `${window.location.origin}/register.html?event=${accommodationEventId}`;
+    const link = `${window.location.origin}/register?event=${accommodationEventId}`;
     document.getElementById('regLinkDisplay').value = link;
   }
   document.getElementById('copyRegLinkBtn').addEventListener('click', () => {

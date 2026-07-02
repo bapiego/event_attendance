@@ -841,7 +841,7 @@
 
     // Show success
     const baseUrl = window.location.origin + '/';
-    const regLink = `${baseUrl}register.html?event=${createdEventId}`;
+    const regLink = `${baseUrl}register?event=${createdEventId}`;
     document.getElementById('successEventName').textContent = `"${name}" is now live!`;
     document.getElementById('registrationLink').value = regLink;
     document.getElementById('step1').classList.add('hidden');
