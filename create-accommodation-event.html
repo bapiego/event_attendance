@@ -840,7 +840,7 @@
     }
 
     // Show success
-    const baseUrl = window.location.origin + window.location.pathname.replace('create-accommodation-event.html', '');
+    const baseUrl = window.location.origin + '/';
     const regLink = `${baseUrl}register.html?event=${createdEventId}`;
     document.getElementById('successEventName').textContent = `"${name}" is now live!`;
     document.getElementById('registrationLink').value = regLink;
