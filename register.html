@@ -473,6 +473,10 @@
     renderRoomCategories();
     renderFeedingOptions();
     renderMomoInstructions();
+
+    // Now safe to observe costTotal since DOM is fully rendered
+    const observer = new MutationObserver(updateMomoAmount);
+    observer.observe(document.getElementById('costTotal'), { childList: true, subtree: true });
   }
 
   function renderRoomCategories() {
@@ -698,10 +702,6 @@
     const el = document.getElementById('momoAmount');
     if (el) el.textContent = total.toFixed(2);
   }
-
-  // Watch cost changes to update MoMo amount
-  const observer = new MutationObserver(updateMomoAmount);
-  observer.observe(document.getElementById('costTotal'), { childList: true, subtree: true });
 
   // ---------- Submit ----------
   document.getElementById('submitBtn').addEventListener('click', async () => {
