@@ -794,6 +794,9 @@
     document.getElementById('spouseFields').style.display = e.target.checked ? 'block' : 'none';
     updateCostSummary();
   });
+
+  // Live update of MoMo amount
+  function updateMomoAmount() {
     const total = parseFloat(document.getElementById('costTotal').textContent.replace('GH₵', '').trim()) || 0;
     const el = document.getElementById('momoAmount');
     if (el) el.textContent = total.toFixed(2);
