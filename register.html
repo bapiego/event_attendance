@@ -545,18 +545,33 @@
 
     eventData.categories.forEach(cat => {
       const selectedSex = document.querySelector('input[name="regSex"]:checked')?.value || null;
+      const maleLeft = cat.beds_remaining_male ?? cat.beds_remaining;
+      const femaleLeft = cat.beds_remaining_female ?? cat.beds_remaining;
       const bedsLeft = selectedSex
-        ? (selectedSex === 'male' ? (cat.beds_remaining_male ?? cat.beds_remaining) : (cat.beds_remaining_female ?? cat.beds_remaining))
+        ? (selectedSex === 'male' ? maleLeft : femaleLeft)
         : cat.beds_remaining;
       const isFull = bedsLeft <= 0;
       const isLow = bedsLeft > 0 && bedsLeft <= 5;
       const badgeClass = isFull ? 'full' : (isLow ? 'low' : 'available');
-      const badgeText = isFull
-        ? (selectedSex ? `No beds for ${selectedSex === 'male' ? 'Males' : 'Females'}` : 'FULLY BOOKED')
-        : `${bedsLeft} bed${bedsLeft !== 1 ? 's' : ''} left${selectedSex ? ' for ' + (selectedSex === 'male' ? 'Males' : 'Females') : ''}`;
+
+      let badgeText;
+      if (isFull) {
+        badgeText = selectedSex ? `No beds for ${selectedSex === 'male' ? 'Males' : 'Females'}` : 'FULLY BOOKED';
+      } else if (selectedSex) {
+        badgeText = `${bedsLeft} bed${bedsLeft !== 1 ? 's' : ''} left for ${selectedSex === 'male' ? 'Males' : 'Females'}`;
+      } else if (maleLeft > 0 && femaleLeft > 0) {
+        // Open to either sex — show the plain count
+        badgeText = `${bedsLeft} bed${bedsLeft !== 1 ? 's' : ''} left`;
+      } else if (maleLeft > 0) {
+        // Remaining beds are only reachable by males
+        badgeText = `${maleLeft} bed${maleLeft !== 1 ? 's' : ''} left (Male only)`;
+      } else {
+        // Remaining beds are only reachable by females
+        badgeText = `${femaleLeft} bed${femaleLeft !== 1 ? 's' : ''} left (Female only)`;
+      }
 
       const card = document.createElement('div');
-      card.className = `room-card${isFull ? ' full' : ''}`;
+      card.className = `room-card${isFull ? ' full' : ''}${(cat.id === selectedCategoryId && !isFull) ? ' selected' : ''}`;
       card.dataset.id = cat.id;
       card.dataset.price = cat.price_per_person;
       card.dataset.personsPerRoom = cat.persons_per_room;
@@ -772,6 +787,21 @@
       const lbl = document.getElementById(radio.value === 'male' ? 'sexMaleLabel' : 'sexFemaleLabel');
       lbl.style.borderColor = '#2c5282';
       lbl.style.background = '#f0f7ff';
+
+      // If the category picked earlier turns out to have no beds for this sex, clear it
+      if (eventData && selectedCategoryId) {
+        const cat = eventData.categories.find(c => c.id === selectedCategoryId);
+        if (cat) {
+          const left = radio.value === 'male' ? (cat.beds_remaining_male ?? cat.beds_remaining) : (cat.beds_remaining_female ?? cat.beds_remaining);
+          if (left <= 0) {
+            selectedCategoryId = null;
+            selectedCategoryPrice = 0;
+            updateCostSummary();
+            showToast(`Sorry, "${cat.name}" has no beds left for ${radio.value === 'male' ? 'males' : 'females'}. Please pick another category.`);
+          }
+        }
+      }
+
       // Re-render room categories with sex-specific availability
       if (eventData) renderRoomCategories();
       updateCoupleToggleVisibility();
@@ -780,7 +810,12 @@
 
   // ---------- Couple toggle ----------
   function updateCoupleToggleVisibility() {
-    if (!selectedCategoryId) return;
+    if (!selectedCategoryId) {
+      document.getElementById('coupleToggleWrap').style.display = 'none';
+      document.getElementById('coupleToggle').checked = false;
+      document.getElementById('spouseFields').style.display = 'none';
+      return;
+    }
     const cat = eventData?.categories?.find(c => c.id === selectedCategoryId);
     const is2person = cat && cat.persons_per_room === 2;
     document.getElementById('coupleToggleWrap').style.display = is2person ? 'block' : 'none';

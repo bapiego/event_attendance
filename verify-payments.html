@@ -227,6 +227,22 @@
   .btn-cancel-modal { background: #334155; color: white; }
   .btn-confirm-reject { background: var(--danger); color: white; }
 
+  .btn-reverse {
+    background: none; border: 1px solid var(--warning); color: var(--warning);
+    padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .btn-reverse:hover { background: var(--warning); color: white; }
+
+  .reversed-note {
+    background: rgba(217,119,6,0.08);
+    border: 1px solid rgba(217,119,6,0.3);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    color: #d97706;
+    margin-bottom: 12px;
+  }
+
   .toast {
     position: fixed; bottom: 24px; left: 50%;
     transform: translateX(-50%) translateY(100px);
@@ -286,6 +302,19 @@
     <div class="modal-actions">
       <button class="btn-cancel-modal" id="cancelRejectBtn">Cancel</button>
       <button class="btn-confirm-reject" id="confirmRejectBtn">Reject</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reverse verification modal -->
+<div class="modal-overlay" id="reverseModal">
+  <div class="modal-box">
+    <h3>Reverse this verification?</h3>
+    <p>This frees up their assigned bed and sends the registration back to Pending so it can be re-checked. Say why you're reversing it — this is kept on the record.</p>
+    <textarea id="reverseReason" placeholder="e.g. Verified by mistake — this is a duplicate of ACC2026-0027."></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" id="cancelReverseBtn">Cancel</button>
+      <button class="btn-confirm-reject" style="background:var(--warning);" id="confirmReverseBtn">Reverse Verification</button>
     </div>
   </div>
 </div>
@@ -442,6 +471,10 @@
           <span class="detail-value">${escapeHtml(reg.phone)}</span>
         </div>
         <div class="detail-item">
+          <span class="detail-label">Sex</span>
+          <span class="detail-value">${reg.sex ? (reg.sex === 'male' ? '♂ Male' : '♀ Female') : '—'}</span>
+        </div>
+        <div class="detail-item">
           <span class="detail-label">Room Category</span>
           <span class="detail-value">${escapeHtml(reg.room_category_name)}${reg.room_number ? ` · Room ${reg.room_number}` : ''}</span>
         </div>
@@ -493,6 +526,10 @@
         ? `<div class="rejection-note">Rejection reason: ${escapeHtml(reg.rejection_reason)}</div>`
         : ''}
 
+      ${reg.reversed_at
+        ? `<div class="reversed-note">↩ Verification reversed${reg.reversal_reason ? ': ' + escapeHtml(reg.reversal_reason) : ''}</div>`
+        : ''}
+
       <div class="action-row" id="actions-${escapeHtml(reg.id)}"></div>
     `;
 
@@ -511,7 +548,16 @@
       rejectBtn.addEventListener('click', () => openRejectModal(reg.id));
       actionRow.appendChild(rejectBtn);
     } else if (reg.payment_status === 'verified') {
-      actionRow.innerHTML = `<span class="verified-info">✓ Verified ${verifiedDate ? 'on ' + verifiedDate : ''}</span>`;
+      const info = document.createElement('span');
+      info.className = 'verified-info';
+      info.textContent = `✓ Verified ${verifiedDate ? 'on ' + verifiedDate : ''}`;
+      actionRow.appendChild(info);
+
+      const reverseBtn = document.createElement('button');
+      reverseBtn.className = 'btn-reverse';
+      reverseBtn.textContent = '↩ Reverse Verification';
+      reverseBtn.addEventListener('click', () => openReverseModal(reg.id));
+      actionRow.appendChild(reverseBtn);
     } else {
       actionRow.innerHTML = `<span class="verified-info" style="color:var(--danger);">✗ Rejected ${verifiedDate ? 'on ' + verifiedDate : ''}</span>`;
     }
@@ -612,6 +658,48 @@
       await loadRegistrations();
     } else {
       showToast(res.error || 'Failed to reject', 'error');
+    }
+  });
+
+  // ---------- Reverse verification ----------
+  let pendingReverseId = null;
+
+  function openReverseModal(regId) {
+    pendingReverseId = regId;
+    document.getElementById('reverseReason').value = '';
+    document.getElementById('reverseModal').classList.add('active');
+  }
+
+  document.getElementById('cancelReverseBtn').addEventListener('click', () => {
+    document.getElementById('reverseModal').classList.remove('active');
+    pendingReverseId = null;
+  });
+
+  document.getElementById('confirmReverseBtn').addEventListener('click', async () => {
+    const reason = document.getElementById('reverseReason').value.trim();
+    if (!reason) { showToast('Please provide a reason for the reversal', 'error'); return; }
+
+    const btn = document.getElementById('confirmReverseBtn');
+    btn.disabled = true;
+    btn.textContent = 'Reversing...';
+
+    const res = await callRPC('reverse_verification', {
+      p_token: sessionToken,
+      p_registration_id: pendingReverseId,
+      p_reason: reason
+    });
+
+    btn.disabled = false;
+    btn.textContent = 'Reverse Verification';
+    document.getElementById('reverseModal').classList.remove('active');
+    pendingReverseId = null;
+
+    if (res.success) {
+      showToast(`Verification reversed for ${res.full_name} — bed freed, back to Pending`, 'success');
+      await loadDashboardStats();
+      await loadRegistrations();
+    } else {
+      showToast(res.error || 'Failed to reverse verification', 'error');
     }
   });
 
