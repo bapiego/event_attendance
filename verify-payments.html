@@ -40,6 +40,8 @@
 
   header h1 { font-size: 18px; font-weight: 600; }
   header .user-info { font-size: 13px; opacity: 0.85; display: flex; align-items: center; gap: 12px; }
+  header .nav-back { color: white; opacity: 0.85; text-decoration: none; font-size: 13px; }
+  header .nav-back:hover { opacity: 1; text-decoration: underline; }
 
   .btn-logout {
     background: rgba(255,255,255,0.15); border: none; color: white;
@@ -267,6 +269,7 @@
     <div id="eventNameDisplay" style="font-size:13px; opacity:0.85; margin-top:2px;"></div>
   </div>
   <div class="user-info">
+    <a href="#" id="backToDashboardLink" class="nav-back" style="display:none;">← Accommodation Dashboard</a>
     <span id="loggedInAs"></span>
     <button class="btn-logout" id="logoutBtn">Log Out</button>
   </div>
@@ -733,6 +736,14 @@
       document.getElementById('registrationList').innerHTML =
         '<div class="empty-state">No event specified. Please navigate here from the dashboard.</div>';
       return;
+    }
+
+    // Managers/admins came from the accommodation dashboard — give them a way back.
+    // Accounts officers land here directly from login and have no dashboard to return to.
+    if (['event_manager', 'super_admin'].includes(userRole)) {
+      const backLink = document.getElementById('backToDashboardLink');
+      backLink.href = `accommodation-dashboard.html?event=${accommodationEventId}`;
+      backLink.style.display = 'inline';
     }
 
     await loadDashboardStats();
