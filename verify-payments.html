@@ -67,6 +67,41 @@
 
   .container { max-width: 900px; margin: 0 auto; padding: 20px; }
 
+  .section-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); margin-bottom: 10px;
+  }
+
+  .beds-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px; margin-bottom: 22px;
+  }
+  .beds-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+  .beds-card .cat-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
+  .beds-card .cat-price { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+  .beds-bar-wrap { background: var(--bg-main); border-radius: 999px; height: 7px; overflow: hidden; margin-bottom: 7px; }
+  .beds-bar { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
+  .beds-bar.full { background: var(--danger); }
+  .beds-bar.low { background: var(--warning); }
+  .beds-bar.ok { background: var(--success); }
+  .beds-stats { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
+  .beds-stats .taken { color: var(--text-main); font-weight: 600; }
+
+  .btn-register {
+    background: #0f766e; border: none; color: white;
+    padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+    margin-left: auto;
+  }
+  .btn-register:hover { background: #0d6460; }
+
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 5px; }
+  .form-group input, .form-group select {
+    width: 100%; padding: 9px 11px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--bg-main); color: var(--text-main); font-size: 14px;
+  }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); }
+
   .filter-row {
     display: flex;
     gap: 10px;
@@ -212,6 +247,7 @@
   .modal-box {
     background: var(--bg-card); border: 1px solid var(--border);
     border-radius: 12px; padding: 24px; width: 100%; max-width: 420px;
+    max-height: 90vh; overflow-y: auto;
   }
   .modal-box h3 { margin-bottom: 10px; }
   .modal-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
@@ -283,6 +319,12 @@
 </div>
 
 <div class="container">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
+    <div class="section-label" style="margin-bottom:0;">Room Availability</div>
+    <button class="btn-register" id="registerAttendeeBtn">+ Register Someone</button>
+  </div>
+  <div class="beds-grid" id="bedsGrid"></div>
+
   <div class="filter-row">
     <button class="filter-btn active" data-filter="pending">Pending</button>
     <button class="filter-btn" data-filter="verified">Verified</button>
@@ -322,6 +364,77 @@
   </div>
 </div>
 
+<!-- Register Attendee modal -->
+<div class="modal-overlay" id="adminRegModal">
+  <div class="modal-box" style="max-width:560px;">
+    <h3>Register Someone Who Already Paid</h3>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">For people who transferred the MoMo payment themselves but can't complete the online form. This registers them directly as pending, ready for you to verify.</p>
+
+    <div class="form-group"><label>Full Name *</label><input type="text" id="arName" placeholder="e.g. Rev. John Mensah"></div>
+    <div class="form-group"><label>Phone Number *</label><input type="text" id="arPhone" placeholder="e.g. 0244000000"></div>
+    <div class="form-group">
+      <label>Sex *</label>
+      <select id="arSex">
+        <option value="">-- Select --</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="form-group"><label>Church</label><input type="text" id="arChurch"></div>
+      <div class="form-group"><label>District</label><input type="text" id="arDistrict"></div>
+    </div>
+
+    <div class="form-group">
+      <label>Ministerial Rank</label>
+      <select id="arRank">
+        <option value="">-- Select --</option>
+        <option value="Ordained">Ordained</option>
+        <option value="Licentiate">Licentiate</option>
+        <option value="Exhorter">Exhorter</option>
+        <option value="Probationer">Probationer</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Room Category *</label>
+      <select id="arRoomCategory"></select>
+    </div>
+
+    <div class="form-group" id="arFeedingSection">
+      <label>Feeding Package</label>
+      <div id="arFeedingOptions"></div>
+    </div>
+
+    <div class="form-group">
+      <label>MoMo Transaction ID *</label>
+      <input type="text" id="arTransactionId" placeholder="e.g. GH1234567890">
+    </div>
+
+    <div style="background:rgba(255,255,255,0.05); border-radius:8px; padding:12px; margin-top:8px; font-size:13px;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+        <span style="color:var(--text-muted);">Room</span>
+        <span id="arCostRoom">GH₵ 0.00</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+        <span style="color:var(--text-muted);">Meals</span>
+        <span id="arCostMeals">GH₵ 0.00</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; font-weight:700; border-top:1px solid var(--border); padding-top:8px; margin-top:4px;">
+        <span>Total</span>
+        <span id="arCostTotal">GH₵ 0.00</span>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" id="cancelAdminRegBtn">Cancel</button>
+      <button class="btn-confirm-reject" style="background:#0f766e;" id="confirmAdminRegBtn">Register & Submit</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toastBar"></div>
 
 <script>
@@ -335,6 +448,9 @@
   let currentFilter = 'pending';
   let pendingRejectId = null;
   let allRegistrations = [];
+  let currentCategories = [];
+  let adminRegMeals = {};
+  let adminRegEventMeals = [];
 
   // ---------- Auth ----------
   if (!sessionToken || !['event_manager', 'super_admin', 'accounts_officer'].includes(userRole)) {
@@ -397,7 +513,34 @@
       document.getElementById('statRejected').textContent = s.rejected;
       document.getElementById('statRevenue').textContent =
         `GH₵ ${parseFloat(s.total_revenue || 0).toLocaleString('en-GH', { minimumFractionDigits: 2 })}`;
+
+      currentCategories = res.category_stats || [];
+      renderBedsGrid();
     }
+  }
+
+  function renderBedsGrid() {
+    const bedsGrid = document.getElementById('bedsGrid');
+    bedsGrid.innerHTML = '';
+    currentCategories.forEach(cat => {
+      const verified = cat.beds_taken || 0;
+      const reserved = cat.beds_reserved || 0;
+      const totalOccupied = verified + reserved;
+      const pct = cat.total_beds > 0 ? (totalOccupied / cat.total_beds) * 100 : 0;
+      const barClass = pct >= 100 ? 'full' : pct >= 80 ? 'low' : 'ok';
+      const card = document.createElement('div');
+      card.className = 'beds-card';
+      card.innerHTML = `
+        <div class="cat-name">${escapeHtml(cat.name)}</div>
+        <div class="cat-price">GH₵${parseFloat(cat.price_per_person).toFixed(2)}/person · ${cat.persons_per_room} per room</div>
+        <div class="beds-bar-wrap"><div class="beds-bar ${barClass}" style="width:${Math.min(pct,100)}%;"></div></div>
+        <div class="beds-stats">
+          <span class="taken">${totalOccupied} taken</span>
+          <span>${cat.beds_remaining} remaining / ${cat.total_beds} total</span>
+        </div>
+      `;
+      bedsGrid.appendChild(card);
+    });
   }
 
   async function loadRegistrations() {
@@ -704,6 +847,142 @@
     } else {
       showToast(res.error || 'Failed to reverse verification', 'error');
     }
+  });
+
+  // ---------- Register Someone (already paid, can't self-register) ----------
+  document.getElementById('registerAttendeeBtn').addEventListener('click', () => openAdminRegModal());
+
+  async function openAdminRegModal() {
+    ['arName','arPhone','arChurch','arDistrict','arTransactionId'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('arRank').value = '';
+    document.getElementById('arSex').value = '';
+    adminRegMeals = {};
+
+    const catSel = document.getElementById('arRoomCategory');
+    catSel.innerHTML = '';
+    currentCategories.forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat.id;
+      opt.dataset.price = cat.price_per_person;
+      opt.textContent = `${cat.name} — GH₵${parseFloat(cat.price_per_person).toFixed(2)}/person (${cat.beds_remaining} beds left)`;
+      catSel.appendChild(opt);
+    });
+
+    const res = await callRPC('get_accommodation_event_public', { p_event_id: accommodationEventId });
+    adminRegEventMeals = res.success ? (res.meals || []) : [];
+
+    renderAdminRegMeals();
+    updateAdminRegCost();
+
+    catSel.addEventListener('change', updateAdminRegCost);
+    document.getElementById('adminRegModal').classList.add('active');
+  }
+
+  function renderAdminRegMeals() {
+    const container = document.getElementById('arFeedingOptions');
+    container.innerHTML = '';
+    adminRegMeals = {};
+
+    if (adminRegEventMeals.length === 0) {
+      document.getElementById('arFeedingSection').style.display = 'none';
+      return;
+    }
+
+    document.getElementById('arFeedingSection').style.display = 'block';
+    adminRegEventMeals.forEach(meal => {
+      adminRegMeals[meal.id] = { selected: false, price: parseFloat(meal.price_per_person) };
+      const toggle = document.createElement('div');
+      toggle.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border:1px solid var(--border); border-radius:6px; margin-bottom:6px; cursor:pointer; font-size:13px;';
+      toggle.innerHTML = `<span>${escapeHtml(meal.label)}</span><span style="color:#60a5fa; font-weight:600;">GH₵${parseFloat(meal.price_per_person).toFixed(2)}</span>`;
+      toggle.addEventListener('click', () => {
+        adminRegMeals[meal.id].selected = !adminRegMeals[meal.id].selected;
+        toggle.style.background = adminRegMeals[meal.id].selected ? 'rgba(37,99,235,0.15)' : '';
+        toggle.style.borderColor = adminRegMeals[meal.id].selected ? 'var(--accent)' : 'var(--border)';
+        updateAdminRegCost();
+      });
+      container.appendChild(toggle);
+    });
+  }
+
+  function updateAdminRegCost() {
+    const catSel = document.getElementById('arRoomCategory');
+    const selectedOpt = catSel.options[catSel.selectedIndex];
+    const roomCost = selectedOpt ? parseFloat(selectedOpt.dataset.price || 0) : 0;
+    const mealsCost = Object.values(adminRegMeals).filter(m => m.selected).reduce((sum, m) => sum + m.price, 0);
+    document.getElementById('arCostRoom').textContent = `GH₵ ${roomCost.toFixed(2)}`;
+    document.getElementById('arCostMeals').textContent = `GH₵ ${mealsCost.toFixed(2)}`;
+    document.getElementById('arCostTotal').textContent = `GH₵ ${(roomCost + mealsCost).toFixed(2)}`;
+  }
+
+  document.getElementById('cancelAdminRegBtn').addEventListener('click', () => {
+    document.getElementById('adminRegModal').classList.remove('active');
+  });
+
+  document.getElementById('confirmAdminRegBtn').addEventListener('click', async () => {
+    const name = document.getElementById('arName').value.trim();
+    const phone = document.getElementById('arPhone').value.trim();
+    const transId = document.getElementById('arTransactionId').value.trim();
+    const sex = document.getElementById('arSex').value;
+    const roomCatId = document.getElementById('arRoomCategory').value;
+
+    if (!name) { showToast('Full name is required', 'error'); return; }
+    if (!phone) { showToast('Phone number is required', 'error'); return; }
+    if (!sex) { showToast('Please select sex', 'error'); return; }
+    if (!transId) { showToast('MoMo Transaction ID is required', 'error'); return; }
+    if (!roomCatId) { showToast('Please select a room category', 'error'); return; }
+
+    const btn = document.getElementById('confirmAdminRegBtn');
+    btn.disabled = true; btn.textContent = 'Registering...';
+
+    const selectedMeals = Object.entries(adminRegMeals).filter(([,v]) => v.selected);
+    const mealsCost = selectedMeals.reduce((sum, [,v]) => sum + v.price, 0);
+    const feedingSelection = {
+      type: 'flat',
+      included: selectedMeals.map(([id]) => ({ meal_option_id: id })),
+      total_meals_cost: mealsCost
+    };
+
+    const res = await callRPC('submit_registration', {
+      p_accommodation_event_id: accommodationEventId,
+      p_room_category_id: roomCatId,
+      p_full_name: name,
+      p_phone: phone,
+      p_church: document.getElementById('arChurch').value.trim() || null,
+      p_district: document.getElementById('arDistrict').value.trim() || null,
+      p_ministerial_rank: document.getElementById('arRank').value || null,
+      p_sex: sex,
+      p_feeding_selection: feedingSelection,
+      p_meals_total: mealsCost,
+      p_momo_transaction_id: transId,
+      p_payment_screenshot_url: null
+    });
+
+    if (!res.success) {
+      showToast(res.error || 'Registration failed', 'error');
+      btn.disabled = false; btn.textContent = 'Register & Submit';
+      return;
+    }
+
+    const catOpt = document.getElementById('arRoomCategory').options[document.getElementById('arRoomCategory').selectedIndex];
+    const roomPrice = parseFloat(catOpt?.dataset.price || 0);
+    fetch(`${SUPABASE_URL}/functions/v1/send-sms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({
+        type: 'registration_received',
+        phone: phone,
+        full_name: name,
+        reference_number: res.reference_number,
+        event_name: document.getElementById('eventNameDisplay').textContent.replace('📋 ', '').replace(/ · .*/, '').trim(),
+        grand_total: roomPrice + mealsCost
+      })
+    }).catch(() => {});
+
+    btn.disabled = false; btn.textContent = 'Register & Submit';
+    document.getElementById('adminRegModal').classList.remove('active');
+    showToast(`${name} registered — Ref: ${res.reference_number}`);
+    await loadDashboardStats();
+    await loadRegistrations();
   });
 
   // ---------- Filter ----------
