@@ -287,10 +287,19 @@
 
     <div class="event-banner" id="eventBanner"></div>
 
+    <!-- Reservation check - for people a bed was already reserved for -->
+    <div class="card" id="reservationCheckCard" style="border:1.5px solid #9ae6b4; background:#f0fff4;">
+      <h3 style="color:#1a5c1a;">Already Have a Reserved Bed?</h3>
+      <p class="sub">If a room was reserved for you in advance (e.g. District Pastors), enter your phone number here first — we'll unlock and pre-select your reserved room below, even if it shows as fully booked. If you don't have a reservation, skip this and continue below.</p>
+      <label>Phone Number</label>
+      <input type="tel" id="reservationCheckPhone" placeholder="e.g. 0244000000">
+      <div id="reservationCheckResult" style="margin-top:10px; font-size:13px; display:none;"></div>
+    </div>
+
     <!-- Room category selection -->
     <div class="card">
       <h3>Select Room Category</h3>
-      <p class="sub">Choose your preferred accommodation. Prices shown are per person.</p>
+      <p class="sub">Choose your preferred accommodation. Prices shown are per person. Categories marked reserved may still hold a room for you specifically — check above if you were told one was reserved.</p>
       <div id="roomCategoryList"></div>
     </div>
 
@@ -554,8 +563,14 @@
       const isLow = bedsLeft > 0 && bedsLeft <= 5;
       const badgeClass = isFull ? 'full' : (isLow ? 'low' : 'available');
 
+      // A reservation lookup can unlock this exact category for this person
+      // even when it's full for the general public — never hide that state.
+      const isReservedSelection = (cat.id === selectedCategoryId);
+
       let badgeText;
-      if (isFull) {
+      if (isReservedSelection && isFull) {
+        badgeText = 'Reserved for you';
+      } else if (isFull) {
         badgeText = selectedSex ? `No beds for ${selectedSex === 'male' ? 'Males' : 'Females'}` : 'FULLY BOOKED';
       } else if (selectedSex) {
         badgeText = `${bedsLeft} bed${bedsLeft !== 1 ? 's' : ''} left for ${selectedSex === 'male' ? 'Males' : 'Females'}`;
@@ -571,12 +586,12 @@
       }
 
       const card = document.createElement('div');
-      card.className = `room-card${isFull ? ' full' : ''}${(cat.id === selectedCategoryId && !isFull) ? ' selected' : ''}`;
+      card.className = `room-card${(isFull && !isReservedSelection) ? ' full' : ''}${isReservedSelection ? ' selected' : ''}`;
       card.dataset.id = cat.id;
       card.dataset.price = cat.price_per_person;
       card.dataset.personsPerRoom = cat.persons_per_room;
       card.innerHTML = `
-        <span class="beds-badge ${badgeClass}">${badgeText}</span>
+        <span class="beds-badge ${isReservedSelection && isFull ? 'available' : badgeClass}">${badgeText}</span>
         <div class="room-name">${escapeHtml(cat.name)}</div>
         <div class="room-meta">
           ${cat.persons_per_room} persons per room
@@ -587,7 +602,7 @@
         <span class="selected-check">✓ Selected</span>
       `;
 
-      if (!isFull) {
+      if (!isFull || isReservedSelection) {
         card.addEventListener('click', () => {
           document.querySelectorAll('.room-card').forEach(c => c.classList.remove('selected'));
           card.classList.add('selected');
@@ -788,8 +803,9 @@
       lbl.style.borderColor = '#2c5282';
       lbl.style.background = '#f0f7ff';
 
-      // If the category picked earlier turns out to have no beds for this sex, clear it
-      if (eventData && selectedCategoryId) {
+      // If the category picked earlier turns out to have no beds for this sex, clear it —
+      // but never clear a category that was unlocked via a confirmed reservation.
+      if (eventData && selectedCategoryId && !reservationId) {
         const cat = eventData.categories.find(c => c.id === selectedCategoryId);
         if (cat) {
           const left = radio.value === 'male' ? (cat.beds_remaining_male ?? cat.beds_remaining) : (cat.beds_remaining_female ?? cat.beds_remaining);
@@ -974,13 +990,19 @@
   // ---------- Reservation lookup on phone entry ----------
   let reservationId = null;
 
-  document.getElementById('regPhone').addEventListener('blur', async () => {
-    const phone = document.getElementById('regPhone').value.trim();
-    if (!phone || phone.length < 10) return;
+  function firstNameOf(fullName) {
+    const titles = ['rev.','rev','pastor','dr.','dr'];
+    const parts = fullName.trim().split(/\s+/);
+    return parts.find(p => !titles.includes(p.toLowerCase())) || parts[0];
+  }
 
+  // Shared logic: looks up a reservation for the given phone, and if found,
+  // pre-fills the main form and unlocks/selects the reserved room category
+  // even if that category shows as fully booked to the general public.
+  async function checkReservationByPhone(phone, opts = {}) {
     const params = new URLSearchParams(window.location.search);
     const eventId = params.get('event');
-    if (!eventId) return;
+    if (!eventId || !phone || phone.length < 10) return { found: false };
 
     try {
       const res = await callRPC('lookup_reservation_by_phone', {
@@ -990,29 +1012,59 @@
 
       if (res.found) {
         reservationId = res.reservation_id;
-        // Pre-fill all fields from reservation
+
+        // Pre-fill the main form fields
+        document.getElementById('regPhone').value = phone;
         document.getElementById('regName').value = res.full_name || '';
         document.getElementById('regChurch').value = res.church || '';
         document.getElementById('regDistrict').value = res.district || '';
         document.getElementById('regRank').value = res.ministerial_rank || '';
 
-        // Pre-select the reserved room category
-        const catCards = document.querySelectorAll('.room-card');
-        catCards.forEach(card => {
-          card.classList.remove('selected');
-          if (card.dataset.id === res.room_category_id) {
-            card.classList.add('selected');
-            selectedCategoryId = res.room_category_id;
-            selectedCategoryPrice = parseFloat(res.price_per_person);
-            updateFeedingForCategory();
-            updateCostSummary();
-          }
-        });
+        // Unlock and select the reserved room category, even if it's full for
+        // everyone else — renderRoomCategories() also checks selectedCategoryId
+        // directly, so this holds even if cards haven't rendered yet.
+        selectedCategoryId = res.room_category_id;
+        selectedCategoryPrice = parseFloat(res.price_per_person);
+        if (eventData) renderRoomCategories();
+        updateFeedingForCategory();
+        updateCostSummary();
 
-        showToast(`Welcome ${res.full_name.split(' ').find(p => !['rev.','rev','pastor','dr.','dr'].includes(p.toLowerCase())) || res.full_name.split(' ')[0]}! Your reservation details have been pre-filled.`);
+        if (opts.announce !== false) {
+          showToast(`Welcome ${firstNameOf(res.full_name)}! Your reservation details have been pre-filled.`);
+        }
+        return { found: true, res };
       }
+      return { found: false };
     } catch (e) {
-      // Silent fail — no reservation found is fine
+      return { found: false, error: e };
+    }
+  }
+
+  document.getElementById('regPhone').addEventListener('blur', async () => {
+    const phone = document.getElementById('regPhone').value.trim();
+    await checkReservationByPhone(phone);
+  });
+
+  // Dedicated "already reserved?" box at the top of the form
+  document.getElementById('reservationCheckPhone').addEventListener('blur', async () => {
+    const phone = document.getElementById('reservationCheckPhone').value.trim();
+    const resultBox = document.getElementById('reservationCheckResult');
+    if (!phone || phone.length < 10) {
+      resultBox.style.display = 'none';
+      return;
+    }
+
+    const outcome = await checkReservationByPhone(phone, { announce: false });
+    resultBox.style.display = 'block';
+
+    if (outcome.found) {
+      resultBox.style.color = '#1a5c1a';
+      resultBox.innerHTML = `✓ Reservation found for <strong>${escapeHtml(outcome.res.full_name)}</strong> — ` +
+        `<strong>${escapeHtml(outcome.res.room_category_name)}</strong> has been selected for you below. ` +
+        `Your details have been pre-filled — just confirm your sex, complete payment, and submit.`;
+    } else {
+      resultBox.style.color = '#718096';
+      resultBox.innerHTML = `No reservation found for this number. If you believe a room was reserved for you, contact the event office — otherwise, just continue with the form below.`;
     }
   });
 
