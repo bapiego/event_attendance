@@ -694,11 +694,18 @@
   // ---------- Reservations panel ----------
   let pendingConvertId = null;
   let pendingConvertData = null;
+  let allReservations = [];
+  let reservationSearchWired = false;
 
   document.getElementById('showReservationsBtn').addEventListener('click', () => {
     document.getElementById('registrationList').style.display = 'none';
     document.querySelector('.filter-row').style.display = 'none';
     document.getElementById('reservationsList').style.display = 'block';
+    // Wire search once only
+    if (!reservationSearchWired) {
+      document.getElementById('reservationSearchInput').addEventListener('input', renderReservationList);
+      reservationSearchWired = true;
+    }
     loadReservations();
   });
 
@@ -707,8 +714,6 @@
     document.getElementById('registrationList').style.display = 'block';
     document.querySelector('.filter-row').style.display = 'flex';
   });
-
-  let allReservations = [];
 
   async function loadReservations() {
     const tbody = document.getElementById('reservationsTableBody');
@@ -719,10 +724,9 @@
       p_accommodation_event_id: accommodationEventId
     });
 
+    // Only show genuinely active reservations — status must be exactly 'reserved'
     allReservations = (res.reservations || []).filter(r => r.status === 'reserved');
     renderReservationList();
-
-    document.getElementById('reservationSearchInput').addEventListener('input', renderReservationList);
   }
 
   function renderReservationList() {
