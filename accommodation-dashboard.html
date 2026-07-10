@@ -202,6 +202,7 @@
     <!-- REGISTRANTS TAB -->
     <div id="tabRegistrants">
       <div class="export-bar">
+        <input type="text" id="dashSearchInput" placeholder="Search name, phone, ref, church..." style="flex:1; padding:7px 12px; border-radius:20px; border:1px solid var(--border); background:var(--bg-card); color:var(--text-main); font-size:13px; min-width:200px;">
         <select class="filter-select" id="statusFilter">
           <option value="all">All Statuses</option>
           <option value="pending">Pending</option>
@@ -826,8 +827,22 @@
 
   function renderRegistrantTable() {
     const statusFilter = document.getElementById('statusFilter').value;
+    const searchTerm = document.getElementById('dashSearchInput')?.value.trim().toLowerCase() || '';
     const tbody = document.getElementById('registrantTableBody');
-    const filtered = statusFilter === 'all' ? allRegistrations : allRegistrations.filter(r => r.payment_status === statusFilter);
+
+    let filtered = statusFilter === 'all'
+      ? allRegistrations
+      : allRegistrations.filter(r => r.payment_status === statusFilter);
+
+    if (searchTerm) {
+      filtered = filtered.filter(r =>
+        (r.full_name || '').toLowerCase().includes(searchTerm) ||
+        (r.phone || '').includes(searchTerm) ||
+        (r.reference_number || '').toLowerCase().includes(searchTerm) ||
+        (r.church || '').toLowerCase().includes(searchTerm) ||
+        (r.district || '').toLowerCase().includes(searchTerm)
+      );
+    }
 
     if (!filtered || filtered.length === 0) {
       tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:var(--text-muted); padding:2rem;">No registrations found.</td></tr>';
@@ -1139,6 +1154,7 @@
   });
 
   document.getElementById('statusFilter').addEventListener('change', renderRegistrantTable);
+  document.getElementById('dashSearchInput').addEventListener('input', () => renderRegistrantTable());
   document.getElementById('refreshListBtn').addEventListener('click', async () => { await loadDashboard(); await loadRegistrations(); showToast('Refreshed'); });
 
   // ---------- Accounts Officers ----------

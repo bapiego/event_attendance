@@ -269,7 +269,8 @@
     <button class="filter-btn" data-filter="verified">Verified</button>
     <button class="filter-btn" data-filter="rejected">Rejected</button>
     <button class="filter-btn" data-filter="all">All</button>
-    <button class="filter-btn" id="showReservationsBtn" style="margin-left:auto; border-color:#d97706; color:#fbbf24;">🔒 Reservations</button>
+    <input type="text" id="searchInput" placeholder="Search name, phone, ref, church..." style="flex:1; padding:7px 12px; border-radius:20px; border:1px solid var(--border); background:var(--bg-card); color:var(--text-main); font-size:13px; min-width:200px;">
+    <button class="filter-btn" id="showReservationsBtn" style="border-color:#d97706; color:#fbbf24;">🔒 Reservations</button>
     <button class="filter-btn" id="refreshBtn">↻ Refresh</button>
   </div>
 
@@ -279,7 +280,10 @@
   <div id="reservationsList" style="display:none;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
       <p style="font-size:13px; color:var(--text-muted); margin:0;">Active reservations. Click Convert to create a pending registration for verification.</p>
-      <button class="filter-btn" id="hideReservationsBtn">← Back to Payments</button>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <input type="text" id="reservationSearchInput" placeholder="Search reservations..." style="padding:7px 12px; border-radius:20px; border:1px solid var(--border); background:var(--bg-card); color:var(--text-main); font-size:13px; width:200px;">
+        <button class="filter-btn" id="hideReservationsBtn">← Back to Payments</button>
+      </div>
     </div>
     <table style="width:100%; border-collapse:collapse; font-size:13px;">
       <thead>
@@ -435,9 +439,21 @@
 
   function renderList() {
     const list = document.getElementById('registrationList');
-    const filtered = currentFilter === 'all'
+    const searchTerm = document.getElementById('searchInput')?.value.trim().toLowerCase() || '';
+
+    let filtered = currentFilter === 'all'
       ? allRegistrations
       : allRegistrations.filter(r => r.payment_status === currentFilter);
+
+    if (searchTerm) {
+      filtered = filtered.filter(r =>
+        (r.full_name || '').toLowerCase().includes(searchTerm) ||
+        (r.phone || '').includes(searchTerm) ||
+        (r.reference_number || '').toLowerCase().includes(searchTerm) ||
+        (r.church || '').toLowerCase().includes(searchTerm) ||
+        (r.district || '').toLowerCase().includes(searchTerm)
+      );
+    }
 
     if (!filtered || filtered.length === 0) {
       list.innerHTML = `<div class="empty-state">No ${currentFilter === 'all' ? '' : currentFilter + ' '}registrations found.</div>`;
@@ -667,6 +683,8 @@
     });
   });
 
+  document.getElementById('searchInput').addEventListener('input', () => renderList());
+
   document.getElementById('refreshBtn').addEventListener('click', async () => {
     await loadDashboardStats();
     await loadRegistrations();
@@ -690,6 +708,8 @@
     document.querySelector('.filter-row').style.display = 'flex';
   });
 
+  let allReservations = [];
+
   async function loadReservations() {
     const tbody = document.getElementById('reservationsTableBody');
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:2rem;">Loading...</td></tr>';
@@ -699,21 +719,38 @@
       p_accommodation_event_id: accommodationEventId
     });
 
-    const reservations = (res.reservations || []).filter(r => r.status === 'reserved');
+    allReservations = (res.reservations || []).filter(r => r.status === 'reserved');
+    renderReservationList();
 
-    if (reservations.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:2rem;">No active reservations.</td></tr>';
+    document.getElementById('reservationSearchInput').addEventListener('input', renderReservationList);
+  }
+
+  function renderReservationList() {
+    const tbody = document.getElementById('reservationsTableBody');
+    const term = document.getElementById('reservationSearchInput')?.value.trim().toLowerCase() || '';
+
+    const filtered = term
+      ? allReservations.filter(r =>
+          (r.full_name || '').toLowerCase().includes(term) ||
+          (r.phone || '').includes(term) ||
+          (r.church || '').toLowerCase().includes(term) ||
+          (r.district || '').toLowerCase().includes(term)
+        )
+      : allReservations;
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:2rem;">No reservations found.</td></tr>';
       return;
     }
 
     tbody.innerHTML = '';
-    reservations.forEach(r => {
+    filtered.forEach(r => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td style="padding:10px 8px; border-bottom:1px solid var(--border);"><strong>${escapeHtml(r.full_name)}</strong><br><span style="font-size:11px; color:var(--text-muted);">${escapeHtml(r.church || '')} · ${escapeHtml(r.district || '')}</span></td>
+        <td style="padding:10px 8px; border-bottom:1px solid var(--border);"><strong>${escapeHtml(r.full_name)}</strong><br><span style="font-size:11px; color:var(--text-muted);">${escapeHtml(r.church || '')}${r.district ? ' · ' + escapeHtml(r.district) : ''}</span></td>
         <td style="padding:10px 8px; border-bottom:1px solid var(--border);">${escapeHtml(r.phone)}</td>
         <td style="padding:10px 8px; border-bottom:1px solid var(--border);">${escapeHtml(r.room_category_name)}</td>
-        <td style="padding:10px 8px; border-bottom:1px solid var(--border); text-transform:capitalize;">${r.sex ? (r.sex === 'male' ? '♂ Male' : '♀ Female') : '—'}</td>
+        <td style="padding:10px 8px; border-bottom:1px solid var(--border);">${r.sex ? (r.sex === 'male' ? '♂ Male' : '♀ Female') : '—'}</td>
         <td style="padding:10px 8px; border-bottom:1px solid var(--border); font-size:12px;">${new Date(r.payment_deadline).toLocaleDateString('en-GH', {day:'numeric', month:'short', year:'numeric'})}</td>
         <td style="padding:10px 8px; border-bottom:1px solid var(--border);">
           <button class="btn-verify convert-btn" style="font-size:12px; padding:7px 14px;" data-id="${r.id}" data-name="${escapeHtml(r.full_name)}" data-room="${escapeHtml(r.room_category_name)}" data-price="${r.price_per_person}">Convert</button>
