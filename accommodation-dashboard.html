@@ -230,7 +230,10 @@
     <div id="tabReservations" style="display:none;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
         <p style="font-size:13px; color:var(--text-muted);">Beds held for specific people pending payment. Reserved beds count against availability.</p>
-        <button class="btn secondary" id="refreshReservationsBtn">↻ Refresh</button>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="text" id="reservationSearchDash" placeholder="Search reservations..." style="padding:7px 12px; border-radius:20px; border:1px solid var(--border); background:var(--bg-card); color:var(--text-main); font-size:13px; width:220px;">
+          <button class="btn secondary" id="refreshReservationsBtn">↻ Refresh</button>
+        </div>
       </div>
       <div class="table-wrap">
         <table>
@@ -945,6 +948,9 @@
   });
 
   // ---------- Reservations ----------
+  let allDashReservations = [];
+  let dashReservationSearchWired = false;
+
   async function loadReservations() {
     const tbody = document.getElementById('reservationTableBody');
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:2rem;">Loading...</td></tr>';
@@ -954,17 +960,42 @@
       p_accommodation_event_id: accommodationEventId
     });
 
-    if (!res.success || !res.reservations || res.reservations.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:2rem;">No reservations yet.</td></tr>';
+    allDashReservations = res.reservations || [];
+
+    if (!dashReservationSearchWired) {
+      document.getElementById('reservationSearchDash').addEventListener('input', renderReservationTable);
+      dashReservationSearchWired = true;
+    }
+
+    renderReservationTable();
+  }
+
+  function renderReservationTable() {
+    const tbody = document.getElementById('reservationTableBody');
+    const term = document.getElementById('reservationSearchDash')?.value.trim().toLowerCase() || '';
+
+    let filtered = allDashReservations;
+    if (term) {
+      filtered = filtered.filter(r =>
+        (r.full_name || '').toLowerCase().includes(term) ||
+        (r.phone || '').includes(term) ||
+        (r.church || '').toLowerCase().includes(term) ||
+        (r.district || '').toLowerCase().includes(term) ||
+        (r.room_category_name || '').toLowerCase().includes(term)
+      );
+    }
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:2rem;">No reservations found.</td></tr>';
       return;
     }
 
     tbody.innerHTML = '';
-    res.reservations.forEach((r, i) => {
+    filtered.forEach((r, i) => {
       const statusColor = r.status === 'reserved' ? '#fbbf24'
         : r.status === 'converted' ? 'var(--success)'
         : r.status === 'cancelled' ? '#f87171'
-        : 'var(--text-muted)'; // expired
+        : 'var(--text-muted)';
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td style="color:var(--text-muted);">${i+1}</td>
@@ -981,7 +1012,6 @@
       tbody.appendChild(tr);
     });
 
-    // Wire up cancel buttons
     tbody.querySelectorAll('.cancel-reservation-btn').forEach(btn => {
       btn.addEventListener('click', () => openCancelReservationModal(btn.dataset.id, btn.dataset.name));
     });
