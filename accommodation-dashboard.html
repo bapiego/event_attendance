@@ -217,7 +217,7 @@
             <tr>
               <th>#</th><th>Ref</th><th>Name</th><th>Phone</th>
               <th>Church / District</th><th>Sex</th><th>Room</th><th>Assigned</th>
-              <th>Total (GH₵)</th><th>Status</th><th>Submitted</th><th></th>
+              <th>Total (GH₵)</th><th>Status</th><th>Submitted</th><th>By</th><th></th>
             </tr>
           </thead>
           <tbody id="registrantTableBody"></tbody>
@@ -849,6 +849,7 @@
         <td style="font-weight:700;">${parseFloat(reg.grand_total).toFixed(2)}</td>
         <td><span class="status-dot ${reg.payment_status}"></span>${reg.payment_status}</td>
         <td style="font-size:11px; color:var(--text-muted);">${new Date(reg.submitted_at).toLocaleDateString()}</td>
+        <td style="font-size:11px; color:var(--text-muted);">${reg.registered_by_username ? `<span title="Registered by ${escapeHtml(reg.registered_by_username)}" style="color:#fbbf24;">👤 ${escapeHtml(reg.registered_by_username)}</span>` : '—'}</td>
         <td><button class="btn secondary" style="padding:4px 10px; font-size:12px;" data-id="${reg.id}">Edit</button></td>
       `;
       tbody.appendChild(tr);
