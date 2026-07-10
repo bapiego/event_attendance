@@ -40,8 +40,6 @@
 
   header h1 { font-size: 18px; font-weight: 600; }
   header .user-info { font-size: 13px; opacity: 0.85; display: flex; align-items: center; gap: 12px; }
-  header .nav-back { color: white; opacity: 0.85; text-decoration: none; font-size: 13px; }
-  header .nav-back:hover { opacity: 1; text-decoration: underline; }
 
   .btn-logout {
     background: rgba(255,255,255,0.15); border: none; color: white;
@@ -66,41 +64,6 @@
   .stat .label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
 
   .container { max-width: 900px; margin: 0 auto; padding: 20px; }
-
-  .section-label {
-    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
-    color: var(--text-muted); margin-bottom: 10px;
-  }
-
-  .beds-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px; margin-bottom: 22px;
-  }
-  .beds-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
-  .beds-card .cat-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
-  .beds-card .cat-price { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
-  .beds-bar-wrap { background: var(--bg-main); border-radius: 999px; height: 7px; overflow: hidden; margin-bottom: 7px; }
-  .beds-bar { height: 100%; border-radius: 999px; transition: width 0.5s ease; }
-  .beds-bar.full { background: var(--danger); }
-  .beds-bar.low { background: var(--warning); }
-  .beds-bar.ok { background: var(--success); }
-  .beds-stats { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
-  .beds-stats .taken { color: var(--text-main); font-weight: 600; }
-
-  .btn-register {
-    background: #0f766e; border: none; color: white;
-    padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer;
-    margin-left: auto;
-  }
-  .btn-register:hover { background: #0d6460; }
-
-  .form-group { margin-bottom: 12px; }
-  .form-group label { display: block; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 5px; }
-  .form-group input, .form-group select {
-    width: 100%; padding: 9px 11px; border-radius: 6px; border: 1px solid var(--border);
-    background: var(--bg-main); color: var(--text-main); font-size: 14px;
-  }
-  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--accent); }
 
   .filter-row {
     display: flex;
@@ -247,7 +210,6 @@
   .modal-box {
     background: var(--bg-card); border: 1px solid var(--border);
     border-radius: 12px; padding: 24px; width: 100%; max-width: 420px;
-    max-height: 90vh; overflow-y: auto;
   }
   .modal-box h3 { margin-bottom: 10px; }
   .modal-box p { font-size: 13px; color: var(--text-muted); margin-bottom: 14px; }
@@ -264,22 +226,6 @@
   }
   .btn-cancel-modal { background: #334155; color: white; }
   .btn-confirm-reject { background: var(--danger); color: white; }
-
-  .btn-reverse {
-    background: none; border: 1px solid var(--warning); color: var(--warning);
-    padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer;
-  }
-  .btn-reverse:hover { background: var(--warning); color: white; }
-
-  .reversed-note {
-    background: rgba(217,119,6,0.08);
-    border: 1px solid rgba(217,119,6,0.3);
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 12px;
-    color: #d97706;
-    margin-bottom: 12px;
-  }
 
   .toast {
     position: fixed; bottom: 24px; left: 50%;
@@ -305,7 +251,6 @@
     <div id="eventNameDisplay" style="font-size:13px; opacity:0.85; margin-top:2px;"></div>
   </div>
   <div class="user-info">
-    <a href="#" id="backToDashboardLink" class="nav-back" style="display:none;">← Accommodation Dashboard</a>
     <span id="loggedInAs"></span>
     <button class="btn-logout" id="logoutBtn">Log Out</button>
   </div>
@@ -319,21 +264,39 @@
 </div>
 
 <div class="container">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
-    <div class="section-label" style="margin-bottom:0;">Room Availability</div>
-    <button class="btn-register" id="registerAttendeeBtn">+ Register Someone</button>
-  </div>
-  <div class="beds-grid" id="bedsGrid"></div>
-
   <div class="filter-row">
     <button class="filter-btn active" data-filter="pending">Pending</button>
     <button class="filter-btn" data-filter="verified">Verified</button>
     <button class="filter-btn" data-filter="rejected">Rejected</button>
     <button class="filter-btn" data-filter="all">All</button>
-    <button class="filter-btn" id="refreshBtn" style="margin-left:auto;">↻ Refresh</button>
+    <button class="filter-btn" id="showReservationsBtn" style="margin-left:auto; border-color:#d97706; color:#fbbf24;">🔒 Reservations</button>
+    <button class="filter-btn" id="refreshBtn">↻ Refresh</button>
   </div>
 
   <div id="registrationList"></div>
+
+  <!-- Reservations panel -->
+  <div id="reservationsList" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+      <p style="font-size:13px; color:var(--text-muted); margin:0;">Active reservations. Click Convert to create a pending registration for verification.</p>
+      <button class="filter-btn" id="hideReservationsBtn">← Back to Payments</button>
+    </div>
+    <table style="width:100%; border-collapse:collapse; font-size:13px;">
+      <thead>
+        <tr>
+          <th style="text-align:left; color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; padding:10px 8px; border-bottom:2px solid var(--border); white-space:nowrap;">Name</th>
+          <th style="text-align:left; color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; padding:10px 8px; border-bottom:2px solid var(--border);">Phone</th>
+          <th style="text-align:left; color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; padding:10px 8px; border-bottom:2px solid var(--border);">Room Category</th>
+          <th style="text-align:left; color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; padding:10px 8px; border-bottom:2px solid var(--border);">Sex</th>
+          <th style="text-align:left; color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:0.05em; padding:10px 8px; border-bottom:2px solid var(--border);">Deadline</th>
+          <th style="padding:10px 8px; border-bottom:2px solid var(--border);"></th>
+        </tr>
+      </thead>
+      <tbody id="reservationsTableBody">
+        <tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:2rem;">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <p class="app-footer">Powered by Marvelous Events</p>
@@ -351,86 +314,20 @@
   </div>
 </div>
 
-<!-- Reverse verification modal -->
-<div class="modal-overlay" id="reverseModal">
+<!-- Convert Reservation Modal -->
+<div class="modal-overlay" id="convertModal">
   <div class="modal-box">
-    <h3>Reverse this verification?</h3>
-    <p>This frees up their assigned bed and sends the registration back to Pending so it can be re-checked. Say why you're reversing it — this is kept on the record.</p>
-    <textarea id="reverseReason" placeholder="e.g. Verified by mistake — this is a duplicate of ACC2026-0027."></textarea>
+    <h3>Convert Reservation to Registration</h3>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">This will create a pending registration for <strong id="convertName"></strong>. The registration will appear in the payment queue for verification.</p>
+    <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:12px; margin-bottom:16px; font-size:13px;">
+      <div style="display:flex; justify-content:space-between; padding:4px 0;"><span style="color:var(--text-muted);">Room Category</span><span id="convertRoom"></span></div>
+      <div style="display:flex; justify-content:space-between; padding:4px 0;"><span style="color:var(--text-muted);">Amount Due</span><span id="convertAmount" style="font-weight:700; color:#60a5fa;"></span></div>
+    </div>
+    <label style="display:block; font-size:12px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; margin-bottom:5px;">MoMo Transaction ID *</label>
+    <input type="text" id="convertTransactionId" placeholder="e.g. GH1234567890" style="width:100%; padding:10px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px;">
     <div class="modal-actions">
-      <button class="btn-cancel-modal" id="cancelReverseBtn">Cancel</button>
-      <button class="btn-confirm-reject" style="background:var(--warning);" id="confirmReverseBtn">Reverse Verification</button>
-    </div>
-  </div>
-</div>
-
-<!-- Register Attendee modal -->
-<div class="modal-overlay" id="adminRegModal">
-  <div class="modal-box" style="max-width:560px;">
-    <h3>Register Someone Who Already Paid</h3>
-    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">For people who transferred the MoMo payment themselves but can't complete the online form. This registers them directly as pending, ready for you to verify.</p>
-
-    <div class="form-group"><label>Full Name *</label><input type="text" id="arName" placeholder="e.g. Rev. John Mensah"></div>
-    <div class="form-group"><label>Phone Number *</label><input type="text" id="arPhone" placeholder="e.g. 0244000000"></div>
-    <div class="form-group">
-      <label>Sex *</label>
-      <select id="arSex">
-        <option value="">-- Select --</option>
-        <option value="male">Male</option>
-        <option value="female">Female</option>
-      </select>
-    </div>
-
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
-      <div class="form-group"><label>Church</label><input type="text" id="arChurch"></div>
-      <div class="form-group"><label>District</label><input type="text" id="arDistrict"></div>
-    </div>
-
-    <div class="form-group">
-      <label>Ministerial Rank</label>
-      <select id="arRank">
-        <option value="">-- Select --</option>
-        <option value="Ordained">Ordained</option>
-        <option value="Licentiate">Licentiate</option>
-        <option value="Exhorter">Exhorter</option>
-        <option value="Probationer">Probationer</option>
-        <option value="Other">Other</option>
-      </select>
-    </div>
-
-    <div class="form-group">
-      <label>Room Category *</label>
-      <select id="arRoomCategory"></select>
-    </div>
-
-    <div class="form-group" id="arFeedingSection">
-      <label>Feeding Package</label>
-      <div id="arFeedingOptions"></div>
-    </div>
-
-    <div class="form-group">
-      <label>MoMo Transaction ID *</label>
-      <input type="text" id="arTransactionId" placeholder="e.g. GH1234567890">
-    </div>
-
-    <div style="background:rgba(255,255,255,0.05); border-radius:8px; padding:12px; margin-top:8px; font-size:13px;">
-      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-        <span style="color:var(--text-muted);">Room</span>
-        <span id="arCostRoom">GH₵ 0.00</span>
-      </div>
-      <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
-        <span style="color:var(--text-muted);">Meals</span>
-        <span id="arCostMeals">GH₵ 0.00</span>
-      </div>
-      <div style="display:flex; justify-content:space-between; font-weight:700; border-top:1px solid var(--border); padding-top:8px; margin-top:4px;">
-        <span>Total</span>
-        <span id="arCostTotal">GH₵ 0.00</span>
-      </div>
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn-cancel-modal" id="cancelAdminRegBtn">Cancel</button>
-      <button class="btn-confirm-reject" style="background:#0f766e;" id="confirmAdminRegBtn">Register & Submit</button>
+      <button class="btn-cancel-modal" id="cancelConvertBtn">Cancel</button>
+      <button class="btn-confirm-modal" id="confirmConvertBtn">Convert to Registration</button>
     </div>
   </div>
 </div>
@@ -448,9 +345,6 @@
   let currentFilter = 'pending';
   let pendingRejectId = null;
   let allRegistrations = [];
-  let currentCategories = [];
-  let adminRegMeals = {};
-  let adminRegEventMeals = [];
 
   // ---------- Auth ----------
   if (!sessionToken || !['event_manager', 'super_admin', 'accounts_officer'].includes(userRole)) {
@@ -513,34 +407,7 @@
       document.getElementById('statRejected').textContent = s.rejected;
       document.getElementById('statRevenue').textContent =
         `GH₵ ${parseFloat(s.total_revenue || 0).toLocaleString('en-GH', { minimumFractionDigits: 2 })}`;
-
-      currentCategories = res.category_stats || [];
-      renderBedsGrid();
     }
-  }
-
-  function renderBedsGrid() {
-    const bedsGrid = document.getElementById('bedsGrid');
-    bedsGrid.innerHTML = '';
-    currentCategories.forEach(cat => {
-      const verified = cat.beds_taken || 0;
-      const reserved = cat.beds_reserved || 0;
-      const totalOccupied = verified + reserved;
-      const pct = cat.total_beds > 0 ? (totalOccupied / cat.total_beds) * 100 : 0;
-      const barClass = pct >= 100 ? 'full' : pct >= 80 ? 'low' : 'ok';
-      const card = document.createElement('div');
-      card.className = 'beds-card';
-      card.innerHTML = `
-        <div class="cat-name">${escapeHtml(cat.name)}</div>
-        <div class="cat-price">GH₵${parseFloat(cat.price_per_person).toFixed(2)}/person · ${cat.persons_per_room} per room</div>
-        <div class="beds-bar-wrap"><div class="beds-bar ${barClass}" style="width:${Math.min(pct,100)}%;"></div></div>
-        <div class="beds-stats">
-          <span class="taken">${totalOccupied} taken</span>
-          <span>${cat.beds_remaining} remaining / ${cat.total_beds} total</span>
-        </div>
-      `;
-      bedsGrid.appendChild(card);
-    });
   }
 
   async function loadRegistrations() {
@@ -617,10 +484,6 @@
           <span class="detail-value">${escapeHtml(reg.phone)}</span>
         </div>
         <div class="detail-item">
-          <span class="detail-label">Sex</span>
-          <span class="detail-value">${reg.sex ? (reg.sex === 'male' ? '♂ Male' : '♀ Female') : '—'}</span>
-        </div>
-        <div class="detail-item">
           <span class="detail-label">Room Category</span>
           <span class="detail-value">${escapeHtml(reg.room_category_name)}${reg.room_number ? ` · Room ${reg.room_number}` : ''}</span>
         </div>
@@ -672,10 +535,6 @@
         ? `<div class="rejection-note">Rejection reason: ${escapeHtml(reg.rejection_reason)}</div>`
         : ''}
 
-      ${reg.reversed_at
-        ? `<div class="reversed-note">↩ Verification reversed${reg.reversal_reason ? ': ' + escapeHtml(reg.reversal_reason) : ''}</div>`
-        : ''}
-
       <div class="action-row" id="actions-${escapeHtml(reg.id)}"></div>
     `;
 
@@ -694,16 +553,7 @@
       rejectBtn.addEventListener('click', () => openRejectModal(reg.id));
       actionRow.appendChild(rejectBtn);
     } else if (reg.payment_status === 'verified') {
-      const info = document.createElement('span');
-      info.className = 'verified-info';
-      info.textContent = `✓ Verified ${verifiedDate ? 'on ' + verifiedDate : ''}`;
-      actionRow.appendChild(info);
-
-      const reverseBtn = document.createElement('button');
-      reverseBtn.className = 'btn-reverse';
-      reverseBtn.textContent = '↩ Reverse Verification';
-      reverseBtn.addEventListener('click', () => openReverseModal(reg.id));
-      actionRow.appendChild(reverseBtn);
+      actionRow.innerHTML = `<span class="verified-info">✓ Verified ${verifiedDate ? 'on ' + verifiedDate : ''}</span>`;
     } else {
       actionRow.innerHTML = `<span class="verified-info" style="color:var(--danger);">✗ Rejected ${verifiedDate ? 'on ' + verifiedDate : ''}</span>`;
     }
@@ -807,184 +657,6 @@
     }
   });
 
-  // ---------- Reverse verification ----------
-  let pendingReverseId = null;
-
-  function openReverseModal(regId) {
-    pendingReverseId = regId;
-    document.getElementById('reverseReason').value = '';
-    document.getElementById('reverseModal').classList.add('active');
-  }
-
-  document.getElementById('cancelReverseBtn').addEventListener('click', () => {
-    document.getElementById('reverseModal').classList.remove('active');
-    pendingReverseId = null;
-  });
-
-  document.getElementById('confirmReverseBtn').addEventListener('click', async () => {
-    const reason = document.getElementById('reverseReason').value.trim();
-    if (!reason) { showToast('Please provide a reason for the reversal', 'error'); return; }
-
-    const btn = document.getElementById('confirmReverseBtn');
-    btn.disabled = true;
-    btn.textContent = 'Reversing...';
-
-    const res = await callRPC('reverse_verification', {
-      p_token: sessionToken,
-      p_registration_id: pendingReverseId,
-      p_reason: reason
-    });
-
-    btn.disabled = false;
-    btn.textContent = 'Reverse Verification';
-    document.getElementById('reverseModal').classList.remove('active');
-    pendingReverseId = null;
-
-    if (res.success) {
-      showToast(`Verification reversed for ${res.full_name} — bed freed, back to Pending`, 'success');
-      await loadDashboardStats();
-      await loadRegistrations();
-    } else {
-      showToast(res.error || 'Failed to reverse verification', 'error');
-    }
-  });
-
-  // ---------- Register Someone (already paid, can't self-register) ----------
-  document.getElementById('registerAttendeeBtn').addEventListener('click', () => openAdminRegModal());
-
-  async function openAdminRegModal() {
-    ['arName','arPhone','arChurch','arDistrict','arTransactionId'].forEach(id => document.getElementById(id).value = '');
-    document.getElementById('arRank').value = '';
-    document.getElementById('arSex').value = '';
-    adminRegMeals = {};
-
-    const catSel = document.getElementById('arRoomCategory');
-    catSel.innerHTML = '';
-    currentCategories.forEach(cat => {
-      const opt = document.createElement('option');
-      opt.value = cat.id;
-      opt.dataset.price = cat.price_per_person;
-      opt.textContent = `${cat.name} — GH₵${parseFloat(cat.price_per_person).toFixed(2)}/person (${cat.beds_remaining} beds left)`;
-      catSel.appendChild(opt);
-    });
-
-    const res = await callRPC('get_accommodation_event_public', { p_event_id: accommodationEventId });
-    adminRegEventMeals = res.success ? (res.meals || []) : [];
-
-    renderAdminRegMeals();
-    updateAdminRegCost();
-
-    catSel.addEventListener('change', updateAdminRegCost);
-    document.getElementById('adminRegModal').classList.add('active');
-  }
-
-  function renderAdminRegMeals() {
-    const container = document.getElementById('arFeedingOptions');
-    container.innerHTML = '';
-    adminRegMeals = {};
-
-    if (adminRegEventMeals.length === 0) {
-      document.getElementById('arFeedingSection').style.display = 'none';
-      return;
-    }
-
-    document.getElementById('arFeedingSection').style.display = 'block';
-    adminRegEventMeals.forEach(meal => {
-      adminRegMeals[meal.id] = { selected: false, price: parseFloat(meal.price_per_person) };
-      const toggle = document.createElement('div');
-      toggle.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 10px; border:1px solid var(--border); border-radius:6px; margin-bottom:6px; cursor:pointer; font-size:13px;';
-      toggle.innerHTML = `<span>${escapeHtml(meal.label)}</span><span style="color:#60a5fa; font-weight:600;">GH₵${parseFloat(meal.price_per_person).toFixed(2)}</span>`;
-      toggle.addEventListener('click', () => {
-        adminRegMeals[meal.id].selected = !adminRegMeals[meal.id].selected;
-        toggle.style.background = adminRegMeals[meal.id].selected ? 'rgba(37,99,235,0.15)' : '';
-        toggle.style.borderColor = adminRegMeals[meal.id].selected ? 'var(--accent)' : 'var(--border)';
-        updateAdminRegCost();
-      });
-      container.appendChild(toggle);
-    });
-  }
-
-  function updateAdminRegCost() {
-    const catSel = document.getElementById('arRoomCategory');
-    const selectedOpt = catSel.options[catSel.selectedIndex];
-    const roomCost = selectedOpt ? parseFloat(selectedOpt.dataset.price || 0) : 0;
-    const mealsCost = Object.values(adminRegMeals).filter(m => m.selected).reduce((sum, m) => sum + m.price, 0);
-    document.getElementById('arCostRoom').textContent = `GH₵ ${roomCost.toFixed(2)}`;
-    document.getElementById('arCostMeals').textContent = `GH₵ ${mealsCost.toFixed(2)}`;
-    document.getElementById('arCostTotal').textContent = `GH₵ ${(roomCost + mealsCost).toFixed(2)}`;
-  }
-
-  document.getElementById('cancelAdminRegBtn').addEventListener('click', () => {
-    document.getElementById('adminRegModal').classList.remove('active');
-  });
-
-  document.getElementById('confirmAdminRegBtn').addEventListener('click', async () => {
-    const name = document.getElementById('arName').value.trim();
-    const phone = document.getElementById('arPhone').value.trim();
-    const transId = document.getElementById('arTransactionId').value.trim();
-    const sex = document.getElementById('arSex').value;
-    const roomCatId = document.getElementById('arRoomCategory').value;
-
-    if (!name) { showToast('Full name is required', 'error'); return; }
-    if (!phone) { showToast('Phone number is required', 'error'); return; }
-    if (!sex) { showToast('Please select sex', 'error'); return; }
-    if (!transId) { showToast('MoMo Transaction ID is required', 'error'); return; }
-    if (!roomCatId) { showToast('Please select a room category', 'error'); return; }
-
-    const btn = document.getElementById('confirmAdminRegBtn');
-    btn.disabled = true; btn.textContent = 'Registering...';
-
-    const selectedMeals = Object.entries(adminRegMeals).filter(([,v]) => v.selected);
-    const mealsCost = selectedMeals.reduce((sum, [,v]) => sum + v.price, 0);
-    const feedingSelection = {
-      type: 'flat',
-      included: selectedMeals.map(([id]) => ({ meal_option_id: id })),
-      total_meals_cost: mealsCost
-    };
-
-    const res = await callRPC('submit_registration', {
-      p_accommodation_event_id: accommodationEventId,
-      p_room_category_id: roomCatId,
-      p_full_name: name,
-      p_phone: phone,
-      p_church: document.getElementById('arChurch').value.trim() || null,
-      p_district: document.getElementById('arDistrict').value.trim() || null,
-      p_ministerial_rank: document.getElementById('arRank').value || null,
-      p_sex: sex,
-      p_feeding_selection: feedingSelection,
-      p_meals_total: mealsCost,
-      p_momo_transaction_id: transId,
-      p_payment_screenshot_url: null
-    });
-
-    if (!res.success) {
-      showToast(res.error || 'Registration failed', 'error');
-      btn.disabled = false; btn.textContent = 'Register & Submit';
-      return;
-    }
-
-    const catOpt = document.getElementById('arRoomCategory').options[document.getElementById('arRoomCategory').selectedIndex];
-    const roomPrice = parseFloat(catOpt?.dataset.price || 0);
-    fetch(`${SUPABASE_URL}/functions/v1/send-sms`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
-      body: JSON.stringify({
-        type: 'registration_received',
-        phone: phone,
-        full_name: name,
-        reference_number: res.reference_number,
-        event_name: document.getElementById('eventNameDisplay').textContent.replace('📋 ', '').replace(/ · .*/, '').trim(),
-        grand_total: roomPrice + mealsCost
-      })
-    }).catch(() => {});
-
-    btn.disabled = false; btn.textContent = 'Register & Submit';
-    document.getElementById('adminRegModal').classList.remove('active');
-    showToast(`${name} registered — Ref: ${res.reference_number}`);
-    await loadDashboardStats();
-    await loadRegistrations();
-  });
-
   // ---------- Filter ----------
   document.querySelectorAll('.filter-btn[data-filter]').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -1001,6 +673,113 @@
     showToast('Refreshed');
   });
 
+  // ---------- Reservations panel ----------
+  let pendingConvertId = null;
+  let pendingConvertData = null;
+
+  document.getElementById('showReservationsBtn').addEventListener('click', () => {
+    document.getElementById('registrationList').style.display = 'none';
+    document.querySelector('.filter-row').style.display = 'none';
+    document.getElementById('reservationsList').style.display = 'block';
+    loadReservations();
+  });
+
+  document.getElementById('hideReservationsBtn').addEventListener('click', () => {
+    document.getElementById('reservationsList').style.display = 'none';
+    document.getElementById('registrationList').style.display = 'block';
+    document.querySelector('.filter-row').style.display = 'flex';
+  });
+
+  async function loadReservations() {
+    const tbody = document.getElementById('reservationsTableBody');
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:2rem;">Loading...</td></tr>';
+
+    const res = await callRPC('get_reservations_for_event', {
+      p_token: sessionToken,
+      p_accommodation_event_id: accommodationEventId
+    });
+
+    const reservations = (res.reservations || []).filter(r => r.status === 'reserved');
+
+    if (reservations.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:2rem;">No active reservations.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = '';
+    reservations.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="padding:10px 8px; border-bottom:1px solid var(--border);"><strong>${escapeHtml(r.full_name)}</strong><br><span style="font-size:11px; color:var(--text-muted);">${escapeHtml(r.church || '')} · ${escapeHtml(r.district || '')}</span></td>
+        <td style="padding:10px 8px; border-bottom:1px solid var(--border);">${escapeHtml(r.phone)}</td>
+        <td style="padding:10px 8px; border-bottom:1px solid var(--border);">${escapeHtml(r.room_category_name)}</td>
+        <td style="padding:10px 8px; border-bottom:1px solid var(--border); text-transform:capitalize;">${r.sex ? (r.sex === 'male' ? '♂ Male' : '♀ Female') : '—'}</td>
+        <td style="padding:10px 8px; border-bottom:1px solid var(--border); font-size:12px;">${new Date(r.payment_deadline).toLocaleDateString('en-GH', {day:'numeric', month:'short', year:'numeric'})}</td>
+        <td style="padding:10px 8px; border-bottom:1px solid var(--border);">
+          <button class="btn-verify convert-btn" style="font-size:12px; padding:7px 14px;" data-id="${r.id}" data-name="${escapeHtml(r.full_name)}" data-room="${escapeHtml(r.room_category_name)}" data-price="${r.price_per_person}">Convert</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('.convert-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        pendingConvertId = btn.dataset.id;
+        document.getElementById('convertName').textContent = btn.dataset.name;
+        document.getElementById('convertRoom').textContent = btn.dataset.room;
+        document.getElementById('convertAmount').textContent = `GH₵ ${parseFloat(btn.dataset.price).toFixed(2)}`;
+        document.getElementById('convertTransactionId').value = '';
+        document.getElementById('convertModal').classList.add('active');
+      });
+    });
+  }
+
+  document.getElementById('cancelConvertBtn').addEventListener('click', () => {
+    document.getElementById('convertModal').classList.remove('active');
+    pendingConvertId = null;
+  });
+
+  document.getElementById('confirmConvertBtn').addEventListener('click', async () => {
+    const transId = document.getElementById('convertTransactionId').value.trim();
+    if (!transId) { showToast('MoMo Transaction ID is required', 'error'); return; }
+
+    const btn = document.getElementById('confirmConvertBtn');
+    btn.disabled = true; btn.textContent = 'Converting...';
+
+    const res = await callRPC('convert_reservation_to_registration', {
+      p_token: sessionToken,
+      p_reservation_id: pendingConvertId,
+      p_momo_transaction_id: transId
+    });
+
+    btn.disabled = false; btn.textContent = 'Convert to Registration';
+
+    if (!res.success) {
+      showToast(res.error || 'Failed to convert', 'error');
+      return;
+    }
+
+    document.getElementById('convertModal').classList.remove('active');
+    pendingConvertId = null;
+    showToast(`Registration ${res.reference_number} created — now in pending queue`);
+
+    // Refresh both panels
+    await loadDashboardStats();
+    await loadRegistrations();
+    loadReservations();
+
+    // Switch to pending queue so they can verify immediately
+    document.getElementById('reservationsList').style.display = 'none';
+    document.getElementById('registrationList').style.display = 'block';
+    document.querySelector('.filter-row').style.display = 'flex';
+
+    // Set filter to pending
+    document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+    document.querySelector('.filter-btn[data-filter="pending"]').classList.add('active');
+    currentFilter = 'pending';
+    renderList();
+  });
+
   // ---------- Init ----------
   async function init() {
     // For accounts_officer: accommodation_event_id comes from login
@@ -1015,14 +794,6 @@
       document.getElementById('registrationList').innerHTML =
         '<div class="empty-state">No event specified. Please navigate here from the dashboard.</div>';
       return;
-    }
-
-    // Managers/admins came from the accommodation dashboard — give them a way back.
-    // Accounts officers land here directly from login and have no dashboard to return to.
-    if (['event_manager', 'super_admin'].includes(userRole)) {
-      const backLink = document.getElementById('backToDashboardLink');
-      backLink.href = `accommodation-dashboard.html?event=${accommodationEventId}`;
-      backLink.style.display = 'inline';
     }
 
     await loadDashboardStats();
