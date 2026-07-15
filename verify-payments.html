@@ -325,7 +325,71 @@
   </div>
 </div>
 
-<!-- Edit Registration Modal (for duplicate audit) -->
+<!-- Floating Register Button - always visible on mobile -->
+<button id="floatingRegisterBtn" style="
+  position: fixed; bottom: 24px; right: 24px; z-index: 100;
+  background: #0f766e; color: white; border: none;
+  padding: 14px 20px; border-radius: 50px; font-size: 14px;
+  font-weight: 700; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  display: flex; align-items: center; gap: 8px;">
+  + Register Someone
+</button>
+
+<!-- Admin Registration Modal -->
+<div class="modal-overlay" id="vpAdminRegModal">
+  <div class="modal-box" style="max-width:520px;">
+    <h3>Register Attendee</h3>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Enter the minister's details. An SMS confirmation will be sent to their number.</p>
+
+    <div style="margin-bottom:12px;"><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">Full Name *</label>
+      <input type="text" id="vpArName" placeholder="e.g. Rev. John Mensah" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px; box-sizing:border-box;"></div>
+
+    <div style="margin-bottom:12px;"><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">Phone *</label>
+      <input type="tel" id="vpArPhone" placeholder="e.g. 0244000000" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px; box-sizing:border-box;"></div>
+
+    <div style="margin-bottom:12px;"><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">Sex *</label>
+      <select id="vpArSex" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px;">
+        <option value="">-- Select --</option>
+        <option value="male">Male</option>
+        <option value="female">Female</option>
+      </select></div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+      <div><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">Church</label>
+        <input type="text" id="vpArChurch" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px; box-sizing:border-box;"></div>
+      <div><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">District</label>
+        <input type="text" id="vpArDistrict" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px; box-sizing:border-box;"></div>
+    </div>
+
+    <div style="margin-bottom:12px;"><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">Ministerial Rank</label>
+      <select id="vpArRank" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px;">
+        <option value="">-- Select --</option>
+        <option value="Ordained">Ordained</option>
+        <option value="Licentiate">Licentiate</option>
+        <option value="Exhorter">Exhorter</option>
+        <option value="Probationer">Probationer</option>
+        <option value="Other">Other</option>
+      </select></div>
+
+    <div style="margin-bottom:12px;"><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">Room Category *</label>
+      <select id="vpArRoomCategory" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px;"></select></div>
+
+    <div style="margin-bottom:12px;"><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">MoMo Transaction ID *</label>
+      <input type="text" id="vpArTransactionId" placeholder="e.g. GH1234567890" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px; box-sizing:border-box;"></div>
+
+    <div style="background:rgba(255,255,255,0.05); border-radius:8px; padding:12px; margin-bottom:4px; font-size:13px;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:4px;"><span style="color:var(--text-muted);">Room</span><span id="vpArCostRoom">GH₵ 0.00</span></div>
+      <div style="display:flex; justify-content:space-between; font-weight:700; border-top:1px solid var(--border); padding-top:8px; margin-top:4px;"><span>Total</span><span id="vpArCostTotal">GH₵ 0.00</span></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" id="cancelVpAdminRegBtn">Cancel</button>
+      <button class="btn-confirm-modal" id="confirmVpAdminRegBtn">Register & Submit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit duplicate modal -->
 <div class="modal-overlay" id="editDupModal">
   <div class="modal-box">
     <h3>Edit Registration</h3>
@@ -627,6 +691,110 @@
 
     return card;
   }
+
+  // ---------- Floating Register Button ----------
+  document.getElementById('floatingRegisterBtn').addEventListener('click', openVpAdminRegModal);
+  document.getElementById('cancelVpAdminRegBtn').addEventListener('click', () => {
+    document.getElementById('vpAdminRegModal').classList.remove('active');
+  });
+
+  async function openVpAdminRegModal() {
+    ['vpArName','vpArPhone','vpArChurch','vpArDistrict','vpArTransactionId'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('vpArSex').value = '';
+    document.getElementById('vpArRank').value = '';
+    document.getElementById('vpArCostRoom').textContent = 'GH₵ 0.00';
+    document.getElementById('vpArCostTotal').textContent = 'GH₵ 0.00';
+
+    // Load room categories
+    const res = await callRPC('get_accommodation_dashboard', {
+      p_token: sessionToken,
+      p_accommodation_event_id: accommodationEventId
+    });
+    const catSel = document.getElementById('vpArRoomCategory');
+    catSel.innerHTML = '<option value="">-- Select --</option>';
+    if (res.success && res.category_stats) {
+      res.category_stats.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.dataset.price = cat.price_per_person;
+        opt.textContent = `${cat.name} — GH₵${parseFloat(cat.price_per_person).toFixed(2)} (${cat.beds_remaining} left)`;
+        catSel.appendChild(opt);
+      });
+    }
+
+    document.getElementById('vpAdminRegModal').classList.add('active');
+  }
+
+  document.getElementById('vpArRoomCategory').addEventListener('change', () => {
+    const sel = document.getElementById('vpArRoomCategory');
+    const price = parseFloat(sel.options[sel.selectedIndex]?.dataset.price || 0);
+    document.getElementById('vpArCostRoom').textContent = `GH₵ ${price.toFixed(2)}`;
+    document.getElementById('vpArCostTotal').textContent = `GH₵ ${price.toFixed(2)}`;
+  });
+
+  document.getElementById('confirmVpAdminRegBtn').addEventListener('click', async () => {
+    const name = document.getElementById('vpArName').value.trim();
+    const phone = document.getElementById('vpArPhone').value.trim();
+    const sex = document.getElementById('vpArSex').value;
+    const transId = document.getElementById('vpArTransactionId').value.trim();
+    const roomCatId = document.getElementById('vpArRoomCategory').value;
+
+    if (!name) { showToast('Full name is required', 'error'); return; }
+    if (!phone) { showToast('Phone number is required', 'error'); return; }
+    if (!sex) { showToast('Please select sex', 'error'); return; }
+    if (!roomCatId) { showToast('Please select a room category', 'error'); return; }
+    if (!transId) { showToast('MoMo Transaction ID is required', 'error'); return; }
+
+    const btn = document.getElementById('confirmVpAdminRegBtn');
+    btn.disabled = true; btn.textContent = 'Registering...';
+
+    const res = await callRPC('submit_registration', {
+      p_accommodation_event_id: accommodationEventId,
+      p_room_category_id: roomCatId,
+      p_full_name: name,
+      p_phone: phone,
+      p_church: document.getElementById('vpArChurch').value.trim() || null,
+      p_district: document.getElementById('vpArDistrict').value.trim() || null,
+      p_ministerial_rank: document.getElementById('vpArRank').value || null,
+      p_sex: sex,
+      p_feeding_selection: {},
+      p_meals_total: 0,
+      p_momo_transaction_id: transId,
+      p_payment_screenshot_url: null
+    });
+
+    btn.disabled = false; btn.textContent = 'Register & Submit';
+
+    if (!res.success) {
+      showToast(res.error || 'Registration failed', 'error');
+      return;
+    }
+
+    // Send SMS
+    fetch(`${SUPABASE_URL}/functions/v1/send-sms`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY },
+      body: JSON.stringify({
+        type: 'registration_received',
+        phone: phone,
+        full_name: name,
+        reference_number: res.reference_number,
+        event_name: document.getElementById('eventNameDisplay').textContent.replace('📋 ', '').replace(/ · .*/, '').trim(),
+        grand_total: parseFloat(document.getElementById('vpArCostTotal').textContent.replace('GH₵', '').trim())
+      })
+    }).catch(() => {});
+
+    document.getElementById('vpAdminRegModal').classList.remove('active');
+    showToast(`${name} registered — Ref: ${res.reference_number}`, 'success');
+    await loadDashboardStats();
+    await loadRegistrations();
+
+    // Switch to pending so they can verify immediately
+    document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
+    document.querySelector('.filter-btn[data-filter="pending"]').classList.add('active');
+    currentFilter = 'pending';
+    renderList();
+  });
 
   // ---------- Duplicate detection ----------
   function checkDuplicateThenVerify(reg, btn) {
