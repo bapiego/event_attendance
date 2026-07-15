@@ -271,13 +271,20 @@
     <button class="filter-btn" data-filter="all">All</button>
     <input type="text" id="searchInput" placeholder="Search name, phone, ref, church..." style="flex:1; padding:7px 12px; border-radius:20px; border:1px solid var(--border); background:var(--bg-card); color:var(--text-main); font-size:13px; min-width:200px;">
     <button class="filter-btn" id="showReservationsBtn" style="border-color:#d97706; color:#fbbf24;">🔒 Reservations</button>
+    <button class="filter-btn" id="checkDuplicatesBtn" style="border-color:#f87171; color:#f87171;">⚠️ Check Duplicates</button>
     <button class="filter-btn" id="refreshBtn">↻ Refresh</button>
   </div>
 
   <div id="registrationList"></div>
 
-  <!-- Reservations panel -->
-  <div id="reservationsList" style="display:none;">
+  <!-- Duplicates panel -->
+  <div id="duplicatesList" style="display:none;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+      <p style="font-size:13px; color:var(--text-muted); margin:0;">Verified registrations that may be the same person. Review and remove duplicates if needed.</p>
+      <button class="filter-btn" id="hideDuplicatesBtn">← Back to Payments</button>
+    </div>
+    <div id="duplicatesContent"></div>
+  </div>
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
       <p style="font-size:13px; color:var(--text-muted); margin:0;">Active reservations. Click Convert to create a pending registration for verification.</p>
       <div style="display:flex; gap:8px; align-items:center;">
@@ -741,7 +748,99 @@
     showToast('Refreshed');
   });
 
-  // ---------- Reservations panel ----------
+  // ---------- Duplicates audit ----------
+  document.getElementById('checkDuplicatesBtn').addEventListener('click', () => {
+    document.getElementById('registrationList').style.display = 'none';
+    document.querySelector('.filter-row').style.display = 'none';
+    document.getElementById('duplicatesList').style.display = 'block';
+    runDuplicateAudit();
+  });
+
+  document.getElementById('hideDuplicatesBtn').addEventListener('click', () => {
+    document.getElementById('duplicatesList').style.display = 'none';
+    document.getElementById('registrationList').style.display = 'block';
+    document.querySelector('.filter-row').style.display = 'flex';
+  });
+
+  function runDuplicateAudit() {
+    const container = document.getElementById('duplicatesContent');
+    const verified = allRegistrations.filter(r => r.payment_status === 'verified');
+
+    // Find groups of registrations that look like the same person
+    const groups = [];
+    const seen = new Set();
+
+    verified.forEach((reg, i) => {
+      if (seen.has(reg.id)) return;
+
+      const nameParts = reg.full_name.toLowerCase()
+        .replace(/^(rev\.?|pastor|dr\.?|mrs\.?|mr\.?|elder|prof\.?)\s+/i, '')
+        .trim().split(/\s+/).filter(p => p.length > 2);
+
+      const matches = verified.filter((other, j) => {
+        if (other.id === reg.id) return false;
+        // Same phone
+        if (other.phone === reg.phone) return true;
+        // Similar name — 2+ parts match
+        const otherName = other.full_name.toLowerCase();
+        return nameParts.filter(part => otherName.includes(part)).length >= 2;
+      });
+
+      if (matches.length > 0) {
+        const group = [reg, ...matches];
+        group.forEach(r => seen.add(r.id));
+        groups.push(group);
+      }
+    });
+
+    if (groups.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:3rem; color:var(--success);">
+          <div style="font-size:2rem; margin-bottom:8px;">✅</div>
+          <p style="font-weight:600;">No duplicates found</p>
+          <p style="font-size:13px; color:var(--text-muted); margin-top:4px;">All ${verified.length} verified registrations appear to be unique.</p>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div style="background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3); border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:13px; color:#f87171;">
+        Found <strong>${groups.length} possible duplicate group(s)</strong> among verified registrations. Review each group and contact the manager to remove the incorrect one.
+      </div>`;
+
+    groups.forEach((group, gi) => {
+      const card = document.createElement('div');
+      card.style.cssText = 'background:var(--bg-card); border:1.5px solid rgba(239,68,68,0.4); border-radius:10px; padding:16px; margin-bottom:12px;';
+      card.innerHTML = `
+        <p style="font-size:12px; font-weight:700; color:#f87171; text-transform:uppercase; letter-spacing:0.05em; margin-bottom:10px;">⚠️ Possible Duplicate Group ${gi + 1}</p>
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+          <thead>
+            <tr>
+              <th style="text-align:left; color:var(--text-muted); font-size:11px; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border);">Ref</th>
+              <th style="text-align:left; color:var(--text-muted); font-size:11px; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border);">Name</th>
+              <th style="text-align:left; color:var(--text-muted); font-size:11px; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border);">Phone</th>
+              <th style="text-align:left; color:var(--text-muted); font-size:11px; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border);">Room</th>
+              <th style="text-align:left; color:var(--text-muted); font-size:11px; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border);">Amount</th>
+              <th style="text-align:left; color:var(--text-muted); font-size:11px; text-transform:uppercase; padding:6px 8px; border-bottom:1px solid var(--border);">Verified</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${group.map(r => `
+              <tr>
+                <td style="padding:8px; border-bottom:1px solid var(--border); font-family:monospace; font-size:11px; color:#60a5fa;">${escapeHtml(r.reference_number)}</td>
+                <td style="padding:8px; border-bottom:1px solid var(--border); font-weight:600;">${escapeHtml(r.full_name)}</td>
+                <td style="padding:8px; border-bottom:1px solid var(--border);">${escapeHtml(r.phone)}</td>
+                <td style="padding:8px; border-bottom:1px solid var(--border);">${escapeHtml(r.room_category_name)}${r.room_number ? ' · Room ' + r.room_number : ''}</td>
+                <td style="padding:8px; border-bottom:1px solid var(--border); font-weight:700;">GH₵${parseFloat(r.grand_total).toFixed(2)}</td>
+                <td style="padding:8px; border-bottom:1px solid var(--border); font-size:11px; color:var(--text-muted);">${r.verified_at ? new Date(r.verified_at).toLocaleString() : '—'}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:10px;">Contact the manager to remove the incorrect registration. The manager can delete it from the accommodation dashboard.</p>
+      `;
+      container.appendChild(card);
+    });
+  }
   let pendingConvertId = null;
   let pendingConvertData = null;
   let allReservations = [];
