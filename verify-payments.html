@@ -325,6 +325,38 @@
   </div>
 </div>
 
+<!-- Edit Registration Modal (for duplicate audit) -->
+<div class="modal-overlay" id="editDupModal">
+  <div class="modal-box">
+    <h3>Edit Registration</h3>
+    <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;" id="editDupSubtitle"></p>
+    <div class="form-group"><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">Full Name *</label><input type="text" id="edName" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px;"></div>
+    <div class="form-group" style="margin-top:12px;"><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">Phone *</label><input type="text" id="edPhone" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px;"></div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
+      <div><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">Church</label><input type="text" id="edChurch" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px;"></div>
+      <div><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">District</label><input type="text" id="edDistrict" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px;"></div>
+    </div>
+    <div style="margin-top:12px;"><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">Ministerial Rank</label>
+      <select id="edRank" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px;">
+        <option value="">-- Select --</option>
+        <option value="Ordained">Ordained</option>
+        <option value="Licentiate">Licentiate</option>
+        <option value="Exhorter">Exhorter</option>
+        <option value="Probationer">Probationer</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+    <div style="margin-top:12px;"><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">Room Category</label>
+      <select id="edRoomCategory" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px;"></select>
+    </div>
+    <div style="margin-top:12px;"><label style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.04em; display:block; margin-bottom:5px;">MoMo Transaction ID</label><input type="text" id="edTxn" style="width:100%; padding:9px 11px; border-radius:6px; border:1px solid var(--border); background:var(--bg-main); color:var(--text-main); font-size:14px;"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" id="cancelEditDupBtn">Cancel</button>
+      <button class="btn-confirm-modal" id="confirmEditDupBtn">Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <!-- Duplicate Warning Modal -->
 <div class="modal-overlay" id="dupWarningModal">
   <div class="modal-box">
@@ -836,13 +868,124 @@
               </tr>`).join('')}
           </tbody>
         </table>
-        <p style="font-size:12px; color:var(--text-muted); margin-top:10px;">Contact the manager to remove the incorrect registration. The manager can delete it from the accommodation dashboard.</p>
+        <p style="font-size:12px; color:var(--text-muted); margin-top:10px;">
+          Click <strong>Delete</strong> on the incorrect registration to remove it. Revenue will update automatically.
+        </p>
+        <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap;">
+          ${group.map(r => `
+            <button class="edit-dup-btn" data-id="${r.id}" data-ref="${escapeHtml(r.reference_number)}" data-name="${escapeHtml(r.full_name)}" data-phone="${escapeHtml(r.phone)}" data-church="${escapeHtml(r.church||'')}" data-district="${escapeHtml(r.district||'')}" data-rank="${escapeHtml(r.ministerial_rank||'')}" data-txn="${escapeHtml(r.momo_transaction_id||'')}" data-category="${escapeHtml(r.room_category_name||'')}"
+              style="background:var(--accent); border:none; color:white; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
+              Edit ${escapeHtml(r.reference_number)}
+            </button>
+            <button class="delete-dup-btn" data-id="${r.id}" data-ref="${escapeHtml(r.reference_number)}" data-name="${escapeHtml(r.full_name)}"
+              style="background:none; border:1px solid var(--danger); color:var(--danger); padding:6px 14px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
+              Delete ${escapeHtml(r.reference_number)}
+            </button>`).join('')}
+        </div>
       `;
       container.appendChild(card);
+
+      // Wire edit buttons
+      card.querySelectorAll('.edit-dup-btn').forEach(btn => {
+        btn.addEventListener('click', () => openEditDupModal(btn.dataset));
+      });
+
+      // Wire delete buttons if manager
+      card.querySelectorAll('.delete-dup-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          if (!confirm(`Delete ${btn.dataset.ref} (${btn.dataset.name})?\n\nThis cannot be undone. The bed will be freed and revenue updated.`)) return;
+          btn.disabled = true; btn.textContent = 'Deleting...';
+
+          const res = await callRPC('delete_registration', {
+            p_token: sessionToken,
+            p_registration_id: btn.dataset.id
+          });
+
+          if (res.success) {
+            showToast(`${btn.dataset.ref} deleted`, 'success');
+            await loadDashboardStats();
+            await loadRegistrations();
+            runDuplicateAudit();
+          } else {
+            showToast(res.error || 'Failed to delete', 'error');
+            btn.disabled = false;
+            btn.textContent = `Delete ${btn.dataset.ref}`;
+          }
+        });
+      });
     });
   }
   let pendingConvertId = null;
   let pendingConvertData = null;
+  // ---------- Edit duplicate modal ----------
+  let editDupId = null;
+
+  async function openEditDupModal(data) {
+    editDupId = data.id;
+    document.getElementById('editDupSubtitle').textContent = `Editing ${data.ref} — room rate is locked to the category price.`;
+    document.getElementById('edName').value = data.name || '';
+    document.getElementById('edPhone').value = data.phone || '';
+    document.getElementById('edChurch').value = data.church || '';
+    document.getElementById('edDistrict').value = data.district || '';
+    document.getElementById('edRank').value = data.rank || '';
+    document.getElementById('edTxn').value = data.txn || '';
+
+    const res = await callRPC('get_accommodation_dashboard', {
+      p_token: sessionToken,
+      p_accommodation_event_id: accommodationEventId
+    });
+    const catSel = document.getElementById('edRoomCategory');
+    catSel.innerHTML = '';
+    if (res.success && res.category_stats) {
+      res.category_stats.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat.id;
+        opt.textContent = `${cat.name} — GH₵${parseFloat(cat.price_per_person).toFixed(2)}/person`;
+        if (cat.name === data.category) opt.selected = true;
+        catSel.appendChild(opt);
+      });
+    }
+    document.getElementById('editDupModal').classList.add('active');
+  }
+
+  document.getElementById('cancelEditDupBtn').addEventListener('click', () => {
+    document.getElementById('editDupModal').classList.remove('active');
+    editDupId = null;
+  });
+
+  document.getElementById('confirmEditDupBtn').addEventListener('click', async () => {
+    if (!editDupId) return;
+    const btn = document.getElementById('confirmEditDupBtn');
+    btn.disabled = true; btn.textContent = 'Saving...';
+
+    const res = await callRPC('edit_registration', {
+      p_token: sessionToken,
+      p_registration_id: editDupId,
+      p_full_name: document.getElementById('edName').value.trim(),
+      p_phone: document.getElementById('edPhone').value.trim(),
+      p_church: document.getElementById('edChurch').value.trim() || null,
+      p_district: document.getElementById('edDistrict').value.trim() || null,
+      p_ministerial_rank: document.getElementById('edRank').value || null,
+      p_room_category_id: document.getElementById('edRoomCategory').value || null,
+      p_feeding_selection: null,
+      p_meals_total: null,
+      p_momo_transaction_id: document.getElementById('edTxn').value.trim()
+    });
+
+    btn.disabled = false; btn.textContent = 'Save Changes';
+    document.getElementById('editDupModal').classList.remove('active');
+    editDupId = null;
+
+    if (res.success) {
+      showToast('Registration updated');
+      await loadDashboardStats();
+      await loadRegistrations();
+      runDuplicateAudit();
+    } else {
+      showToast(res.error || 'Failed to save', 'error');
+    }
+  });
+
   let allReservations = [];
   let reservationSearchWired = false;
 
