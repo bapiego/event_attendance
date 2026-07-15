@@ -318,6 +318,18 @@
   </div>
 </div>
 
+<!-- Duplicate Warning Modal -->
+<div class="modal-overlay" id="dupWarningModal">
+  <div class="modal-box">
+    <h3 style="color:#fbbf24;">⚠️ Possible Duplicate</h3>
+    <p style="font-size:13px; line-height:1.7; margin-bottom:20px; color:var(--text-main);" id="dupWarningText"></p>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="document.getElementById('dupWarningModal').classList.remove('active')">Cancel — Don't Verify</button>
+      <button class="btn-confirm-modal" style="background:var(--warning);" id="dupWarningBtn">Yes, Verify Anyway</button>
+    </div>
+  </div>
+</div>
+
 <!-- Convert Reservation Modal -->
 <div class="modal-overlay" id="convertModal">
   <div class="modal-box">
@@ -560,7 +572,7 @@
       const verifyBtn = document.createElement('button');
       verifyBtn.className = 'btn-verify';
       verifyBtn.textContent = '✓ Verify Payment';
-      verifyBtn.addEventListener('click', () => verifyPayment(reg.id, verifyBtn));
+      verifyBtn.addEventListener('click', () => checkDuplicateThenVerify(reg, verifyBtn));
       actionRow.appendChild(verifyBtn);
 
       const rejectBtn = document.createElement('button');
@@ -575,6 +587,44 @@
     }
 
     return card;
+  }
+
+  // ---------- Duplicate detection ----------
+  function checkDuplicateThenVerify(reg, btn) {
+    // Check for similar name or same phone in already-verified registrations
+    const nameParts = reg.full_name.toLowerCase()
+      .replace(/^(rev\.?|pastor|dr\.?|elder|prof\.?)\s+/i, '')
+      .trim()
+      .split(/\s+/);
+
+    const duplicates = allRegistrations.filter(r =>
+      r.id !== reg.id &&
+      r.payment_status === 'verified' &&
+      (
+        // Same phone
+        r.phone === reg.phone ||
+        // Similar name — at least 2 name parts match
+        nameParts.filter(part =>
+          part.length > 2 &&
+          r.full_name.toLowerCase().includes(part)
+        ).length >= 2
+      )
+    );
+
+    if (duplicates.length > 0) {
+      const dupNames = duplicates.map(d => `${d.full_name} (${d.reference_number})`).join(', ');
+      document.getElementById('dupWarningText').innerHTML =
+        `The following verified registration(s) appear to be the same person:<br><br>
+        <strong style="color:#60a5fa;">${dupNames}</strong><br><br>
+        Are you sure <strong>${reg.full_name}</strong> (${reg.reference_number}) is a different person and should also be verified?`;
+      document.getElementById('dupWarningBtn').onclick = () => {
+        document.getElementById('dupWarningModal').classList.remove('active');
+        verifyPayment(reg.id, btn);
+      };
+      document.getElementById('dupWarningModal').classList.add('active');
+    } else {
+      verifyPayment(reg.id, btn);
+    }
   }
 
   // ---------- Verify ----------
