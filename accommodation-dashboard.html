@@ -586,6 +586,7 @@
     <div class="form-group"><label>MoMo Transaction ID</label><input type="text" id="erTransactionId"></div>
     <div class="modal-actions">
       <button class="btn-cancel-modal" id="cancelEditRegBtn">Cancel</button>
+      <button class="btn-confirm-modal" style="background:var(--danger); flex:0; padding:11px 16px;" id="deleteRegBtn">Delete</button>
       <button class="btn-confirm-modal" id="confirmEditRegBtn">Save Changes</button>
     </div>
   </div>
@@ -901,6 +902,32 @@
   document.getElementById('cancelEditRegBtn').addEventListener('click', () => {
     document.getElementById('editRegModal').classList.remove('active');
     editingRegId = null;
+  });
+
+  document.getElementById('deleteRegBtn').addEventListener('click', async () => {
+    if (!editingRegId) return;
+    const name = document.getElementById('erName').value;
+    if (!confirm(`Permanently delete ${name}'s registration?\n\nThis will free their bed and update revenue. This cannot be undone.`)) return;
+
+    const btn = document.getElementById('deleteRegBtn');
+    btn.disabled = true; btn.textContent = 'Deleting...';
+
+    const res = await callRPC('delete_registration', {
+      p_token: sessionToken,
+      p_registration_id: editingRegId
+    });
+
+    btn.disabled = false; btn.textContent = 'Delete';
+    document.getElementById('editRegModal').classList.remove('active');
+    editingRegId = null;
+
+    if (res.success) {
+      showToast('Registration deleted');
+      await loadDashboard();
+      await loadRegistrations();
+    } else {
+      showToast(res.error || 'Failed to delete', 'error');
+    }
   });
 
   document.getElementById('confirmEditRegBtn').addEventListener('click', async () => {
