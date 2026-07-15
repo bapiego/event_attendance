@@ -757,7 +757,7 @@
       p_district: document.getElementById('vpArDistrict').value.trim() || null,
       p_ministerial_rank: document.getElementById('vpArRank').value || null,
       p_sex: sex,
-      p_feeding_selection: {},
+      p_feeding_selection: null,
       p_meals_total: 0,
       p_momo_transaction_id: transId,
       p_payment_screenshot_url: null
@@ -766,6 +766,7 @@
     btn.disabled = false; btn.textContent = 'Register & Submit';
 
     if (!res.success) {
+      console.error('Registration error:', JSON.stringify(res));
       showToast(res.error || 'Registration failed', 'error');
       return;
     }
