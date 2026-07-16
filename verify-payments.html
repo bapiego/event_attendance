@@ -952,7 +952,7 @@
   // ---------- Duplicates audit ----------
   document.getElementById('checkDuplicatesBtn').addEventListener('click', () => {
     document.getElementById('registrationList').style.display = 'none';
-    document.getElementById('mainFilterRow').style.display = 'none';
+    const fr = document.getElementById('mainFilterRow'); if(fr) fr.style.display = 'none';
     document.getElementById('duplicatesList').style.display = 'block';
     runDuplicateAudit();
   });
@@ -960,7 +960,7 @@
   document.getElementById('hideDuplicatesBtn').addEventListener('click', () => {
     document.getElementById('duplicatesList').style.display = 'none';
     document.getElementById('registrationList').style.display = 'block';
-    document.getElementById('mainFilterRow').style.display = 'flex';
+    const fr2 = document.getElementById('mainFilterRow'); if(fr2) fr2.style.display = 'flex';
   });
 
   function runDuplicateAudit() {
@@ -1160,7 +1160,7 @@
 
   document.getElementById('showReservationsBtn').addEventListener('click', () => {
     document.getElementById('registrationList').style.display = 'none';
-    document.getElementById('mainFilterRow').style.display = 'none';
+    const fr = document.getElementById('mainFilterRow'); if(fr) fr.style.display = 'none';
     document.getElementById('reservationsList').style.display = 'block';
     // Wire search once only
     if (!reservationSearchWired) {
@@ -1173,7 +1173,7 @@
   document.getElementById('hideReservationsBtn').addEventListener('click', () => {
     document.getElementById('reservationsList').style.display = 'none';
     document.getElementById('registrationList').style.display = 'block';
-    document.getElementById('mainFilterRow').style.display = 'flex';
+    const fr2 = document.getElementById('mainFilterRow'); if(fr2) fr2.style.display = 'flex';
   });
 
   async function loadReservations() {
@@ -1278,7 +1278,7 @@
     // Switch to pending queue so they can verify immediately
     document.getElementById('reservationsList').style.display = 'none';
     document.getElementById('registrationList').style.display = 'block';
-    document.getElementById('mainFilterRow').style.display = 'flex';
+    const fr2 = document.getElementById('mainFilterRow'); if(fr2) fr2.style.display = 'flex';
 
     // Set filter to pending
     document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
