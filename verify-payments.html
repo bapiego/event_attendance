@@ -1185,6 +1185,11 @@
       p_accommodation_event_id: accommodationEventId
     });
 
+    if (!res.success) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--danger); padding:2rem;">${escapeHtml(res.error || 'Failed to load reservations')}</td></tr>`;
+      return;
+    }
+
     // Only show genuinely active reservations — status must be exactly 'reserved'
     allReservations = (res.reservations || []).filter(r => r.status === 'reserved');
     renderReservationList();
