@@ -285,8 +285,10 @@
     </div>
     <div id="duplicatesContent"></div>
   </div>
+
+  <!-- Reservations panel -->
+  <div id="reservationsList" style="display:none;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-      <p style="font-size:13px; color:var(--text-muted); margin:0;">Active reservations. Click Convert to create a pending registration for verification.</p>
       <div style="display:flex; gap:8px; align-items:center;">
         <input type="text" id="reservationSearchInput" placeholder="Search reservations..." style="padding:7px 12px; border-radius:20px; border:1px solid var(--border); background:var(--bg-card); color:var(--text-main); font-size:13px; width:200px;">
         <button class="filter-btn" id="hideReservationsBtn">← Back to Payments</button>
@@ -307,8 +309,9 @@
         <tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:2rem;">Loading...</td></tr>
       </tbody>
     </table>
-  </div>
-</div>
+  </div><!-- end reservationsList -->
+
+</div><!-- end container -->
 
 <p class="app-footer">Powered by Marvelous Events</p>
 
@@ -454,6 +457,8 @@
 <div class="toast" id="toastBar"></div>
 
 <script>
+  window.onerror = function(msg, src, line) { console.warn('Caught:', msg, 'line:', line); return true; };
+
   const SUPABASE_URL = 'https://ydijisbsoqqbcjssscck.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_PLI1DLUB_0DF3R0x3GPWYA_RNj2aScg';
   const sessionToken = localStorage.getItem('session_token');
@@ -952,7 +957,7 @@
   // ---------- Duplicates audit ----------
   document.getElementById('checkDuplicatesBtn').addEventListener('click', () => {
     document.getElementById('registrationList').style.display = 'none';
-    const fr = document.getElementById('mainFilterRow'); if(fr) fr.style.display = 'none';
+    try { const fr = document.getElementById('mainFilterRow'); if(fr) fr.style.display = 'none'; } catch(e) {}
     document.getElementById('duplicatesList').style.display = 'block';
     runDuplicateAudit();
   });
@@ -960,7 +965,7 @@
   document.getElementById('hideDuplicatesBtn').addEventListener('click', () => {
     document.getElementById('duplicatesList').style.display = 'none';
     document.getElementById('registrationList').style.display = 'block';
-    const fr2 = document.getElementById('mainFilterRow'); if(fr2) fr2.style.display = 'flex';
+    try { const fr2 = document.getElementById('mainFilterRow'); if(fr2) fr2.style.display = 'flex'; } catch(e) {}
   });
 
   function runDuplicateAudit() {
@@ -1160,7 +1165,7 @@
 
   document.getElementById('showReservationsBtn').addEventListener('click', () => {
     document.getElementById('registrationList').style.display = 'none';
-    const fr = document.getElementById('mainFilterRow'); if(fr) fr.style.display = 'none';
+    try { const fr = document.getElementById('mainFilterRow'); if(fr) fr.style.display = 'none'; } catch(e) {}
     document.getElementById('reservationsList').style.display = 'block';
     // Wire search once only
     if (!reservationSearchWired) {
@@ -1173,7 +1178,7 @@
   document.getElementById('hideReservationsBtn').addEventListener('click', () => {
     document.getElementById('reservationsList').style.display = 'none';
     document.getElementById('registrationList').style.display = 'block';
-    const fr2 = document.getElementById('mainFilterRow'); if(fr2) fr2.style.display = 'flex';
+    try { const fr2 = document.getElementById('mainFilterRow'); if(fr2) fr2.style.display = 'flex'; } catch(e) {}
   });
 
   async function loadReservations() {
@@ -1278,7 +1283,7 @@
     // Switch to pending queue so they can verify immediately
     document.getElementById('reservationsList').style.display = 'none';
     document.getElementById('registrationList').style.display = 'block';
-    const fr2 = document.getElementById('mainFilterRow'); if(fr2) fr2.style.display = 'flex';
+    try { const fr2 = document.getElementById('mainFilterRow'); if(fr2) fr2.style.display = 'flex'; } catch(e) {}
 
     // Set filter to pending
     document.querySelectorAll('.filter-btn[data-filter]').forEach(b => b.classList.remove('active'));
@@ -1305,6 +1310,12 @@
 
     await loadDashboardStats();
     await loadRegistrations();
+
+    // If reservations panel is already visible (e.g. page was left on it),
+    // load the data automatically
+    if (document.getElementById('reservationsList').style.display !== 'none') {
+      loadReservations();
+    }
   }
 
   init();
